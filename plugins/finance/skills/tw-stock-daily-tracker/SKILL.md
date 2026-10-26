@@ -52,7 +52,8 @@ metadata:
 這個 skill 會把報告寫進使用者的 Obsidian vault，路徑由環境變數 `TW_STOCK_INVESTING_DIR` 提供，指向 vault 中的 `Investing` 資料夾（例如 `/Users/<你>/Library/Mobile Documents/iCloud~md~obsidian/Documents/<vault 名稱>/Investing`）。
 
 - 執行前先確認 `echo "$TW_STOCK_INVESTING_DIR"` 有值。
-- 沒有設定時，先詢問使用者 vault 中 Investing 資料夾的路徑，本次執行以 `--base-dir "<路徑>/Daily" --config "<路徑>/config.json"` 傳給 `build_report.py`，並提示使用者把 `export TW_STOCK_INVESTING_DIR="<路徑>"` 加進 shell 設定檔（例如 `~/.zshrc`）。
+- 由排程（launchd、cron 或 `claude -p`）在背景執行、沒有人可以回答問題時：若沒有設定，**不要詢問，直接停止**，並輸出錯誤訊息「TW_STOCK_INVESTING_DIR 未設定，請在排程設定中加入這個環境變數」。
+- 互動執行時若沒有設定，先詢問使用者 vault 中 Investing 資料夾的路徑，本次執行以 `--base-dir "<路徑>/Daily" --config "<路徑>/config.json"` 傳給 `build_report.py`，並提示使用者把 `export TW_STOCK_INVESTING_DIR="<路徑>"` 加進 shell 設定檔（例如 `~/.zshrc`）。
 - 安裝 launchd 排程（`scripts/install_launchd_jobs.sh`）前也必須先設定，安裝腳本會把這個值寫進每個 plist。
 
 ## 產出位置（直接寫進 Obsidian vault）

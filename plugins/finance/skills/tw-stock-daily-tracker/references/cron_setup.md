@@ -39,13 +39,17 @@ bash scripts/install_launchd_jobs.sh --uninstall
 **注意事項：**
 - launchd 是每天都會觸發（含週末），是否為交易日的判斷交給 skill 內部邏輯處理（非交易日會自己跳過、只寫一行 log）。這樣設計比在 plist 裡塞星期幾邏輯簡單很多。
 - 電腦在排程時間必須是開機且沒有睡眠。如果會讓 Mac 睡眠，建議搭配「電源與電池」設定裡的排定啟動，或用 `pmset` 設定喚醒時間。
+- 從舊版（路徑寫死在腳本裡的版本）升級時，請先設定 `TW_STOCK_INVESTING_DIR`，再重新執行一次安裝腳本，讓每個 plist 都帶上這個環境變數。
 - 如果之後想調整時間或新增/減少排程次數，直接改 `scripts/install_launchd_jobs.sh` 裡的 `SLOTS` 陣列，重新執行一次腳本即可（會先 unload 舊的再重新 load）。
 
 ## 方式 B：crontab（比較陽春但簡單）
 
 如果不想用 launchd，也可以直接編輯 crontab（`crontab -e`），加入類似下面的內容（記得把路徑換成實際安裝路徑，`claude` 換成 `which claude` 查到的完整路徑）：
 
+cron 不會讀 `~/.zshrc`，所以要在 crontab 最上面另外設定 `TW_STOCK_INVESTING_DIR`（cron 允許這種變數設定行；路徑有空白也不需要加引號，但不能用 `~`，要寫完整路徑）：
+
 ```cron
+TW_STOCK_INVESTING_DIR=/Users/<你>/Library/Mobile Documents/iCloud~md~obsidian/Documents/<vault 名稱>/Investing
 50 8 * * 1-5   /usr/local/bin/claude -p "請執行 tw-stock-daily-tracker skill，phase=premarket，time_label=0850"
 0,30 9-11 * * 1-5   /usr/local/bin/claude -p "請執行 tw-stock-daily-tracker skill，phase=update，time_label=從現在時間帶入（例如0900、0930）"
 0 12 * * 1-5   /usr/local/bin/claude -p "請執行 tw-stock-daily-tracker skill，phase=update，time_label=1200"

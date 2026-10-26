@@ -53,6 +53,8 @@ fi
 
 # launchd 不會讀 ~/.zshrc，所以要把 vault 路徑直接寫進 plist
 : "${TW_STOCK_INVESTING_DIR:?請先設定 TW_STOCK_INVESTING_DIR（Obsidian vault 中 Investing 資料夾的路徑）}"
+# 路徑加了引號時 "~" 不會被展開，這裡手動換成 $HOME
+TW_STOCK_INVESTING_DIR="${TW_STOCK_INVESTING_DIR/#\~/$HOME}"
 
 for slot in "${SLOTS[@]}"; do
   hhmm="${slot%%:*}"

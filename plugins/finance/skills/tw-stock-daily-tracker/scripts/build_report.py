@@ -46,6 +46,7 @@ payload.json 格式：
 import argparse
 import json
 import os
+import re
 import statistics
 import subprocess
 import sys
@@ -130,8 +131,19 @@ def mac_notify(title, message):
     if sys.platform != "darwin":
         return
     try:
-        script = f'display notification "{message}" with title "{title}" sound name "Glass"'
-        subprocess.run(["osascript", "-e", script], check=False, timeout=5)
+        # 文字以 argv 傳入，避免新聞或股票名稱中的引號被當成 AppleScript 執行
+        subprocess.run(
+            [
+                "osascript",
+                "-e", "on run argv",
+                "-e", 'display notification (item 2 of argv) with title (item 1 of argv) sound name "Glass"',
+                "-e", "end run",
+                title,
+                message,
+            ],
+            check=False,
+            timeout=5,
+        )
     except Exception as e:
         print(f"[警告] macOS 通知發送失敗：{e}", file=sys.stderr)
 
@@ -149,7 +161,26 @@ def save_json(path, data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+TIME_LABEL_RE = re.compile(r"^\d{4}$")
+SYMBOL_RE = re.compile(r"^[0-9A-Za-z]{1,10}$")
+
+
+def check_payload(payload):
+    """payload 的欄位會變成檔名，先確認格式，避免寫到 base_dir 以外的地方。"""
+    if not DATE_RE.match(str(payload.get("date", ""))):
+        raise ValueError(f"payload.date 必須是 YYYY-MM-DD：{payload.get('date')!r}")
+    if not TIME_LABEL_RE.match(str(payload.get("time_label", ""))):
+        raise ValueError(f"payload.time_label 必須是四位數字（例如 0850）：{payload.get('time_label')!r}")
+    if payload.get("phase") not in PHASE_LABEL:
+        raise ValueError(f"payload.phase 必須是 {', '.join(PHASE_LABEL)} 其中之一：{payload.get('phase')!r}")
+    for stock in payload.get("stocks", []):
+        if not SYMBOL_RE.match(str(stock.get("symbol", ""))):
+            raise ValueError(f"股票代號格式錯誤：{stock.get('symbol')!r}")
+
+
 def build(payload, base_dir: Path):
+    check_payload(payload)
     date = payload["date"]
     phase = payload["phase"]
     time_label = payload["time_label"]
@@ -282,6 +313,9 @@ def main():
     parser.add_argument("--input", "-i", required=True, help="輸入 payload JSON 檔案路徑")
     # Obsidian vault 中 Investing 資料夾的路徑，由使用者以環境變數提供
     VAULT_INVESTING = os.environ.get("TW_STOCK_INVESTING_DIR")
+    if VAULT_INVESTING:
+        # 路徑含空白時常會加引號，"~" 就不會被 shell 展開
+        VAULT_INVESTING = os.path.expanduser(VAULT_INVESTING)
     parser.add_argument(
         "--base-dir",
         "-b",
@@ -311,13 +345,17 @@ def main():
     if "capital_twd" not in payload:
         capital = args.capital
         if capital is None:
-            cfg = load_json(Path(args.config))
+            cfg = load_json(Path(args.config).expanduser())
             capital = cfg.get("capital_twd", 500000)
         payload["capital_twd"] = capital
     elif args.capital is not None:
         payload["capital_twd"] = args.capital
 
-    report_path, changed = build(payload, Path(args.base_dir))
+    try:
+        report_path, changed = build(payload, Path(args.base_dir).expanduser())
+    except ValueError as e:
+        print(f"[錯誤] {e}", file=sys.stderr)
+        sys.exit(1)
     print(f"報告已產生：{report_path}")
     if changed:
         print("訊號變化：")

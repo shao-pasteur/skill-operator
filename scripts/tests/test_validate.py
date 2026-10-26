@@ -154,3 +154,14 @@ def test_binary_files_skipped(repo):
     (path / "assets").mkdir()
     (path / "assets" / "img.png").write_bytes(b"\x89PNG\x00\xff\xfe")
     assert errors(run(repo)) == []
+
+
+def test_only_skill_dirs_are_reference_checked(repo):
+    repo.add_skill("dev", "foo", body="報告內嵌 ![](../charts/{symbol}.png) 與 [筆記](notes.md)；見 ./references/a.md\n",
+                   files={"references/a.md": "a"})
+    assert errors(run(repo)) == []
+
+
+def test_dot_slash_reference_checked(repo):
+    repo.add_skill("dev", "foo", body="見 [說明](./references/missing.md)\n")
+    assert any("references/missing.md" in m for m in errors(run(repo)))

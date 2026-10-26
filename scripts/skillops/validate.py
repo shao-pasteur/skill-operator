@@ -10,6 +10,7 @@ from skillops.catalog import NAME_RE, Catalog, Skill
 
 STANDARD_FIELDS = frozenset({"name", "description", "license", "compatibility", "metadata"})
 
+_SKILL_DIRS = ("scripts/", "references/", "assets/")
 _LINK_RE = re.compile(r"\]\(([^)\s]+)\)")
 _BARE_REF_RE = re.compile(r"(?<![A-Za-z0-9_/.:-])((?:scripts|references|assets)/[A-Za-z0-9_./-]+)")
 _PERSONAL_PATH_RES = [
@@ -88,8 +89,9 @@ def _check_references(skill: Skill, where: str) -> list[Issue]:
     for ref in refs:
         if ":" in ref or ref.startswith("#"):
             continue
-        ref = ref.split("#", 1)[0].rstrip(".,;:)")
-        if not ref or ref in seen:
+        ref = ref.split("#", 1)[0].rstrip(".,;:)").removeprefix("./")
+        # Other relative links usually describe files the skill writes elsewhere.
+        if not ref.startswith(_SKILL_DIRS) or ref in seen:
             continue
         seen.add(ref)
         if not (skill.path / ref).exists():

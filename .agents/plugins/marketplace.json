@@ -1,0 +1,7 @@
+{
+  "name": "skill-operator",
+  "interface": {
+    "displayName": "skill-operator"
+  },
+  "plugins": []
+}

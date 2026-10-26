@@ -1,0 +1,6 @@
+.claude-plugin/** linguist-generated=true
+.agents/** linguist-generated=true
+.cursor-plugin/** linguist-generated=true
+plugins/*/.claude-plugin/** linguist-generated=true
+plugins/*/.codex-plugin/** linguist-generated=true
+plugins/*/.cursor-plugin/** linguist-generated=true

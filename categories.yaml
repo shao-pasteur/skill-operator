@@ -1,23 +1,23 @@
 marketplace: skill-operator
 owner:
   name: Yuan
-  github: pasteur-yuan
+  github: shao-pasteur
 categories:
   - id: dev
-    title: 軟體開發
-    description: 程式碼審查、除錯、git、測試、架構設計
+    title: Software development
+    description: Code review, debugging, git, testing and architecture design
   - id: writing
-    title: 寫作與文件
-    description: 文章、翻譯、簡報、文件格式轉換
+    title: Writing and documents
+    description: Articles, translation, presentations and document conversion
   - id: research
-    title: 研究與知識管理
-    description: 查資料、摘要、Obsidian 筆記整理
+    title: Research and knowledge management
+    description: Looking things up, summarizing and organizing Obsidian notes
   - id: finance
-    title: 投資與財務
-    description: 台股追蹤、技術分析、財報整理
+    title: Investing and finance
+    description: Taiwan stock tracking, technical analysis and financial report digests
   - id: productivity
-    title: 個人效率
-    description: 排程、日常流程自動化
+    title: Personal productivity
+    description: Scheduling and automating daily routines
   - id: meta
-    title: Skill 管理
-    description: 在這個 repo 裡建立、檢查新 skill 的工具
+    title: Skill management
+    description: Tools for creating and checking new skills in this repo

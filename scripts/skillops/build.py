@@ -11,7 +11,7 @@ from skillops.validate import Issue
 def generated_files(catalog: Catalog) -> dict[str, str]:
     readme_path = catalog.root / "README.md"
     if not readme_path.is_file():
-        raise CatalogError("找不到 README.md")
+        raise CatalogError("README.md not found")
     readme = replace_catalog_block(
         readme_path.read_text(encoding="utf-8"), render_catalog_table(catalog)
     )
@@ -55,7 +55,7 @@ def check_generated(catalog: Catalog) -> list[Issue]:
     for rel, content in files.items():
         path = catalog.root / rel
         if not path.is_file() or path.read_text(encoding="utf-8") != content:
-            issues.append(Issue("error", rel, "產生檔過期或不存在，請執行 make build"))
+            issues.append(Issue("error", rel, "generated file is outdated or missing; run make build"))
     for rel in stale_manifests(catalog, files):
-        issues.append(Issue("error", rel, "這個分類已經沒有 skill，產生檔應該移除，請執行 make build"))
+        issues.append(Issue("error", rel, "this category has no skills left, so this generated file should be removed; run make build"))
     return issues

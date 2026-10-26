@@ -21,25 +21,25 @@ def render_catalog_table(catalog: Catalog) -> str:
     sections = []
     for category in catalog.active_categories():
         rows = [
-            f"### {category.title}（`{category.id}`）",
+            f"### {category.title} (`{category.id}`)",
             "",
-            "| Skill | 說明 | 網頁版 |",
+            "| Skill | Description | Web apps |",
             "|---|---|---|",
         ]
         for skill in catalog.skills_in(category.id):
             web = (
-                f"[下載]({catalog.repo_url}/releases/download/latest/{skill.name}.zip)"
+                f"[Download]({catalog.repo_url}/releases/download/latest/{skill.name}.zip)"
                 if skill.web else "—"
             )
             rows.append(f"| `{skill.name}` | {summarize(skill.description)} | {web} |")
         sections.append("\n".join(rows))
-    return "\n\n".join(sections) if sections else "_目前還沒有 skill。_"
+    return "\n\n".join(sections) if sections else "_No skills yet._"
 
 
 def replace_catalog_block(readme: str, table: str) -> str:
     start = readme.find(CATALOG_START)
     end = readme.find(CATALOG_END)
     if start == -1 or end == -1 or end < start:
-        raise CatalogError(f"README.md 缺少 {CATALOG_START} 與 {CATALOG_END} 標記（或順序錯誤）")
+        raise CatalogError(f"README.md is missing the {CATALOG_START} and {CATALOG_END} markers (or they are out of order)")
     head = readme[: start + len(CATALOG_START)]
     return f"{head}\n{table}\n{readme[end:]}"

@@ -1,57 +1,57 @@
-# 資料來源
+# Data sources
 
-## 1. 歷史日收盤價（算布林通道基準用）— TWSE STOCK_DAY
+## 1. Historical daily closes (for the Bollinger baseline) — TWSE STOCK_DAY
 
-台灣證交所公開資訊觀測站的月度個股日成交資訊：
+The Taiwan Stock Exchange's monthly per-stock daily trading data:
 
 ```
-https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date={YYYYMM01}&stockNo={股票代號}
+https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date={YYYYMM01}&stockNo={symbol}
 ```
 
-- `date` 帶當月 1 號（例如 `20260701`），會回傳整個月的每日 OHLC 資料
-- 需要至少 20 個交易日，如果當月不夠 20 個交易日（例如月初），要多抓上個月補齊
-- 用 `curl` 在 bash 裡直接抓即可，例如：
+- Pass the first day of the month as `date` (for example `20260701`) to get the whole month's daily OHLC data
+- At least 20 trading days are needed. If the current month has fewer (for example early in the month), also fetch the previous month
+- Fetch it with `curl` in bash, for example:
 
 ```bash
 curl -s "https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date=20260701&stockNo=2330"
 ```
 
-回傳的 `data` 欄位每一列格式是 `[日期, 成交股數, 成交金額, 開盤價, 最高價, 最低價, 收盤價, 漲跌價差, 成交筆數]`，收盤價是索引 6。
+Each row of the returned `data` field is `[date, shares traded, trading value, open, high, low, close, change, number of trades]`; the close is index 6.
 
-## 2. 即時／當日最新成交價 — TWSE MIS 即時報價
+## 2. Real-time / latest price — TWSE MIS real-time quotes
 
 ```
-https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_{股票代號}.tw
+https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_{symbol}.tw
 ```
 
-例如台積電：
+For example, TSMC:
 ```bash
 curl -s "https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_2330.tw"
 ```
 
-回傳 JSON 裡常用欄位：
-- `z`：最新成交價（盤中即時，如果還沒成交會是 `-`，這時候用 `o` 開盤價或前一筆代替）
-- `y`：昨日收盤價
-- `o`：今日開盤價
-- `h`：今日最高
-- `l`：今日最低
-- `tv`：當筆成交量
+Commonly used fields in the returned JSON:
+- `z`: latest trade price (real time during the session; `-` before the first trade, in which case use the open `o` or the previous value)
+- `y`: previous close
+- `o`: today's open
+- `h`: today's high
+- `l`: today's low
+- `tv`: volume of the latest trade
 
-多檔股票可以用 `|` 分隔一次查多檔，把 `ex_ch` 換成 `tse_2330.tw|tse_2317.tw|...`。
+Query several stocks at once by separating them with `|`: set `ex_ch` to `tse_2330.tw|tse_2317.tw|...`.
 
-⚠️ 這個端點是 TWSE 官網「盤中即時走勢」頁面實際在用的公開端點，非交易時段可能回傳空值或前一交易日收盤資料，屬於正常情況，不用特別處理成錯誤。
+⚠️ This is the public endpoint used by the "intraday chart" page on the TWSE website. Outside trading hours it may return empty values or the previous trading day's close; that is normal and should not be treated as an error.
 
-## 3. 美股與國際新聞
+## 3. US market and world news
 
-沒有固定 API，直接用 Claude Code 內建的網頁搜尋工具查即可，重點抓：
-- 美股三大指數（S&P500、Nasdaq、道瓊）＋費城半導體指數收盤漲跌
-- 與台股權值股高度相關的美股個股（例如輝達、蘋果、超微等）當天走勢
-- 總經／地緣政治新聞標題與重點（Fed 決策、關稅、供應鏈事件等）
+There is no fixed API; use Claude Code's built-in web search. Capture:
+- The closing moves of the three major US indexes (S&P 500, Nasdaq, Dow Jones) and the Philadelphia Semiconductor Index
+- US stocks closely tied to Taiwan heavyweights (for example Nvidia, Apple, AMD) and how they moved
+- Macro and geopolitical headlines and highlights (Fed decisions, tariffs, supply-chain events and so on)
 
-## 4. 熱門產業與個股成交值排行
+## 4. Hot industries and trading-value rankings
 
-同樣沒有單一穩定 API，用網頁搜尋財經新聞或「Yahoo奇摩股市 類股報價」「Goodinfo 產業類別」等頁面人工判讀即可，不需要寫爬蟲。這類頁面版型可能會變動，如果抓不到結構化資料，直接用網頁搜尋讀文字內容判斷就好。
+There is no single stable API either. Read financial news or pages such as 「Yahoo奇摩股市 類股報價」 (Yahoo Taiwan stock group quotes) or 「Goodinfo 產業類別」 (Goodinfo industry categories) via web search; no scraper is needed. These page layouts may change, so if structured data is not available, read the text from web search results and judge from that.
 
-## 5. 交易日曆／是否為交易日
+## 5. Trading calendar / is today a trading day
 
-TWSE 有公告休市日期的頁面，找不到穩定 JSON API 的話，直接網頁搜尋「台灣證交所 {年份} 開休市日期」確認即可，一年設定一次沒問題。
+TWSE publishes the market holiday dates. If no stable JSON API turns up, search the web for 「台灣證交所 {year} 開休市日期」 (TWSE trading and holiday dates for the year); checking once a year is enough.

@@ -3,7 +3,7 @@ import pytest
 from skillops.catalog import load_catalog
 from skillops.validate import validate_catalog
 
-LONG_DESC = "測試用 skill，" + "說明" * 30
+LONG_DESC = "A test skill used by the toolkit tests. " + "x" * 20
 
 
 def run(repo):
@@ -25,7 +25,7 @@ def test_valid_skill_has_no_issues(repo):
 
 def test_name_must_match_dir(repo):
     repo.add_skill("dev", "foo", frontmatter={"name": "other", "description": LONG_DESC})
-    assert any("資料夾" in m for m in errors(run(repo)))
+    assert any("folder" in m for m in errors(run(repo)))
 
 
 @pytest.mark.parametrize("name", ["Foo", "-foo", "foo-", "foo--bar", "a" * 65, ""])
@@ -47,8 +47,8 @@ def test_description_too_long(repo):
 
 
 def test_description_todo_is_error(repo):
-    repo.add_skill("dev", "foo", frontmatter={"name": "foo", "description": "TODO 描述這個 skill" + "。" * 50})
-    assert any("樣板" in m for m in errors(run(repo)))
+    repo.add_skill("dev", "foo", frontmatter={"name": "foo", "description": "TODO describe this skill" + "." * 50})
+    assert any("template" in m for m in errors(run(repo)))
 
 
 def test_compatibility_too_long(repo):
@@ -74,11 +74,11 @@ def test_scripts_require_web(repo):
 def test_duplicate_names_across_categories(repo):
     repo.add_skill("dev", "foo")
     repo.add_skill("finance", "foo")
-    assert len([m for m in errors(run(repo)) if "重複" in m]) == 2
+    assert len([m for m in errors(run(repo)) if "also used by" in m]) == 2
 
 
 def test_missing_referenced_file(repo):
-    repo.add_skill("dev", "foo", body="見 [說明](references/guide.md) 與 scripts/run.py。\n",
+    repo.add_skill("dev", "foo", body="See [the guide](references/guide.md) and scripts/run.py.\n",
                    frontmatter={"name": "foo", "description": LONG_DESC, "metadata": {"web": "true"}})
     errs = errors(run(repo))
     assert any("references/guide.md" in m for m in errs)
@@ -88,7 +88,7 @@ def test_missing_referenced_file(repo):
 def test_existing_reference_and_urls_ok(repo):
     repo.add_skill(
         "dev", "foo",
-        body="讀 references/a.md，參考 https://x.com/scripts/y.py 與 [a](#scripts)。\n",
+        body="Read references/a.md, see https://x.com/scripts/y.py and [a](#scripts).\n",
         files={"references/a.md": "a"},
     )
     assert errors(run(repo)) == []
@@ -116,30 +116,30 @@ def test_python_check_writes_no_pycache(repo):
 @pytest.mark.parametrize("text", ["/Users/alice/x", "/home/bob/x", r"C:\Users\carol\x",
                                   'HOME = "/Users/alice"', "cd /home/bob", r'p = "C:\\Users\\carol\\x"'])
 def test_personal_path_is_error(repo, text):
-    repo.add_skill("dev", "foo", body="見 references/a.md\n", files={"references/a.md": text})
+    repo.add_skill("dev", "foo", body="See references/a.md\n", files={"references/a.md": text})
     issues = [i for i in run(repo) if i.level == "error"]
-    assert any("個人路徑" in i.message and i.path == "plugins/dev/skills/foo/references/a.md" for i in issues)
+    assert any("personal path" in i.message and i.path == "plugins/dev/skills/foo/references/a.md" for i in issues)
 
 
 def test_placeholder_path_ok(repo):
-    repo.add_skill("dev", "foo", body="放在 /Users/<你>/x 底下\n")
+    repo.add_skill("dev", "foo", body="Store it under /Users/<you>/x\n")
     assert errors(run(repo)) == []
 
 
 def test_email_is_warning(repo):
-    repo.add_skill("dev", "foo", body="聯絡 me@example.com\n")
+    repo.add_skill("dev", "foo", body="Contact me@example.com\n")
     issues = run(repo)
     assert errors(issues) == []
     assert any("email" in m for m in warnings(issues))
 
 
 def test_long_skill_md_warning(repo):
-    repo.add_skill("dev", "foo", body="行\n" * 501)
+    repo.add_skill("dev", "foo", body="line\n" * 501)
     assert any("500" in m for m in warnings(run(repo)))
 
 
 def test_short_description_warning(repo):
-    repo.add_skill("dev", "foo", frontmatter={"name": "foo", "description": "短"})
+    repo.add_skill("dev", "foo", frontmatter={"name": "foo", "description": "Short"})
     assert any("50" in m for m in warnings(run(repo)))
 
 
@@ -158,11 +158,11 @@ def test_binary_files_skipped(repo):
 
 
 def test_only_skill_dirs_are_reference_checked(repo):
-    repo.add_skill("dev", "foo", body="報告內嵌 ![](../charts/{symbol}.png) 與 [筆記](notes.md)；見 ./references/a.md\n",
+    repo.add_skill("dev", "foo", body="Reports embed ![](../charts/{symbol}.png) and [notes](notes.md); see ./references/a.md\n",
                    files={"references/a.md": "a"})
     assert errors(run(repo)) == []
 
 
 def test_dot_slash_reference_checked(repo):
-    repo.add_skill("dev", "foo", body="見 [說明](./references/missing.md)\n")
+    repo.add_skill("dev", "foo", body="See [the guide](./references/missing.md)\n")
     assert any("references/missing.md" in m for m in errors(run(repo)))

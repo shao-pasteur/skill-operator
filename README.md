@@ -1,74 +1,74 @@
 # skill-operator
 
-自己開發的 AI agent skill，依用途分類，透過 marketplace plugin 安裝到 Claude Code、Codex、Copilot CLI、Cursor，也提供網頁版 App 可上傳的 zip。
+My own AI agent skills, grouped by purpose. They install as marketplace plugins in Claude Code, Codex, Copilot CLI and Cursor, and web apps get zips to upload.
 
-每個分類是一個 plugin，可以只裝需要的分類。所有 skill 都遵循 [Agent Skills 開放標準](https://agentskills.io/specification)（`SKILL.md`）。
+Each category is a plugin, so you can install only the categories you need. Every skill follows the [Agent Skills open standard](https://agentskills.io/specification) (`SKILL.md`).
 
-## 安裝
+## Install
 
-repo 是公開的，不需要任何 git 認證。下方的 `<分類>` 換成「Skill 目錄」裡的分類 id，例如 `finance`。
+The repo is public, so no git credentials are needed. Replace `<category>` with a category id from the Skill catalog below, such as `finance`.
 
-| 平台 | 加入 marketplace | 安裝分類 |
+| Platform | Add the marketplace | Install a category |
 |---|---|---|
-| Claude Code | `claude plugin marketplace add pasteur-yuan/skill-operator` | `claude plugin install <分類>@skill-operator` |
-| Codex | `codex plugin marketplace add pasteur-yuan/skill-operator` | `codex plugin add <分類>@skill-operator` |
-| Copilot CLI | `copilot plugin marketplace add pasteur-yuan/skill-operator` | `copilot plugin install <分類>@skill-operator` |
-| Cursor | 待驗證 | 待驗證 |
+| Claude Code | `claude plugin marketplace add shao-pasteur/skill-operator` | `claude plugin install <category>@skill-operator` |
+| Codex | `codex plugin marketplace add shao-pasteur/skill-operator` | `codex plugin add <category>@skill-operator` |
+| Copilot CLI | `copilot plugin marketplace add shao-pasteur/skill-operator` | `copilot plugin install <category>@skill-operator` |
+| Cursor | Not verified yet | Not verified yet |
 
-Claude Code 2.1.275 以上也可以一步完成：`claude plugin install <分類> --marketplace pasteur-yuan/skill-operator`。
+Claude Code 2.1.275 or later can do it in one step: `claude plugin install <category> --marketplace shao-pasteur/skill-operator`.
 
-一次安裝多個分類：
+Install several categories at once:
 
 ```bash
 for c in dev writing finance; do claude plugin install "$c@skill-operator"; done
 ```
 
-**Claude Code 自動更新**：預設是關閉的。安裝後在 Claude Code 中執行 `/plugin`，到 Marketplaces 選擇 `skill-operator`，再選 **Enable auto-update**。沒有開啟的話，可以手動執行 `claude plugin marketplace update skill-operator` 取得更新。
+**Claude Code auto-update** is off by default. After installing, run `/plugin` in Claude Code, open Marketplaces, pick `skill-operator` and choose **Enable auto-update**. Without it, run `claude plugin marketplace update skill-operator` to fetch updates.
 
-## 網頁版（claude.ai、ChatGPT、Gemini App）
+## Web apps (claude.ai, ChatGPT, Gemini)
 
-網頁版可用的 skill 會自動打包成 zip，放在 [`latest` Release](https://github.com/pasteur-yuan/skill-operator/releases/tag/latest)：
+Skills that work in web apps are packaged as zips in the [`latest` release](https://github.com/shao-pasteur/skill-operator/releases/tag/latest):
 
+```text
+https://github.com/shao-pasteur/skill-operator/releases/download/latest/<skill-name>.zip
 ```
-https://github.com/pasteur-yuan/skill-operator/releases/download/latest/<skill 名稱>.zip
-```
 
-每次更新後，Release 說明的「需要重新上傳」會列出有變動的 skill。網頁版不會自動更新，要手動重新上傳。
+After each update, the "Re-upload needed" section of the release notes lists the skills that changed. Web apps do not update on their own, so upload those zips again.
 
-| 平台 | 上傳方式 |
+| Platform | How to upload |
 |---|---|
-| claude.ai | 設定 → Skills → 上傳 zip |
-| ChatGPT | 待驗證 |
-| Gemini App | 待驗證 |
+| claude.ai | Settings → Skills → upload the zip |
+| ChatGPT | Not verified yet |
+| Gemini | Not verified yet |
 
-## Skill 目錄
+## Skill catalog
 
 <!-- catalog:start -->
-### 投資與財務（`finance`）
+### Investing and finance (`finance`)
 
-| Skill | 說明 | 網頁版 |
+| Skill | Description | Web apps |
 |---|---|---|
-| `tw-stock-daily-tracker` | 在台股交易日，於開盤前、盤中（9:00~12:00 每 30 分鐘）、收盤前，自動收集前一晚美股走勢與國際新聞、判斷當天新聞熱度最高的三個產業、列出每個產業成… | — |
+| `tw-stock-daily-tracker` | Tracks Taiwan stocks on trading days before the open, during the session (every… | — |
 <!-- catalog:end -->
 
-## 開發
+## Development
 
-需要 [uv](https://docs.astral.sh/uv/) 與 GNU Make。規則與限制寫在 [AGENTS.md](AGENTS.md)。
-
-```bash
-make hooks                                   # 安裝 pre-commit hook（第一次 clone 後執行）
-make new CATEGORY=dev NAME=my-skill          # 從樣板建立新 skill
-make import SRC=~/.claude/skills/foo CATEGORY=dev  # 匯入既有 skill
-make build                                   # 產生 manifest 與 README 目錄
-make check                                   # 驗證 skill 與產生檔
-make package                                 # 打包網頁版 zip 到 dist/
-make test                                    # 執行 scripts/ 的測試
-```
-
-在本機試用某個分類，不用 push：
+You need [uv](https://docs.astral.sh/uv/) and GNU Make. The rules are in [AGENTS.md](AGENTS.md).
 
 ```bash
-claude --plugin-dir ./plugins/<分類>
+make hooks                                         # install the pre-commit hook (once after cloning)
+make new CATEGORY=dev NAME=my-skill                # create a new skill from the template
+make import SRC=~/.claude/skills/foo CATEGORY=dev  # import an existing skill
+make build                                         # generate the manifests and the README catalog
+make check                                         # validate skills and generated files
+make package                                       # package web zips into dist/
+make test                                          # run the tests for scripts/
 ```
 
-新增分類：編輯 `categories.yaml`，再執行 `make build`。沒有任何 skill 的分類不會出現在 marketplace。
+Try a category locally without pushing:
+
+```bash
+claude --plugin-dir ./plugins/<category>
+```
+
+To add a category, edit `categories.yaml` and run `make build`. Categories without skills do not appear in the marketplace.

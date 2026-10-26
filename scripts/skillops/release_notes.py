@@ -39,8 +39,8 @@ def render_release_notes(catalog: Catalog, changed: list[str] | None) -> str:
         return f"- [`{name}`]({catalog.repo_url}/releases/download/latest/{name}.zip)"
 
     to_upload = [s.name for s in web_skills if changed is None or s.name in changed]
-    lines = ["## 需要重新上傳", ""]
-    lines += [link(n) for n in to_upload] or ["_這次沒有網頁版 skill 變動。_"]
-    lines += ["", "## 所有網頁版 skill", ""]
-    lines += [link(s.name) for s in web_skills] or ["_目前沒有網頁版 skill。_"]
+    lines = ["## Re-upload needed", ""]
+    lines += [link(n) for n in to_upload] or ["_No web skills changed in this push._"]
+    lines += ["", "## All web skills", ""]
+    lines += [link(s.name) for s in web_skills] or ["_There are no web skills yet._"]
     return "\n".join(lines) + "\n"

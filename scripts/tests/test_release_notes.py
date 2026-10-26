@@ -58,9 +58,9 @@ def test_notes_lists_changed_web_skills(repo):
     repo.add_skill("dev", "baz")
     repo.add_skill("dev", "bar", frontmatter={"name": "bar", "description": "x", "metadata": {"web": "false"}})
     notes = render_release_notes(load_catalog(repo.root), ["foo", "bar"])
-    assert "## 需要重新上傳" in notes
+    assert "## Re-upload needed" in notes
     assert "- [`foo`](https://github.com/tester/test-market/releases/download/latest/foo.zip)" in notes
-    head, tail = notes.split("## 所有網頁版 skill")
+    head, tail = notes.split("## All web skills")
     assert "`bar`" not in head and "`baz`" not in head
     assert "`baz`" in tail and "`foo`" in tail and "`bar`" not in tail
 
@@ -68,19 +68,19 @@ def test_notes_lists_changed_web_skills(repo):
 def test_notes_all_changed_when_none(repo):
     repo.add_skill("dev", "foo")
     repo.add_skill("dev", "baz")
-    head = render_release_notes(load_catalog(repo.root), None).split("## 所有網頁版 skill")[0]
+    head = render_release_notes(load_catalog(repo.root), None).split("## All web skills")[0]
     assert "`foo`" in head and "`baz`" in head
 
 
 def test_notes_nothing_changed(repo):
     repo.add_skill("dev", "foo")
     notes = render_release_notes(load_catalog(repo.root), [])
-    assert "_這次沒有網頁版 skill 變動。_" in notes
+    assert "_No web skills changed in this push._" in notes
 
 
 def test_notes_no_web_skills(repo):
     notes = render_release_notes(load_catalog(repo.root), None)
-    assert "_目前沒有網頁版 skill。_" in notes
+    assert "_There are no web skills yet._" in notes
 
 
 @pytest.mark.parametrize("base,head", [("--output={out}", "HEAD"), ("HEAD", "-p")])

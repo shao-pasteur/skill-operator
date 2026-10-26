@@ -4,8 +4,8 @@ import pytest
 import yaml
 
 DEFAULT_CATEGORIES = [
-    {"id": "dev", "title": "開發", "description": "開發工具"},
-    {"id": "finance", "title": "財務", "description": "財務工具"},
+    {"id": "dev", "title": "Development", "description": "Dev tools"},
+    {"id": "finance", "title": "Finance", "description": "Finance tools"},
 ]
 DEFAULT_README = "# Test\n\n<!-- catalog:start -->\n<!-- catalog:end -->\n"
 
@@ -30,7 +30,7 @@ class RepoBuilder:
         name: str,
         *,
         frontmatter: dict | None = None,
-        body: str = "# 指令\n",
+        body: str = "# Instructions\n",
         files: dict[str, str] | None = None,
         raw: str | None = None,
     ) -> Path:
@@ -39,7 +39,7 @@ class RepoBuilder:
         if raw is None:
             fm = frontmatter if frontmatter is not None else {
                 "name": name,
-                "description": "測試用 skill，" + "說明" * 30,
+                "description": "A test skill used by the toolkit tests. " + "x" * 20,
             }
             raw = "---\n" + yaml.safe_dump(fm, allow_unicode=True, sort_keys=False) + "---\n" + body
         (path / "SKILL.md").write_text(raw, encoding="utf-8")

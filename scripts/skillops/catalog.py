@@ -85,25 +85,25 @@ class Catalog:
 
 def _require_str(value: object, where: str) -> str:
     if not isinstance(value, str) or not value.strip():
-        raise CatalogError(f"categories.yaml：{where} 必須是非空字串")
+        raise CatalogError(f"categories.yaml: {where} must be a non-empty string")
     return value
 
 
 def _load_settings(root: Path) -> tuple[str, Owner, list[Category]]:
     path = root / "categories.yaml"
     if not path.is_file():
-        raise CatalogError(f"找不到 categories.yaml（{root}）")
+        raise CatalogError(f"categories.yaml not found in {root}")
     try:
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
     except yaml.YAMLError as e:
-        raise CatalogError(f"categories.yaml 不是合法的 YAML：{e}") from None
+        raise CatalogError(f"categories.yaml is not valid YAML: {e}") from None
     if not isinstance(data, dict):
-        raise CatalogError("categories.yaml 的最上層必須是 mapping")
+        raise CatalogError("categories.yaml must be a mapping at the top level")
 
     marketplace = _require_str(data.get("marketplace"), "marketplace")
     owner_data = data.get("owner")
     if not isinstance(owner_data, dict):
-        raise CatalogError("categories.yaml：owner 必須包含 name 與 github")
+        raise CatalogError("categories.yaml: owner must have name and github")
     owner = Owner(
         name=_require_str(owner_data.get("name"), "owner.name"),
         github=_require_str(owner_data.get("github"), "owner.github"),
@@ -111,17 +111,17 @@ def _load_settings(root: Path) -> tuple[str, Owner, list[Category]]:
 
     raw_categories = data.get("categories")
     if not isinstance(raw_categories, list):
-        raise CatalogError("categories.yaml：categories 必須是清單")
+        raise CatalogError("categories.yaml: categories must be a list")
     categories: list[Category] = []
     seen: set[str] = set()
     for i, item in enumerate(raw_categories):
         if not isinstance(item, dict):
-            raise CatalogError(f"categories.yaml：categories[{i}] 必須是 mapping")
+            raise CatalogError(f"categories.yaml: categories[{i}] must be a mapping")
         cid = _require_str(item.get("id"), f"categories[{i}].id")
         if not NAME_RE.match(cid):
-            raise CatalogError(f"categories.yaml：分類 id「{cid}」只能用小寫英數字與單一連字號")
+            raise CatalogError(f"categories.yaml: category id '{cid}' may only use lowercase letters, digits and single hyphens")
         if cid in seen:
-            raise CatalogError(f"categories.yaml：分類 id「{cid}」重複")
+            raise CatalogError(f"categories.yaml: duplicate category id '{cid}'")
         seen.add(cid)
         categories.append(Category(
             id=cid,
@@ -142,7 +142,7 @@ def load_catalog(root: Path) -> Catalog:
     known = {c.id for c in categories}
     for folder in _visible_dirs(root / "plugins"):
         if folder.name not in known:
-            raise CatalogError(f"plugins/{folder.name} 不在 categories.yaml 的分類中")
+            raise CatalogError(f"plugins/{folder.name} is not a category in categories.yaml")
 
     skills: list[Skill] = []
     for category in categories:
@@ -150,10 +150,10 @@ def load_catalog(root: Path) -> Catalog:
             rel = f"plugins/{category.id}/skills/{skill_dir.name}/SKILL.md"
             skill_md = skill_dir / "SKILL.md"
             if not skill_md.is_file():
-                raise CatalogError(f"{rel} 不存在：每個 skill 資料夾都需要 SKILL.md")
+                raise CatalogError(f"{rel} is missing: every skill folder needs a SKILL.md")
             try:
                 fm, body = parse_frontmatter(skill_md.read_text(encoding="utf-8"))
             except FrontmatterError as e:
-                raise CatalogError(f"{rel}：{e}") from None
+                raise CatalogError(f"{rel}: {e}") from None
             skills.append(Skill(category.id, skill_dir.name, skill_dir, fm, body))
     return Catalog(root, marketplace, owner, categories, skills)

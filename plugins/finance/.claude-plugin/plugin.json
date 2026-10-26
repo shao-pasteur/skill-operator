@@ -1,9 +1,9 @@
 {
   "name": "finance",
-  "description": "台股追蹤、技術分析、財報整理",
+  "description": "Taiwan stock tracking, technical analysis and financial report digests",
   "author": {
     "name": "Yuan"
   },
   "license": "MIT",
-  "repository": "https://github.com/pasteur-yuan/skill-operator"
+  "repository": "https://github.com/shao-pasteur/skill-operator"
 }

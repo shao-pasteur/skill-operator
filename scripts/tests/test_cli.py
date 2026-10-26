@@ -5,11 +5,11 @@ def test_cli_build_and_check(repo, capsys):
     repo.add_skill("dev", "foo")
     assert main(["--root", str(repo.root), "build"]) == 0
     assert main(["--root", str(repo.root), "check"]) == 0
-    assert "0 個錯誤" in capsys.readouterr().out
+    assert "0 error(s)" in capsys.readouterr().out
 
 
 def test_cli_check_fails_on_error(repo, capsys):
-    repo.add_skill("dev", "foo", frontmatter={"name": "other", "description": "測試用 skill，" + "說明" * 30})
+    repo.add_skill("dev", "foo", frontmatter={"name": "other", "description": "A test skill used by the toolkit tests. " + "x" * 20})
     main(["--root", str(repo.root), "build"])
     assert main(["--root", str(repo.root), "check"]) == 1
     assert "ERROR plugins/dev/skills/foo" in capsys.readouterr().out
@@ -22,7 +22,7 @@ def test_cli_catalog_error(repo, capsys):
 
 
 def test_cli_warnings_do_not_fail(repo, capsys):
-    repo.add_skill("dev", "foo", frontmatter={"name": "foo", "description": "短"})
+    repo.add_skill("dev", "foo", frontmatter={"name": "foo", "description": "Short"})
     main(["--root", str(repo.root), "build"])
     assert main(["--root", str(repo.root), "check"]) == 0
     assert "WARN" in capsys.readouterr().out
@@ -39,5 +39,5 @@ def test_cli_package(repo, tmp_path, capsys):
 def test_cli_release_notes_without_base(repo, capsys):
     repo.add_skill("dev", "foo")
     assert main(["--root", str(repo.root), "release-notes", "--head", "HEAD"]) == 0
-    head = capsys.readouterr().out.split("## 所有網頁版 skill")[0]
+    head = capsys.readouterr().out.split("## All web skills")[0]
     assert "`foo`" in head

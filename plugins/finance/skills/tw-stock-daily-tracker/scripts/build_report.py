@@ -1,46 +1,46 @@
 #!/usr/bin/env python3
 """
-build_report.py — 組出台股追蹤報告（Markdown + 圖表），比對訊號變化並在有變化時
-觸發 macOS 通知。
+build_report.py — assemble the Taiwan stock tracking report (Markdown + charts), compare signals
+with the previous run and trigger a macOS notification when they change.
 
-用法：
-    python3 build_report.py --input payload.json      # 預設寫進 Obsidian vault 的 Investing/Daily/
-    python3 build_report.py --input payload.json --capital 500000   # 收盤總結附中性資金試算
+Usage:
+    python3 build_report.py --input payload.json      # writes to the vault's Investing/Daily/ by default
+    python3 build_report.py --input payload.json --capital 500000   # adds neutral capital math to the closing summary
 
-輸出直接寫進 Obsidian vault（Investing/Daily/{date}/），報告帶 YAML frontmatter，
-可被 Obsidian 的 tag / graph / Dataview 辨識。
+Output goes straight into the Obsidian vault (Investing/Daily/{date}/). Reports carry YAML frontmatter
+so Obsidian tags, graph and Dataview can find them. Report text stays in Traditional Chinese.
 
---capital（或 payload 的 capital_twd、或 base-dir/config.json 的 capital_twd，皆無則預設 500000）
-只用於 close_summary 階段的「資金試算」表：純可負擔性算術（一張多少錢、本金可買幾張），
-不產生任何買賣或部位配置建議。
+--capital (or capital_twd in the payload, or capital_twd in base-dir/config.json; default 500000)
+is used only for the capital-math table in the close_summary phase: plain affordability arithmetic
+(how much one lot costs, how many lots the capital buys), never buy/sell or allocation advice.
 
-payload.json 格式：
+payload.json format:
 {
   "date": "2026-07-13",
-  "phase": "premarket" | "update" | "close_summary",
+  "phase": "premarket" | "update" | "close_watch" | "close_summary",
   "time_label": "0850",
-  "market_notes": ["美股重點...", "..."],           // 可省略，premarket 建議填
-  "industries": [{"name": "...", "reason": "..."}], // 可省略，premarket 建議填
+  "market_notes": ["US market highlight...", "..."], // optional, recommended for premarket
+  "industries": [{"name": "...", "reason": "..."}],  // optional, recommended for premarket
   "stocks": [
     {
       "symbol": "2330",
-      "name": "台積電",
-      "industry": "半導體設備",
-      "closes": [880.0, 885.5, ...],   // 由舊到新，含今天最新價，至少20筆
-      "bollinger": { ... bollinger.py 對這檔算出來的結果 ... }
+      "name": "<stock name>",
+      "industry": "<industry>",
+      "closes": [880.0, 885.5, ...],   // oldest first, including today's latest price, at least 20
+      "bollinger": { ... bollinger.py's result for this stock ... }
     },
     ...
   ]
 }
 
-輸出（base-dir 預設為 Obsidian vault 的 Investing/Daily）：
-    {base-dir}/{date}/reports/{time_label}_{phase}.md   （含 Obsidian YAML frontmatter）
+Output (base-dir defaults to the vault's Investing/Daily):
+    {base-dir}/{date}/reports/{time_label}_{phase}.md   (with Obsidian YAML frontmatter)
     {base-dir}/{date}/charts/{symbol}_bollinger.png
-    {base-dir}/{date}/state/signals_state.json  （更新為這次的狀態）
+    {base-dir}/{date}/state/signals_state.json  (updated to this run's states)
     {base-dir}/{date}/logs/run_{time_label}.log
 
-這支腳本本身只負責「整理資訊、畫圖、比對狀態、通知」，不產生任何買賣建議文字。
-所有面向使用者的描述文字都刻意用中性/技術面語氣，並附上免責聲明。
+The script only organizes information, draws charts, compares states and notifies; it never writes
+buy/sell advice. All user-facing text is deliberately neutral and technical, and ends with the disclaimer.
 """
 
 import argparse
@@ -53,6 +53,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+# Everything written into reports, charts and notifications stays in Traditional Chinese (SKILL.md rule 6).
 DISCLAIMER = (
     "> 本報告僅整理公開市場資訊與布林通道等技術指標的客觀計算結果，用於個人研究參考，"
     "**不構成任何投資建議、亦非邀約買賣任何有價證券**。過往技術訊號不保證未來走勢，"
@@ -77,7 +78,7 @@ PHASE_LABEL = {
 
 
 def rolling_bands(closes, period=20, num_std=2):
-    """回傳跟 closes 等長的 (sma, upper, lower) 序列，前 period-1 筆為 nan（資料不足，畫圖時會自動留白）。"""
+    """Return (sma, upper, lower) for every close; the first period-1 entries are nan (not enough data; plots leave them blank)."""
     nan = float("nan")
     out = []
     for i in range(len(closes)):
@@ -96,14 +97,14 @@ def plot_chart(symbol, name, closes, chart_path):
         import matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
-        # macOS 內建的中文字型嘗試依序套用，避免圖表中文變成缺字方框
+        # Try the built-in macOS Chinese fonts in order so Chinese chart labels do not render as empty boxes
         for font_name in ("PingFang TC", "Heiti TC", "Arial Unicode MS", "Microsoft JhengHei"):
             if any(font_name.lower() in f.name.lower() for f in matplotlib.font_manager.fontManager.ttflist):
                 matplotlib.rcParams["font.sans-serif"] = [font_name]
                 matplotlib.rcParams["axes.unicode_minus"] = False
                 break
     except ImportError:
-        print(f"[警告] 找不到 matplotlib，略過 {symbol} 的圖表產生（可用 pip install matplotlib 安裝）", file=sys.stderr)
+        print(f"[warning] matplotlib not found; skipping the chart for {symbol} (install it with pip install matplotlib)", file=sys.stderr)
         return False
 
     bands = rolling_bands(closes)
@@ -131,7 +132,7 @@ def mac_notify(title, message):
     if sys.platform != "darwin":
         return
     try:
-        # 文字以 argv 傳入，避免新聞或股票名稱中的引號被當成 AppleScript 執行
+        # Pass the text as argv so quotes in news or stock names cannot run as AppleScript
         subprocess.run(
             [
                 "osascript",
@@ -145,7 +146,7 @@ def mac_notify(title, message):
             timeout=5,
         )
     except Exception as e:
-        print(f"[警告] macOS 通知發送失敗：{e}", file=sys.stderr)
+        print(f"[warning] macOS notification failed: {e}", file=sys.stderr)
 
 
 def load_json(path):
@@ -167,16 +168,16 @@ SYMBOL_RE = re.compile(r"^[0-9A-Za-z]{1,10}$")
 
 
 def check_payload(payload):
-    """payload 的欄位會變成檔名，先確認格式，避免寫到 base_dir 以外的地方。"""
+    """Payload fields become file names, so check their format to avoid writing outside base_dir."""
     if not DATE_RE.match(str(payload.get("date", ""))):
-        raise ValueError(f"payload.date 必須是 YYYY-MM-DD：{payload.get('date')!r}")
+        raise ValueError(f"payload.date must be YYYY-MM-DD: {payload.get('date')!r}")
     if not TIME_LABEL_RE.match(str(payload.get("time_label", ""))):
-        raise ValueError(f"payload.time_label 必須是四位數字（例如 0850）：{payload.get('time_label')!r}")
+        raise ValueError(f"payload.time_label must be four digits (for example 0850): {payload.get('time_label')!r}")
     if payload.get("phase") not in PHASE_LABEL:
-        raise ValueError(f"payload.phase 必須是 {', '.join(PHASE_LABEL)} 其中之一：{payload.get('phase')!r}")
+        raise ValueError(f"payload.phase must be one of {', '.join(PHASE_LABEL)}: {payload.get('phase')!r}")
     for stock in payload.get("stocks", []):
         if not SYMBOL_RE.match(str(stock.get("symbol", ""))):
-            raise ValueError(f"股票代號格式錯誤：{stock.get('symbol')!r}")
+            raise ValueError(f"invalid stock symbol: {stock.get('symbol')!r}")
 
 
 def build(payload, base_dir: Path):
@@ -199,7 +200,7 @@ def build(payload, base_dir: Path):
     changed_stocks = []
 
     lines = []
-    # Obsidian YAML frontmatter：讓報告能被 tag / graph / Dataview 辨識
+    # Obsidian YAML frontmatter so tags, graph and Dataview can find the report
     lines.append("---")
     lines.append(f"tags: [investing, daily-stock, {phase}]")
     lines.append(f"date: {date}")
@@ -264,7 +265,7 @@ def build(payload, base_dir: Path):
             lines.append(f"- 圖表：![]({chart_rel})")
         lines.append("")
 
-    # 資金試算（中性、非建議）：只在有帶本金、且為收盤總結時附上
+    # Capital math (neutral, not advice): only when capital is given and this is the closing summary
     capital = payload.get("capital_twd")
     if capital and phase == "close_summary":
         lines.append("## 資金試算（僅供參考，非建議買進任一檔）")
@@ -309,39 +310,39 @@ def build(payload, base_dir: Path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="組出台股追蹤報告並比對訊號變化")
-    parser.add_argument("--input", "-i", required=True, help="輸入 payload JSON 檔案路徑")
-    # Obsidian vault 中 Investing 資料夾的路徑，由使用者以環境變數提供
+    parser = argparse.ArgumentParser(description="Assemble the Taiwan stock tracking report and compare signal changes")
+    parser.add_argument("--input", "-i", required=True, help="input payload JSON file")
+    # Path of the Investing folder in the Obsidian vault, provided by the user as an environment variable
     VAULT_INVESTING = os.environ.get("TW_STOCK_INVESTING_DIR")
     if VAULT_INVESTING:
-        # 路徑含空白時常會加引號，"~" 就不會被 shell 展開
+        # Paths with spaces are usually quoted, which stops the shell from expanding "~"
         VAULT_INVESTING = os.path.expanduser(VAULT_INVESTING)
     parser.add_argument(
         "--base-dir",
         "-b",
         default=f"{VAULT_INVESTING}/Daily" if VAULT_INVESTING else None,
-        help="輸出根目錄（預設為 $TW_STOCK_INVESTING_DIR/Daily；每天一個 {date} 子資料夾）",
+        help="output root (default $TW_STOCK_INVESTING_DIR/Daily; one {date} subfolder per day)",
     )
     parser.add_argument(
         "--config",
         default=f"{VAULT_INVESTING}/config.json" if VAULT_INVESTING else None,
-        help="設定檔路徑（預設 $TW_STOCK_INVESTING_DIR/config.json），用於讀取 capital_twd 等跨日設定",
+        help="settings file (default $TW_STOCK_INVESTING_DIR/config.json) for capital_twd and other shared settings",
     )
     parser.add_argument(
         "--capital",
         type=int,
         default=None,
-        help="買入資本（新台幣元），用於收盤總結的中性資金試算。未帶時讀 config.json 的 capital_twd，"
-             "都沒有則預設 500000。此值只做可負擔性算術，不產生任何買賣或配置建議。",
+        help="capital in New Taiwan dollars for the neutral capital math in the closing summary. Defaults to "
+             "capital_twd in config.json, then 500000. Used only for affordability arithmetic, never advice.",
     )
     args = parser.parse_args()
     if args.base_dir is None or args.config is None:
-        parser.error("請設定環境變數 TW_STOCK_INVESTING_DIR（Obsidian vault 中 Investing 資料夾的路徑），或傳入 --base-dir 與 --config")
+        parser.error("set the TW_STOCK_INVESTING_DIR environment variable (the Investing folder in your Obsidian vault), or pass --base-dir and --config")
 
     with open(args.input, "r", encoding="utf-8") as f:
         payload = json.load(f)
 
-    # 本金來源優先序：--capital > payload.capital_twd > config.json > 預設 500000
+    # Capital precedence: --capital > payload.capital_twd > config.json > default 500000
     if "capital_twd" not in payload:
         capital = args.capital
         if capital is None:
@@ -354,15 +355,15 @@ def main():
     try:
         report_path, changed = build(payload, Path(args.base_dir).expanduser())
     except ValueError as e:
-        print(f"[錯誤] {e}", file=sys.stderr)
+        print(f"[error] {e}", file=sys.stderr)
         sys.exit(1)
-    print(f"報告已產生：{report_path}")
+    print(f"Report written: {report_path}")
     if changed:
-        print("訊號變化：")
+        print("Signal changes:")
         for c in changed:
             print(f"  - {c}")
     else:
-        print("本次無訊號變化。")
+        print("No signal changes this run.")
 
 
 if __name__ == "__main__":

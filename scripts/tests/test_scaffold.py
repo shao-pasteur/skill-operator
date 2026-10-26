@@ -5,7 +5,7 @@ from skillops.catalog import load_catalog
 from skillops.scaffold import ScaffoldError, import_skill, new_skill
 from skillops.validate import validate_catalog
 
-LONG_DESC = "說明" * 30
+LONG_DESC = "A test skill used by the toolkit tests. " + "x" * 20
 
 
 def make_src(tmp_path, name="foo", extra=""):
@@ -27,7 +27,7 @@ def test_new_skill_creates_template(repo):
     text = (p / "SKILL.md").read_text(encoding="utf-8")
     assert text.startswith("---\nname: my-skill\n")
     issues = validate_catalog(load_catalog(repo.root))
-    assert any("樣板" in i.message for i in issues if i.level == "error")
+    assert any("template" in i.message for i in issues if i.level == "error")
 
 
 @pytest.mark.parametrize("name", ["Bad", "a--b", "x" * 65])
@@ -43,7 +43,7 @@ def test_new_skill_unknown_category(repo):
 
 def test_new_skill_duplicate_name(repo):
     repo.add_skill("finance", "foo")
-    with pytest.raises(ScaffoldError, match="已存在"):
+    with pytest.raises(ScaffoldError, match="already exists"):
         new_skill(repo.root, "dev", "foo")
 
 
@@ -63,14 +63,14 @@ def test_import_requires_skill_md(repo, tmp_path):
 
 def test_import_refuses_existing(repo, tmp_path):
     repo.add_skill("dev", "foo")
-    with pytest.raises(ScaffoldError, match="已存在"):
+    with pytest.raises(ScaffoldError, match="already exists"):
         import_skill(repo.root, make_src(tmp_path), "dev")
 
 
 def test_cli_import_reports_issues(repo, tmp_path, capsys):
-    src = make_src(tmp_path, extra="放在 /Users/alice/x\n")
+    src = make_src(tmp_path, extra="Stored in /Users/alice/x\n")
     assert main(["--root", str(repo.root), "import", "--src", str(src), "--category", "dev"]) == 1
-    assert "個人路徑" in capsys.readouterr().out
+    assert "personal path" in capsys.readouterr().out
     assert (repo.root / "plugins/dev/skills/foo/SKILL.md").exists()
 
 

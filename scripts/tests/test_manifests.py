@@ -23,7 +23,7 @@ def test_manifest_contents(repo):
     assert f[".claude-plugin/marketplace.json"] == {
         "name": "test-market",
         "owner": {"name": "Tester"},
-        "plugins": [{"name": "dev", "source": "./plugins/dev", "description": "開發工具"}],
+        "plugins": [{"name": "dev", "source": "./plugins/dev", "description": "Dev tools"}],
     }
     assert f[".agents/plugins/marketplace.json"] == {
         "name": "test-market",
@@ -32,15 +32,15 @@ def test_manifest_contents(repo):
             "name": "dev",
             "source": {"source": "local", "path": "./plugins/dev"},
             "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
-            "category": "開發",
+            "category": "Development",
         }],
     }
     assert f[".cursor-plugin/marketplace.json"] == {
         "name": "test-market",
         "owner": {"name": "Tester"},
-        "plugins": [{"name": "dev", "source": "./plugins/dev", "description": "開發工具"}],
+        "plugins": [{"name": "dev", "source": "./plugins/dev", "description": "Dev tools"}],
     }
-    common = {"name": "dev", "description": "開發工具", "author": {"name": "Tester"}, "license": "MIT"}
+    common = {"name": "dev", "description": "Dev tools", "author": {"name": "Tester"}, "license": "MIT"}
     repo_url = "https://github.com/tester/test-market"
     assert f["plugins/dev/.claude-plugin/plugin.json"] == {**common, "repository": repo_url}
     assert f["plugins/dev/.cursor-plugin/plugin.json"] == {**common, "repository": repo_url}
@@ -62,7 +62,7 @@ def test_no_version_anywhere(repo):
 def test_unicode_not_escaped(repo):
     repo.add_skill("dev", "foo")
     text = render_manifests(load_catalog(repo.root))[".claude-plugin/marketplace.json"]
-    assert "開發工具" in text and "\\u" not in text
+    assert "Dev tools" in text and "\\u" not in text
 
 
 def test_deterministic(repo):

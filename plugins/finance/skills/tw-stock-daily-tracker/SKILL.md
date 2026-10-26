@@ -1,124 +1,125 @@
 ---
 name: tw-stock-daily-tracker
-description: 在台股交易日，於開盤前、盤中（9:00~12:00 每 30 分鐘）、收盤前，自動收集前一晚美股走勢與國際新聞、判斷當天新聞熱度最高的三個產業、列出每個產業成交值/市值前三大股票（動態 9 檔），並固定加上「記憶體、電子元件、航海」三個產業各前三大（固定 9 檔），對這最多 18 檔進行布林通道技術分析，產出結構化的文字＋圖表報告，以 Obsidian 格式（帶 frontmatter 與 wikilink）直接寫進 Obsidian vault 的 Investing/Daily/ 資料夾；收盤總結以「股市新手看得懂」的方式白話解釋技術訊號。當使用者要求「台股晨間簡報」「台股盤中追蹤」「布林通道選股/追蹤」「今日熱門產業分析」「台股收盤前分析」，或提到要在交易日固定時間自動產出台股技術分析報告、或要設定 cron/launchd 排程執行台股分析時，應主動使用此 skill，不需要使用者明講「skill」兩個字。輸出僅為技術指標與市場資訊整理與教學說明，不構成投資建議、不出具個股買賣或部位配置的推薦。
-compatibility: 需要 Python 3、網路連線（TWSE 與新聞來源），以及環境變數 TW_STOCK_INVESTING_DIR 指向 Obsidian vault 的 Investing 資料夾；排程功能僅支援 macOS launchd。
+description: Tracks Taiwan stocks on trading days before the open, during the session (every 30 minutes from 9:00 to 12:00) and before the close. Collects the previous night's US market moves and world news, picks the three industries with the most news attention and their top three stocks by trading value or market cap (9 dynamic picks), adds the top three stocks of three fixed industries (memory, electronic components, shipping), runs Bollinger Band analysis on up to 18 stocks, and writes text and chart reports in Obsidian format into the vault's Investing/Daily/ folder, with a beginner-friendly closing summary. Reports are in Traditional Chinese. Use when the user asks for a Taiwan stock morning briefing, intraday tracking, Bollinger Band screening, today's hot industries or a pre-close analysis (for example 「台股晨間簡報」「台股盤中追蹤」「布林通道選股」「今日熱門產業分析」「台股收盤前分析」), or wants scheduled runs on trading days. Output is educational and not investment advice.
+compatibility: Requires Python 3, network access (TWSE and news sources) and the TW_STOCK_INVESTING_DIR environment variable pointing at the Investing folder of an Obsidian vault. Scheduling supports macOS launchd only.
 metadata:
   web: "false"
 ---
 
-# 台股每日追蹤（tw-stock-daily-tracker）
+# Taiwan stock daily tracker (tw-stock-daily-tracker)
 
-一個分三個階段執行的台股技術面追蹤流程：**開盤前簡報 → 盤中動態更新 → 收盤前賣點追蹤**。設計給 Claude Code（本機 CLI）搭配 `cron`/`launchd` 排程使用，因為需要真實的本機檔案系統寫入權限，以及可重複呼叫的網路搜尋/抓取能力。
+A three-phase technical tracking workflow for Taiwan stocks: **pre-market briefing → intraday updates → pre-close sell-zone tracking**. It is designed for Claude Code (the local CLI) with `cron`/`launchd` scheduling, because it needs real write access to the local file system and repeatable web search and fetching.
 
-## 重要原則（每次執行都要遵守）
+## Core rules (follow on every run)
 
-1. **只做技術面資訊整理與教學說明，不做投資建議**。所有輸出一律用「布林通道位置」「技術面訊號」等描述性語言，例如「股價觸及下軌，過去技術分析上常視為潛在支撐區」，**絕對不要**寫「現在買」「這檔要漲了」「建議買進 X 張」「這幾檔適合買、那幾檔該賣」這類肯定語氣的操作指示或個股買賣裁決。
-   - **新手向解釋 ≠ 投資建議**：收盤總結要用白話幫新手「看懂技術訊號是什麼意思、一般在技術分析上怎麼被解讀」，但**不得**替使用者下「買/賣/適不適合」的結論。
-   - **本金欄位只做中性資金試算，不做配置建議**：可以呈現「台股一張=1000 股、某檔以現價一張約需多少錢、設定的本金約可買幾張」這種**單純可負擔性算術**；**絕對不要**寫「建議把 50 萬這樣分配買進」「這檔買 X 張、那檔買 Y 張」之類的部位配置或買賣推薦。若使用者要求直接喊進出或配置資金，要說明本 skill 與 Claude 均不出具個人化投資建議，請其自行判斷或洽詢持牌投顧。
-2. **每份報告最後都要附上免責聲明**（見下方「免責聲明文字」），一字不漏地附上。
-3. **當天股票只在開盤前選一次**：動態 9 檔（3 熱門產業×3）＋固定 9 檔（記憶體/電子元件/航海×3），去重後最多 18 檔；之後盤中/收盤前的每次更新都重複使用同一組股票（除非使用者另外要求換股），以維持分析的連貫性。
-4. **這不是真正的即時監控**。每次執行都是排程觸發的「單次快照」，透過跟前一次的訊號比對來模擬「動態更新」與「訊號改變即通知」。務必老實跟使用者說明這個限制，不要暗示自己在做逐秒盤中監控。
-5. 執行前務必確認今天是**台股交易日**（週一~五，且非國定假日/颱風假）。如果不確定當天是否為交易日，用網頁搜尋確認一下，非交易日就跳過並記錄一行 log。
+1. **Only organize technical information and explain it; never give investment advice.** Always use descriptive language about Bollinger Band position and technical signals, for example "the price touched the lower band, which technical analysis often treats as a potential support zone". **Never** write directive or judgmental phrases such as "buy now", "this one will rise", "buy X lots", or "these are good buys and those should be sold".
+   - **Explaining for beginners is not advice.** The closing summary helps beginners understand what a signal means and how technical analysis usually reads it, but it **must not** conclude for the user whether to buy, sell or whether a stock is suitable.
+   - **The capital field is only for neutral affordability math, never for allocation advice.** You may show plain arithmetic such as "one lot is 1,000 shares, one lot of this stock costs about X at the current price, the configured capital buys about N lots". **Never** write position or allocation recommendations such as "split the 500,000 like this" or "buy X lots of this and Y lots of that". If the user asks for buy/sell calls or allocation, explain that neither this skill nor Claude gives personalized investment advice, and suggest they decide themselves or consult a licensed advisor.
+2. **Attach the disclaimer at the end of every report** (see "Disclaimer" below), word for word.
+3. **Pick the day's stocks only once, before the open**: 9 dynamic stocks (3 hot industries × 3) plus 9 fixed stocks (memory / electronic components / shipping × 3), at most 18 after removing duplicates. Every later intraday or pre-close update reuses the same list (unless the user asks to change it) so the analysis stays consistent.
+4. **This is not real-time monitoring.** Each run is a single scheduled snapshot; comparing it with the previous run's signals simulates "live updates" and "notify on signal change". Tell the user about this limitation honestly and never imply second-by-second monitoring.
+5. Before running, confirm today is a **Taiwan stock trading day** (Monday to Friday, not a national holiday or typhoon day). If unsure, check with a web search. On a non-trading day, skip and write one log line.
+6. **Write every output in Traditional Chinese.** These instructions are in English, but everything the skill writes into the vault or shows the user (reports, the daily overview, the watchlist index, macOS notifications) stays in Traditional Chinese, and the disclaimer below is copied in Chinese exactly as written.
 
-## 三個執行階段
+## The three phases
 
-詳細步驟都寫在 `references/workflow.md`，開始執行前**務必先讀那份檔案**。這裡先給整體架構：
+The detailed steps are in `references/workflow.md`. **Read that file before every run.** The overall structure:
 
-### 階段 1：開盤前簡報（建議排程時間 08:45~08:55）
-- 用網頁搜尋收集前一晚美股（S&P500、Nasdaq、道瓊、費半、重點權值股）收盤走勢重點
-- 用網頁搜尋收集會影響台股的國際新聞（Fed 動態、地緣政治、供應鏈新聞等）
-- 判斷當天新聞熱度最高的 **3 個產業**（依新聞討論熱度/篇數自行判斷，不需使用者指定）
-- 每個熱門產業挑出成交值或市值**前 3 大**的個股，得到**動態 9 檔**
-- **另外固定加上 3 個產業各前 3 大（固定 9 檔）**：記憶體、電子元件、航海。這三組清單寫在 `config.json` 的 `fixed_industries`（可自行編輯），預設值見下方「設定檔 config.json」
-- 動態 9 檔 + 固定 9 檔**去重**後（若同一檔同時被動態選到又在固定清單，只算一次）存成當天狀態檔 `state/selected_stocks.json`（之後階段都重複使用），每檔標記 `source: dynamic | fixed`
-- 抓這些股票的近期收盤價（至少 20 個交易日）計算布林通道基準
-- 產出「開盤前簡報」報告
+### Phase 1: pre-market briefing (suggested schedule 08:45–08:55)
+- Use web search to collect the previous night's US market closes (S&P 500, Nasdaq, Dow Jones, the Philadelphia Semiconductor Index, key heavyweight stocks)
+- Use web search to collect world news that affects Taiwan stocks (Fed moves, geopolitics, supply-chain news and so on)
+- Decide the **3 industries** with the most news attention today (judge by news volume and discussion; the user does not need to name them)
+- For each hot industry, pick the **top 3** stocks by trading value or market cap, giving **9 dynamic stocks**
+- **Also add the top 3 stocks of 3 fixed industries (9 fixed stocks)**: memory, electronic components and shipping. These lists live in `fixed_industries` in `config.json` (the user can edit them); the defaults are under "config.json settings" below
+- **Remove duplicates** between the dynamic 9 and the fixed 9 (a stock picked dynamically that is also on a fixed list counts once), save the result to the day's state file `state/selected_stocks.json` (reused by later phases), and mark each stock `source: dynamic | fixed`
+- Fetch recent closing prices for these stocks (at least 20 trading days) to compute the Bollinger Band baseline
+- Produce the pre-market briefing report
 
-### 階段 2：盤中動態更新（建議排程：09:00 起每 30 分鐘一次，到 12:00）
-- 讀取階段 1 選定的 9 檔股票清單（不重新選股）
-- 抓這 9 檔的即時/最新成交價
-- 用 `scripts/bollinger.py` 重新計算布林通道位置
-- 跟上一次的訊號比對：如果有股票的位置狀態改變（例如從「通道內」變成「觸及下軌」），特別標示出來，並觸發本機通知（macOS `osascript` 通知）
-- 更新當天的報告檔案
+### Phase 2: intraday updates (suggested schedule: every 30 minutes from 09:00 to 12:00)
+- Read the 9 stocks chosen in phase 1 (do not pick again)
+- Fetch the latest or real-time price for these 9 stocks
+- Recompute Bollinger Band positions with `scripts/bollinger.py`
+- Compare with the previous signals: when a stock's position changes (for example from "inside the band" to "touching the lower band"), highlight it and trigger a local notification (a macOS `osascript` notification)
+- Update the day's report file
 
-### 階段 3：收盤前賣點追蹤（建議排程：12:30 起每 30 分鐘一次，到 13:25，台股 13:30 收盤）
-- 同樣讀取這 9 檔，抓最新成交價，重新計算布林通道
-- 針對每檔股票，用布林通道位置描述「技術面上偏向什麼區間、過去類似位置通常會被如何解讀」，**不是**「幾點該賣」的精確預測
-- 跟上一次比對，訊號改變就標示＋觸發通知
-- 收盤後（13:30 之後第一次執行）做當天總結報告，並以**股市新手向**呈現（見下方「收盤總結：新手向呈現」）
+### Phase 3: pre-close sell-zone tracking (suggested schedule: every 30 minutes from 12:30 to 13:25; the Taiwan market closes at 13:30)
+- Read the same 9 stocks, fetch the latest prices and recompute the Bollinger Bands
+- For each stock, describe from its Bollinger position which zone it leans toward technically and how similar positions are usually read, **not** a precise prediction of when to sell
+- Compare with the previous run; highlight signal changes and trigger a notification
+- After the close (the first run after 13:30), write the day's summary report for **stock-market beginners** (see "Closing summary for beginners" below)
 
-## 必要設定
+## Required settings
 
-這個 skill 會把報告寫進使用者的 Obsidian vault，路徑由環境變數 `TW_STOCK_INVESTING_DIR` 提供，指向 vault 中的 `Investing` 資料夾（例如 `/Users/<你>/Library/Mobile Documents/iCloud~md~obsidian/Documents/<vault 名稱>/Investing`）。
+This skill writes reports into the user's Obsidian vault. The environment variable `TW_STOCK_INVESTING_DIR` gives the path of the vault's `Investing` folder (for example `/Users/<you>/Library/Mobile Documents/iCloud~md~obsidian/Documents/<vault name>/Investing`).
 
-- 執行前先確認 `echo "$TW_STOCK_INVESTING_DIR"` 有值。
-- 由排程（launchd、cron 或 `claude -p`）在背景執行、沒有人可以回答問題時：若沒有設定，**不要詢問，直接停止**，並輸出錯誤訊息「TW_STOCK_INVESTING_DIR 未設定，請在排程設定中加入這個環境變數」。
-- 互動執行時若沒有設定，先詢問使用者 vault 中 Investing 資料夾的路徑，本次執行以 `--base-dir "<路徑>/Daily" --config "<路徑>/config.json"` 傳給 `build_report.py`，並提示使用者把 `export TW_STOCK_INVESTING_DIR="<路徑>"` 加進 shell 設定檔（例如 `~/.zshrc`）。
-- 安裝 launchd 排程（`scripts/install_launchd_jobs.sh`）前也必須先設定，安裝腳本會把這個值寫進每個 plist。
+- Before running, check that `echo "$TW_STOCK_INVESTING_DIR"` prints a value.
+- When the run is scheduled in the background (launchd, cron or `claude -p`) and nobody can answer questions: if the variable is not set, **do not ask; stop** and print the error "TW_STOCK_INVESTING_DIR is not set; add this environment variable to the schedule settings".
+- In an interactive run with the variable unset, first ask the user for the path of the vault's Investing folder, pass it to `build_report.py` for this run as `--base-dir "<path>/Daily" --config "<path>/config.json"`, and suggest adding `export TW_STOCK_INVESTING_DIR="<path>"` to their shell profile (for example `~/.zshrc`).
+- The variable must also be set before installing the launchd schedule (`scripts/install_launchd_jobs.sh`); the installer writes its value into every plist.
 
-## 產出位置（直接寫進 Obsidian vault）
+## Output location (written straight into the Obsidian vault)
 
-所有報告一律**以 Obsidian 格式**寫進 vault 的 `Investing/Daily/` 底下（不再寫到 `04_stock/daily_analysis/`）：
+Every report is written **in Obsidian format** under the vault's `Investing/Daily/` (no longer under `04_stock/daily_analysis/`):
 
 ```
 $TW_STOCK_INVESTING_DIR/
-├── config.json                       ← 跨日共用設定（本金、固定產業）
-├── watchlist.md                      ← 追蹤清單＋每日索引（收盤後更新其索引）
+├── config.json                       ← settings shared across days (capital, fixed industries)
+├── watchlist.md                      ← watchlist plus daily index (index updated after the close)
 └── Daily/{YYYY-MM-DD}/
-    ├── 台股日報 {YYYY-MM-DD}.md        ← 當日總覽/摘要（收盤總結後由 Claude 撰寫，見下；檔名帶日期，Obsidian 一眼可辨）
+    ├── 台股日報 {YYYY-MM-DD}.md        ← daily overview written by Claude after the closing summary (see below; the date in the file name makes it easy to spot in Obsidian)
     ├── reports/
-    │   ├── 0850_premarket.md         ← 每份都含 Obsidian YAML frontmatter
+    │   ├── 0850_premarket.md         ← every report has Obsidian YAML frontmatter
     │   ├── 0900_update.md
     │   ├── ...
-    │   └── summary_close.md          ← 收盤後總結（新手向）
-    ├── charts/{股票代號}_bollinger.png ← 布林通道圖（報告內用相對路徑 ![](../charts/..) 嵌入，Obsidian 可顯示）
+    │   └── summary_close.md          ← closing summary (for beginners)
+    ├── charts/{symbol}_bollinger.png ← Bollinger chart (embedded in reports with the relative path ![](../charts/..), which Obsidian displays)
     ├── state/{selected_stocks,signals_state}.json
     └── logs/run_{HHMM}.log
 ```
 
-若資料夾不存在，執行時自動建立（`mkdir -p`）。`build_report.py` 會從 `TW_STOCK_INVESTING_DIR` 推出預設的 `--base-dir` 與 `--config`，設定好環境變數後直接執行即可。
+Missing folders are created automatically (`mkdir -p`). `build_report.py` derives the default `--base-dir` and `--config` from `TW_STOCK_INVESTING_DIR`, so once the variable is set it runs as is.
 
-### Obsidian 格式要求（每次寫檔都遵守）
-- **每份報告開頭都要有 YAML frontmatter**：`tags: [investing, daily-stock, {phase}]`、`date`、`phase`、`time`、`source: tw-stock-daily-tracker`。（`build_report.py` 已自動加上；若你手寫任何補充 note 也要照加。）
-- 報告開頭用 `> 追蹤清單見 [[watchlist]]。` 這類 **Obsidian wikilink** 串接相關筆記。
-- 圖表用相對路徑 `![](../charts/{symbol}_bollinger.png)` 嵌入（`build_report.py` 已處理）。
-- **收盤總結後，撰寫/更新當日總覽 `台股日報 {YYYY-MM-DD}.md`**（放在該日資料夾內；**用帶日期的檔名，不要用 README 這種在 Obsidian 檔案列表/graph 看不出內容的通用名**）：含 frontmatter、一句話總結、15 檔漲跌與收盤通道位置表、全日訊號軌跡（premarket→update→收盤），並用 `[[0850_premarket]]`、`[[summary_close]]` 等 wikilink 串接各報告；結尾附免責。同時把這天加進 `watchlist.md` 的「每日資料索引」（`[[台股日報 {date}|{date}]]`）。
+### Obsidian format rules (follow for every file you write)
+- **Every report starts with YAML frontmatter**: `tags: [investing, daily-stock, {phase}]`, `date`, `phase`, `time`, `source: tw-stock-daily-tracker`. (`build_report.py` adds it automatically; add it yourself to any extra note you write by hand.)
+- Start reports with an **Obsidian wikilink** to related notes, such as `> 追蹤清單見 [[watchlist]]。`
+- Embed charts with the relative path `![](../charts/{symbol}_bollinger.png)` (`build_report.py` does this).
+- **After the closing summary, write or update the daily overview `台股日報 {YYYY-MM-DD}.md`** in that day's folder. **Use the dated file name, not a generic name like README that is unreadable in Obsidian's file list or graph.** Include frontmatter, a one-sentence summary, a table of the 15 stocks' changes and closing band positions, the day's signal trail (premarket → update → close), wikilinks to each report such as `[[0850_premarket]]` and `[[summary_close]]`, and the disclaimer at the end. Also add the day to the "daily index" of `watchlist.md` (`[[台股日報 {date}|{date}]]`).
 
-## 布林通道計算與報告產生
+## Bollinger Band calculation and report generation
 
-用 `scripts/bollinger.py` 算通道位置，用 `scripts/build_report.py` 組出 Markdown 報告＋呼叫 matplotlib 畫圖表＋在訊號改變時觸發 macOS 通知。兩支 script 的用法都寫在檔案開頭的 docstring，執行前可以先 `python3 scripts/bollinger.py --help` 跟 `python3 scripts/build_report.py --help` 確認參數。
+`scripts/bollinger.py` computes band positions. `scripts/build_report.py` assembles the Markdown report, draws charts with matplotlib and triggers a macOS notification when a signal changes. Both scripts document their usage in the docstring at the top; check the options with `python3 scripts/bollinger.py --help` and `python3 scripts/build_report.py --help` before running.
 
-資料來源（TWSE 官方 API 端點、即時報價端點的用法）寫在 `references/data_sources.md`。
+Data sources (the official TWSE API endpoints and how to use the real-time quote endpoint) are in `references/data_sources.md`.
 
-## 搭配其他 data-analysis 相關 skills
+## Working with other data-analysis skills
 
-如果你的環境裡也裝了這些 skill（`analyze`、`explore-data`、`validate-data`、`data-context-extractor`、`write-query`、`create-viz`、`build-dashboard`），優先讓它們接手對應的步驟，本 skill 內建的 `scripts/bollinger.py`、`scripts/build_report.py` 當作沒有這些 skill 時的備援即可。建議的對應關係：
+If the environment also has these skills (`analyze`, `explore-data`, `validate-data`, `data-context-extractor`, `write-query`, `create-viz`, `build-dashboard`), let them handle the matching steps first, and treat this skill's `scripts/bollinger.py` and `scripts/build_report.py` as the fallback when they are missing. Suggested mapping:
 
-| 本 skill 的步驟 | 交給哪個相關 skill | 說明 |
+| Step in this skill | Related skill | Why |
 |---|---|---|
-| 階段1 Step 1.1/1.4：抓到 TWSE API／新聞資料後，理解欄位結構 | `data-context-extractor` | 先萃取資料結構與欄位意義，避免後面步驟猜錯欄位 |
-| 階段1 Step 1.4：抓到 20+ 日歷史收盤價之後 | `explore-data` | 先做基本探索（有沒有缺值、異常跳空、資料是否連續），比直接丟進布林通道計算更保險 |
-| 布林通道計算前的資料把關 | `validate-data` | 檢查價格資料的完整性/合理性（例如負值、重複日期），有問題就先標出來而不是硬算 |
-| 若改成從本機資料庫/CSV 存的歷史股價撈資料 | `write-query` | 用來寫查詢，取代直接呼叫 TWSE API 的方式（例如你之後想建立自己的股價歷史庫） |
-| 布林通道以外，想要更完整的技術面/量化分析 | `analyze` | 補充布林通道之外的分析（例如均量變化、RSI 等），豐富報告內容 |
-| 圖表產生 | `create-viz` | 取代 `scripts/build_report.py` 裡 matplotlib 畫的靜態圖，做出更好的視覺化 |
-| 把一天內多次更新的報告整合成單一總覽畫面 | `build-dashboard` | 收盤總結（`close_summary`）階段特別適合，把當天 12 次快照整合成一個儀表板，而不只是最後一份 Markdown |
+| Phase 1 steps 1.1/1.4: understanding the fields after fetching TWSE API or news data | `data-context-extractor` | Extract the data structure and field meanings first so later steps do not misread fields |
+| Phase 1 step 1.4: after fetching 20+ days of closing prices | `explore-data` | Explore first (missing values, abnormal gaps, continuity) instead of feeding the data straight into the Bollinger calculation |
+| Data checks before the Bollinger calculation | `validate-data` | Check price data for completeness and sanity (negative values, duplicate dates) and flag problems instead of computing anyway |
+| Pulling historical prices from a local database or CSV instead | `write-query` | Write the query instead of calling the TWSE API (for example once you build your own price history store) |
+| Fuller technical or quantitative analysis beyond Bollinger Bands | `analyze` | Add analysis such as volume changes or RSI to enrich the report |
+| Chart generation | `create-viz` | Replace the static matplotlib charts in `scripts/build_report.py` with better visualizations |
+| Combining a day's many updates into one overview | `build-dashboard` | Especially suited to the closing summary (`close_summary`): merge the day's 12 snapshots into one dashboard rather than only the last Markdown file |
 
-實際怎麼銜接（例如這些 skill 的輸入輸出格式）要看它們各自的 SKILL.md 說明為準 —— 執行到對應步驟時，先讀那個 skill 的 SKILL.md 再決定怎麼把資料傳進去。如果發現這裡列的對應關係跟實際用起來不順，就照實際狀況調整，不用死守這張表。
+How to hand data over (input and output formats) follows each skill's own SKILL.md. When you reach the matching step, read that skill's SKILL.md before deciding how to pass the data in. If a mapping here turns out awkward in practice, adapt it; the table is not binding.
 
-## 排程設定（cron / launchd）
+## Scheduling (cron / launchd)
 
-第一次幫使用者建立這個 skill 之後，`references/cron_setup.md` 有 launchd 與 crontab 兩種排程設定的範例，包含每個階段建議的觸發時間點。設定完後提醒使用者：
+After setting this skill up for the user, `references/cron_setup.md` has launchd and crontab examples, including the suggested trigger times for each phase. After setup, remind the user to:
 
-- 用 `launchctl list | grep tw-stock` 或 `crontab -l` 確認排程有正確載入
-- 提醒使用者電腦在排程觸發時間必須是開機且未睡眠狀態，launchd 對「補跑錯過的排程」支援度比 cron 好一些
-- **安裝排程前先告知風險**：`scripts/install_launchd_jobs.sh` 會以 `claude -p --dangerously-skip-permissions` 執行，背景執行時不會詢問任何權限。新聞或網頁內容若夾帶惡意指令，agent 可能不經確認就執行。請使用者確認接受這個風險再安裝；不接受的話，可以改用互動方式手動執行各階段。
+- Check that the jobs are loaded with `launchctl list | grep tw-stock` or `crontab -l`
+- Keep the computer on and awake at the scheduled times; launchd handles missed runs somewhat better than cron
+- **Explain the risk before installing the schedule**: `scripts/install_launchd_jobs.sh` runs `claude -p --dangerously-skip-permissions`, so background runs never ask for permission. If news or web content carries malicious instructions, the agent may act on them without confirmation. Install only after the user accepts this risk; otherwise they can run each phase interactively by hand.
 
-## 設定檔 config.json（可變更欄位，每次執行都讀取）
+## config.json settings (editable, read on every run)
 
-路徑：`$TW_STOCK_INVESTING_DIR/config.json`（在 vault 內，跨日共用，不是每天一份）。
+Path: `$TW_STOCK_INVESTING_DIR/config.json` (inside the vault, shared across days, not one per day).
 
-**每次執行時都要先讀這個檔**。若檔案不存在或缺欄位，就用下方預設值，並把補好的預設值寫回去（讓使用者之後好編輯）。
+**Read this file at the start of every run.** If it is missing or lacks fields, use the defaults below and write the completed defaults back so the user can edit them later.
 
 ```json
 {
@@ -131,21 +132,25 @@ $TW_STOCK_INVESTING_DIR/
 }
 ```
 
-- `capital_twd`：**買入資本（可變更欄位）**，單位新台幣元。使用者沒改就用預設 **500000（50 萬）**。這個值只用於報告中「資金試算」的**中性可負擔性算術**（見下），**不得**拿來產生任何買賣或配置建議。
-- `fixed_industries`：固定追蹤的三個產業與各自個股清單，使用者可自行增刪換股。
+The industry and company names above are written into the user's vault and appear in the Chinese reports, so they stay in Chinese (memory: Nanya Technology, Winbond, Phison; electronic components: Yageo, Delta Electronics, Walsin Technology; shipping: Evergreen Marine, Yang Ming, Wan Hai).
 
-## 收盤總結：新手向呈現（`close_summary`）
+- `capital_twd`: **capital for buying (editable)**, in New Taiwan dollars. Use the default **500000** if the user has not changed it. It is used only for the **neutral affordability math** in the reports' capital section (see below) and **must not** produce any buy, sell or allocation advice.
+- `fixed_industries`: the three fixed industries and their stock lists; the user can add, remove or swap stocks.
 
-收盤總結（`summary_close.md`）要讓**完全沒基礎的新手**也讀得懂，建議包含：
+## Closing summary for beginners (`close_summary`)
 
-1. **今天發生什麼事**：用白話一句話講當天大盤氛圍與這些股票整體收紅/收黑的原因（連結到隔夜美股、新聞）。
-2. **名詞小教室**：用一兩句白話解釋這份報告會用到的詞——「布林通道」「上軌/中軌/下軌」「%B」「跌破下軌/接近下軌代表什麼」，讓新手知道每個訊號**在技術分析上一般怎麼被解讀**（例如「跌破下軌：股價短線相對偏低的位置，技術分析上有人視為超跌、也可能代表趨勢轉弱，兩種可能都有」）。**只解釋、不下買賣結論。**
-3. **每檔的白話技術面說明**：把布林位置翻成人話，講「現在在通道的哪裡、這種位置過去技術分析上常被怎麼看」，並明確提醒「這不是叫你買或賣」。
-4. **資金試算（中性、非建議）**：以 `capital_twd` 為本金，列出純算術參考——台股 1 張 = 1000 股；每檔「以收盤價計，一張約需多少錢」「本金約可買幾張（無條件捨去）」「一張約佔本金幾 %」。開頭要標明「**以下為資金規模試算，非建議買進任一檔**」。
-5. **給新手的提醒**：技術訊號只是眾多參考之一、過去不代表未來、分批/風險控管等一般性觀念（通則，不針對個股）。
+The closing summary (`summary_close.md`) must be readable by **complete beginners**. Suggested sections:
 
-⚠️ **嚴禁**在收盤總結（或任何報告）出現「這幾檔適合買/該賣」「50 萬建議這樣配置買進」之類的**個股買賣裁決或部位配置建議**。使用者若明確要求，一律回覆本 skill 與 Claude 不出具個人化投資建議，請自行判斷或洽持牌投顧。`scripts/build_report.py` 可用 `--capital` 帶入本金，自動附上中性的「資金試算」表格。
+1. **What happened today**: one plain sentence on the market mood and why these stocks closed up or down overall (link it to the overnight US market and the news).
+2. **Glossary**: one or two plain sentences for each term the report uses — Bollinger Bands, upper/middle/lower band, %B, what breaking below or nearing the lower band means — so beginners know **how technical analysis usually reads** each signal (for example "breaking below the lower band: the price is relatively low in the short term; some technical analysts see it as oversold, but it can also mean the trend is weakening; both readings exist"). **Explain only; never conclude buy or sell.**
+3. **A plain-language technical note for each stock**: translate the Bollinger position into everyday words — where it sits in the band now and how such positions have usually been read — and state clearly that this is not telling the user to buy or sell.
+4. **Capital math (neutral, not advice)**: using `capital_twd` as the capital, list plain arithmetic — one lot is 1,000 shares; for each stock, about how much one lot costs at the close, about how many lots the capital buys (rounded down) and about what percentage of the capital one lot is. Start the section with "**以下為資金規模試算，非建議買進任一檔**" (the following is affordability math, not a recommendation to buy any stock).
+5. **Reminders for beginners**: technical signals are only one of many references, the past does not predict the future, and general ideas such as buying in stages and managing risk (general principles, not about any specific stock).
 
-## 免責聲明文字（每份報告結尾都要附上，逐字照抄）
+⚠️ **Never** put stock-level buy/sell verdicts or allocation advice in the closing summary (or any report), such as "these are good buys / these should be sold" or "split the 500,000 like this". If the user asks explicitly, always reply that neither this skill nor Claude gives personalized investment advice, and suggest they decide themselves or consult a licensed advisor. `scripts/build_report.py` accepts `--capital` and adds the neutral capital-math table automatically.
+
+## Disclaimer (attach to the end of every report, copied word for word)
 
 > 本報告僅整理公開市場資訊與布林通道等技術指標的客觀計算結果，用於個人研究參考，**不構成任何投資建議、亦非邀約買賣任何有價證券**。過往技術訊號不保證未來走勢，投資有風險，請自行判斷並承擔投資決策的風險與責任。本報告非持有證券投資顧問執照者所出具之投資分析意見。
+
+(English meaning, for reference only; reports must use the Chinese text above: this report only organizes public market information and objective calculations of technical indicators such as Bollinger Bands for personal research. It is not investment advice or an offer to buy or sell any security. Past technical signals do not guarantee future movements; investing carries risk, so decide for yourself and bear the responsibility. This report is not an investment analysis opinion issued by a licensed securities investment adviser.)

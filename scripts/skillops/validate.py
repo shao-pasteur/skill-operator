@@ -40,44 +40,44 @@ def _check_fields(skill: Skill, where: str) -> list[Issue]:
 
     for key in fm:
         if key not in STANDARD_FIELDS:
-            issues.append(Issue("warning", where, f"frontmatter 欄位「{key}」不在 Agent Skills 標準中，部分平台會忽略它"))
+            issues.append(Issue("warning", where, f"frontmatter field '{key}' is not part of the Agent Skills standard; some platforms ignore it"))
 
     if "name" not in fm:
-        issues.append(Issue("error", where, "缺少必填欄位 name"))
+        issues.append(Issue("error", where, "missing required field: name"))
     else:
         name = fm["name"]
         if not isinstance(name, str) or not NAME_RE.match(name) or len(name) > 64:
-            issues.append(Issue("error", where, f"name「{name}」格式錯誤：只能用小寫英數字與單一連字號，最多 64 字元"))
+            issues.append(Issue("error", where, f"name '{name}' is invalid: use lowercase letters, digits and single hyphens, at most 64 characters"))
         if name != skill.dir_name:
-            issues.append(Issue("error", where, f"name「{name}」必須與資料夾名稱「{skill.dir_name}」相同"))
+            issues.append(Issue("error", where, f"name '{name}' must match the folder name '{skill.dir_name}'"))
 
     description = fm.get("description")
     if not isinstance(description, str) or not description.strip():
-        issues.append(Issue("error", where, "缺少必填欄位 description"))
+        issues.append(Issue("error", where, "missing required field: description"))
     else:
         if len(description) > 1024:
-            issues.append(Issue("error", where, "description 超過 1024 字元"))
+            issues.append(Issue("error", where, "description is longer than 1024 characters"))
         if "TODO" in description:
-            issues.append(Issue("error", where, "description 還是樣板內容（含 TODO），請改寫"))
+            issues.append(Issue("error", where, "description is still the template text (contains TODO); rewrite it"))
         if len(description) < 50:
-            issues.append(Issue("warning", where, "description 少於 50 字元，agent 可能不容易判斷何時使用"))
+            issues.append(Issue("warning", where, "description is shorter than 50 characters; agents may not know when to use the skill"))
 
     if "compatibility" in fm:
         compat = fm["compatibility"]
         if not isinstance(compat, str) or not 1 <= len(compat) <= 500:
-            issues.append(Issue("error", where, "compatibility 必須是 1–500 字元的字串"))
+            issues.append(Issue("error", where, "compatibility must be a string of 1–500 characters"))
 
     metadata = fm.get("metadata")
     if metadata is not None and not isinstance(metadata, dict):
-        issues.append(Issue("error", where, "metadata 必須是 key: value 形式的 mapping"))
+        issues.append(Issue("error", where, "metadata must be a key: value mapping"))
         metadata = None
     for key, value in (metadata or {}).items():
         if not isinstance(value, str):
-            issues.append(Issue("error", where, f'metadata.{key} 的值必須是字串，請寫成 "{_yaml_scalar(value)}"'))
+            issues.append(Issue("error", where, f'metadata.{key} must be a string; write it as "{_yaml_scalar(value)}"'))
         elif key == "web" and value not in ("true", "false"):
-            issues.append(Issue("error", where, 'metadata.web 只能是 "true" 或 "false"'))
+            issues.append(Issue("error", where, 'metadata.web must be "true" or "false"'))
     if skill.has_scripts and "web" not in (metadata or {}):
-        issues.append(Issue("error", where, '有 scripts/ 的 skill 必須在 metadata.web 註明網頁版能否使用（"true" 或 "false"）'))
+        issues.append(Issue("error", where, 'skills with scripts/ must set metadata.web to "true" or "false" to say whether web apps can use them'))
     return issues
 
 
@@ -95,7 +95,7 @@ def _check_references(skill: Skill, where: str) -> list[Issue]:
             continue
         seen.add(ref)
         if not (skill.path / ref).exists():
-            issues.append(Issue("error", where, f"引用的檔案不存在：{ref}"))
+            issues.append(Issue("error", where, f"referenced file does not exist: {ref}"))
     return issues
 
 
@@ -124,17 +124,17 @@ def _check_files(catalog: Catalog, skill: Skill) -> list[Issue]:
             try:
                 compile(text, rel, "exec")
             except SyntaxError as e:
-                issues.append(Issue("error", rel, f"Python 語法錯誤（{path.name} 第 {e.lineno} 行）：{e.msg}"))
+                issues.append(Issue("error", rel, f"Python syntax error in {path.name} line {e.lineno}: {e.msg}"))
         elif path.suffix == ".sh":
             result = subprocess.run(["bash", "-n", str(path)], capture_output=True, text=True)
             if result.returncode != 0:
-                first = (result.stderr.strip().splitlines() or ["未知錯誤"])[0]
-                issues.append(Issue("error", rel, f"shell 語法錯誤（{path.name}）：{first}"))
+                first = (result.stderr.strip().splitlines() or ["unknown error"])[0]
+                issues.append(Issue("error", rel, f"shell syntax error in {path.name}: {first}"))
         for pattern in _PERSONAL_PATH_RES:
             for match in dict.fromkeys(m.group(0) for m in pattern.finditer(text)):
-                issues.append(Issue("error", rel, f"含有個人路徑「{match}」，請改用環境變數或佔位符（例如 <你>）"))
+                issues.append(Issue("error", rel, f"contains a personal path '{match}'; use an environment variable or a placeholder such as <you>"))
         for match in dict.fromkeys(m.group(0) for m in _EMAIL_RE.finditer(text)):
-            issues.append(Issue("warning", rel, f"含有 email「{match}」，公開 repo 請確認是否要保留"))
+            issues.append(Issue("warning", rel, f"contains an email address '{match}'; make sure it belongs in a public repo"))
     return issues
 
 
@@ -146,10 +146,10 @@ def validate_catalog(catalog: Catalog) -> list[Issue]:
         issues += _check_fields(skill, where)
         if name_counts[skill.name] > 1:
             others = [s.rel_path for s in catalog.skills if s.name == skill.name and s is not skill]
-            issues.append(Issue("error", where, f"name「{skill.name}」與其他 skill 重複：{'、'.join(others)}"))
+            issues.append(Issue("error", where, f"name '{skill.name}' is also used by: {', '.join(others)}"))
         line_count = len((skill.path / "SKILL.md").read_text(encoding="utf-8").splitlines())
         if line_count > 500:
-            issues.append(Issue("warning", where, f"SKILL.md 有 {line_count} 行，超過建議的 500 行，可把細節移到 references/"))
+            issues.append(Issue("warning", where, f"SKILL.md has {line_count} lines, more than the recommended 500; move details into references/"))
         issues += _check_references(skill, where)
         issues += _check_files(catalog, skill)
     return issues

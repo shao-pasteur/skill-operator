@@ -1,20 +1,20 @@
 #!/bin/bash
-# install_launchd_jobs.sh — 幫 tw-stock-daily-tracker 產生並載入 launchd 排程（精簡 3 次/天）
+# install_launchd_jobs.sh — create and load launchd jobs for tw-stock-daily-tracker (lean schedule, 3 runs a day)
 #
-# 用法：
+# Usage:
 #   bash scripts/install_launchd_jobs.sh
 #
-# 會做的事：
-#   1. 在 ~/Library/LaunchAgents/ 產生 3 個 plist（盤前1、盤中1、收盤總結1）
-#   2. 每個 plist 以 --dangerously-skip-permissions 執行 claude，讓背景排程不需人工核准即可
-#      上網、curl TWSE、寫入 Obsidian vault（headless 無人能按同意，故略過權限提示）
-#   3. 用 launchctl load 載入每一個
+# What it does:
+#   1. Creates 3 plists in ~/Library/LaunchAgents/ (1 pre-market, 1 intraday, 1 closing summary)
+#   2. Each plist runs claude with --dangerously-skip-permissions so background runs can browse,
+#      curl TWSE and write to the Obsidian vault without approval (nobody is there to approve headless runs)
+#   3. Loads each one with launchctl load
 #
-# 卸載的話用：
+# To uninstall:
 #   bash scripts/install_launchd_jobs.sh --uninstall
 #
-# ⚠️ 每個 plist 觸發的 prompt 只是「請 Claude Code 執行 tw-stock-daily-tracker skill 的某個階段」，
-#    實際會不會做事（例如今天是不是交易日）由 skill 內部邏輯判斷，plist 本身不做這層過濾。
+# ⚠️ Each plist only prompts Claude Code to run one phase of the tw-stock-daily-tracker skill;
+#    the skill itself decides whether to do anything (for example whether today is a trading day).
 
 set -euo pipefail
 
@@ -25,8 +25,8 @@ LOG_DIR="$HOME/Library/Logs/tw-stock-tracker"
 
 mkdir -p "$PLIST_DIR" "$LOG_DIR"
 
-# 精簡版排程（3 次/天），最省用量：盤前選股→盤中一次追蹤→收盤總結。
-# 格式："HHMM:phase"
+# Lean schedule (3 runs a day) to keep usage low: pre-market picks → one intraday check → closing summary.
+# Format: "HHMM:phase"
 SLOTS=(
   "0850:premarket"
   "1200:update"
@@ -34,16 +34,16 @@ SLOTS=(
 )
 
 uninstall() {
-  echo "卸載 tw-stock-tracker 排程..."
-  # 用 glob 掃掉所有 ${LABEL_PREFIX}.* 的 plist（含舊版留下的時段），避免遺留孤兒排程
+  echo "Uninstalling the tw-stock-tracker jobs..."
+  # Glob every ${LABEL_PREFIX}.* plist (including slots left by older versions) so no orphan jobs remain
   shopt -s nullglob
   for plist in "$PLIST_DIR/${LABEL_PREFIX}."*.plist; do
     launchctl unload "$plist" 2>/dev/null || true
     rm -f "$plist"
-    echo "  移除 $(basename "$plist" .plist)"
+    echo "  removed $(basename "$plist" .plist)"
   done
   shopt -u nullglob
-  echo "完成。"
+  echo "Done."
   exit 0
 }
 
@@ -51,9 +51,9 @@ if [ "${1:-}" == "--uninstall" ]; then
   uninstall
 fi
 
-# launchd 不會讀 ~/.zshrc，所以要把 vault 路徑直接寫進 plist
-: "${TW_STOCK_INVESTING_DIR:?請先設定 TW_STOCK_INVESTING_DIR（Obsidian vault 中 Investing 資料夾的路徑）}"
-# 路徑加了引號時 "~" 不會被展開，這裡手動換成 $HOME
+# launchd does not read ~/.zshrc, so the vault path goes straight into each plist
+: "${TW_STOCK_INVESTING_DIR:?set TW_STOCK_INVESTING_DIR (the path of the Investing folder in your Obsidian vault) first}"
+# A quoted path keeps "~" unexpanded, so replace it with $HOME here
 TW_STOCK_INVESTING_DIR="${TW_STOCK_INVESTING_DIR/#\~/$HOME}"
 
 for slot in "${SLOTS[@]}"; do
@@ -61,13 +61,13 @@ for slot in "${SLOTS[@]}"; do
   phase="${slot##*:}"
   hour="${hhmm:0:2}"
   minute="${hhmm:2:2}"
-  # 去掉開頭 0，避免被當成八進位數字解析錯誤（例如 08 -> 使用時記得去 leading zero）
+  # Strip the leading zero so values like 08 are not parsed as octal
   hour_dec=$((10#$hour))
   minute_dec=$((10#$minute))
 
   label="${LABEL_PREFIX}.${hhmm}"
   plist="$PLIST_DIR/${label}.plist"
-  prompt="請執行 tw-stock-daily-tracker skill，phase=${phase}，time_label=${hhmm}。若今天不是台股交易日請依 skill 說明直接跳過。"
+  prompt="Run the tw-stock-daily-tracker skill, phase=${phase}, time_label=${hhmm}. If today is not a Taiwan stock trading day, skip as the skill describes."
 
   cat > "$plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -107,11 +107,11 @@ EOF
 
   launchctl unload "$plist" 2>/dev/null || true
   launchctl load "$plist"
-  echo "已安裝並載入：${label}（每天 ${hour}:${minute}，phase=${phase}）"
+  echo "Installed and loaded: ${label} (daily at ${hour}:${minute}, phase=${phase})"
 done
 
 echo ""
-echo "全部 ${#SLOTS[@]} 個排程安裝完成。用以下指令確認："
+echo "All ${#SLOTS[@]} jobs installed. Check them with:"
 echo "  launchctl list | grep tw-stock-tracker"
 echo ""
-echo "log 檔案位置：${LOG_DIR}/"
+echo "Log files: ${LOG_DIR}/"

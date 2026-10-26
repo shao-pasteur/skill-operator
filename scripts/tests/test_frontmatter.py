@@ -16,12 +16,12 @@ def test_parse_crlf():
 
 
 def test_missing_opening_delimiter():
-    with pytest.raises(FrontmatterError, match="開頭"):
+    with pytest.raises(FrontmatterError, match="start"):
         parse_frontmatter("name: foo\n")
 
 
 def test_missing_closing_delimiter():
-    with pytest.raises(FrontmatterError, match="結尾"):
+    with pytest.raises(FrontmatterError, match="closing"):
         parse_frontmatter("---\nname: foo\n")
 
 

@@ -32,7 +32,7 @@ def test_first_skill_in_new_category_needs_new_manifests_staged(repo, capsys):
 
 def test_precommit_runs_check(repo, capsys):
     init(repo)
-    repo.add_skill("dev", "foo", frontmatter={"name": "other", "description": "說明" * 30})
+    repo.add_skill("dev", "foo", frontmatter={"name": "other", "description": "A test skill used by the toolkit tests. " + "x" * 20})
     main(["--root", str(repo.root), "build"])
     git(repo.root, "add", "-A")
     assert main(["--root", str(repo.root), "precommit"]) == 1

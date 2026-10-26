@@ -8,12 +8,12 @@ from skillops.package import EXCLUDE_PATTERNS
 
 SKILL_TEMPLATE = """---
 name: {name}
-description: TODO 描述這個 skill 做什麼，以及什麼時候該使用它（寫進使用者可能會說的關鍵字）。
+description: TODO Describe what this skill does and when to use it, including words users are likely to say.
 ---
 
 # {name}
 
-TODO 撰寫指令。
+TODO Write the instructions.
 """
 
 
@@ -23,16 +23,16 @@ class ScaffoldError(Exception):
 
 def _destination(root: Path, category: str, name: str) -> Path:
     if not NAME_RE.match(name) or len(name) > 64:
-        raise ScaffoldError(f"name「{name}」格式錯誤：只能用小寫英數字與單一連字號，最多 64 字元")
+        raise ScaffoldError(f"name '{name}' is invalid: use lowercase letters, digits and single hyphens, at most 64 characters")
     catalog = load_catalog(root)
     if category not in {c.id for c in catalog.categories}:
-        raise ScaffoldError(f"分類「{category}」不在 categories.yaml 中")
+        raise ScaffoldError(f"category '{category}' is not in categories.yaml")
     existing = next((s for s in catalog.skills if s.dir_name == name), None)
     if existing:
-        raise ScaffoldError(f"skill「{name}」已存在：{existing.rel_path}")
+        raise ScaffoldError(f"skill '{name}' already exists: {existing.rel_path}")
     dest = root / "plugins" / category / "skills" / name
     if dest.exists():
-        raise ScaffoldError(f"{dest.relative_to(root).as_posix()} 已存在")
+        raise ScaffoldError(f"{dest.relative_to(root).as_posix()} already exists")
     return dest
 
 
@@ -46,11 +46,11 @@ def new_skill(root: Path, category: str, name: str) -> Path:
 def import_skill(root: Path, src: Path, category: str) -> Path:
     src = src.expanduser().resolve()
     if not (src / "SKILL.md").is_file():
-        raise ScaffoldError(f"{src} 裡沒有 SKILL.md")
+        raise ScaffoldError(f"no SKILL.md in {src}")
     links = sorted(p.relative_to(src).as_posix() for p in src.rglob("*") if p.is_symlink())
     if links:
         # A link could pull files from outside the skill into this public repo.
-        raise ScaffoldError(f"{src} 裡有 symlink，請改成實際檔案後再匯入：{'、'.join(links)}")
+        raise ScaffoldError(f"{src} contains symlinks; replace them with real files before importing: {', '.join(links)}")
     dest = _destination(root, category, src.name)
     shutil.copytree(src, dest, ignore=shutil.ignore_patterns(*EXCLUDE_PATTERNS))
     return dest

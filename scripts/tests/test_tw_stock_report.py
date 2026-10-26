@@ -43,11 +43,11 @@ def test_mac_notify_passes_text_as_arguments(report, monkeypatch):
     monkeypatch.setattr(report.sys, "platform", "darwin")
     monkeypatch.setattr(report.subprocess, "run", lambda cmd, **kw: calls.append(cmd))
     message = 'a" & (do shell script "touch /tmp/pwned") & "'
-    report.mac_notify("標題", message)
+    report.mac_notify("Title", message)
     [cmd] = calls
     scripts = [cmd[i + 1] for i, arg in enumerate(cmd) if arg == "-e"]
     assert all(message not in s for s in scripts)
-    assert message in cmd and "標題" in cmd
+    assert message in cmd and "Title" in cmd
 
 
 def test_tilde_in_env_is_expanded(report, tmp_path, monkeypatch):

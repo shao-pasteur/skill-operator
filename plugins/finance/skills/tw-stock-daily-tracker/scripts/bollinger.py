@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
 """
-bollinger.py — 計算布林通道（Bollinger Bands）與目前價格的相對位置
+bollinger.py — compute Bollinger Bands and where the current price sits in them
 
-用法：
-    輸入一個 JSON 檔案（或從 stdin 讀 JSON），格式：
+Usage:
+    Pass a JSON file (or JSON on stdin) in this format:
     {
       "symbol": "2330",
-      "name": "台積電",
-      "closes": [880, 885, 878, ...],   // 至少 20 個交易日的收盤價，由舊到新排序
-      "current_price": 892.0             // 目前最新成交價（盤中快照用），可省略則用 closes 最後一筆
+      "name": "TSMC",
+      "closes": [880, 885, 878, ...],   // at least 20 trading days of closes, oldest first
+      "current_price": 892.0             // latest trade price (for intraday snapshots); defaults to the last close
     }
 
     python3 bollinger.py --input stock.json
     cat stock.json | python3 bollinger.py
 
-    也支援一次算多檔，輸入改成 list of 上面那種物件即可，輸出也會是 list。
+    Several stocks at once are supported too: pass a list of such objects and the output is a list.
 
-輸出（JSON，印到 stdout）：
+Output (JSON, printed to stdout):
     {
       "symbol": "2330",
-      "name": "台積電",
+      "name": "TSMC",
       "period": 20,
       "sma": 883.4,
       "upper_band": 901.2,
@@ -27,18 +27,18 @@ bollinger.py — 計算布林通道（Bollinger Bands）與目前價格的相對
       "std_dev": 8.9,
       "current_price": 892.0,
       "position": "within",   // below_lower / near_lower / within / near_upper / above_upper
-      "pct_b": 0.62            // %B 指標：(price - lower) / (upper - lower)，0~1 之間，<0 表示跌破下軌，>1 表示突破上軌
+      "pct_b": 0.62            // %B: (price - lower) / (upper - lower); 0–1 inside the band, <0 below the lower band, >1 above the upper band
     }
 
-位置狀態（position）判斷規則：
-    - below_lower : 現價 < 下軌
-    - near_lower  : 下軌 <= 現價 < 下軌 + (通道寬度 * NEAR_BAND_THRESHOLD)
-    - near_upper  : 上軌 - (通道寬度 * NEAR_BAND_THRESHOLD) < 現價 <= 上軌
-    - above_upper : 現價 > 上軌
-    - within      : 其餘情況（通道中段）
+How the position is decided:
+    - below_lower : price < lower band
+    - near_lower  : lower band <= price < lower band + (band width * NEAR_BAND_THRESHOLD)
+    - near_upper  : upper band - (band width * NEAR_BAND_THRESHOLD) < price <= upper band
+    - above_upper : price > upper band
+    - within      : anything else (middle of the band)
 
-這只是客觀的數學計算結果，怎麼解讀、要不要據此做任何決定，都是使用者自己的判斷 —— 這支 script
-本身不輸出任何「買/賣」建議文字，report 產生階段也要遵守同樣原則。
+This is only an objective calculation; how to read it and whether to act on it is the user's own judgment.
+The script never outputs buy/sell advice, and report generation follows the same rule.
 """
 
 import argparse
@@ -48,13 +48,13 @@ import sys
 
 PERIOD = 20
 NUM_STD = 2
-NEAR_BAND_THRESHOLD = 0.15  # 通道寬度的 15% 以內算「接近」上下軌
+NEAR_BAND_THRESHOLD = 0.15  # within 15% of the band width counts as near the upper or lower band
 
 
 def compute_bollinger(closes, current_price=None, period=PERIOD, num_std=NUM_STD):
     if len(closes) < period:
         raise ValueError(
-            f"收盤價資料只有 {len(closes)} 筆，至少需要 {period} 筆才能計算布林通道"
+            f"only {len(closes)} closing prices; Bollinger Bands need at least {period}"
         )
 
     window = closes[-period:]
@@ -106,8 +106,8 @@ def process_one(item):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="計算布林通道與目前價格相對位置")
-    parser.add_argument("--input", "-i", help="輸入 JSON 檔案路徑，不給則從 stdin 讀")
+    parser = argparse.ArgumentParser(description="Compute Bollinger Bands and where the current price sits in them")
+    parser.add_argument("--input", "-i", help="input JSON file; reads stdin when omitted")
     args = parser.parse_args()
 
     if args.input:

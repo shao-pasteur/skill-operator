@@ -1,74 +1,74 @@
-# 排程設定
+# Scheduling
 
-這個 skill 本身不會「一直跑」，需要靠 macOS 的排程機制在固定時間點呼叫 `claude -p "..."` 來觸發每一次執行。
+The skill does not run continuously. A macOS scheduler calls `claude -p "..."` at fixed times to trigger each run.
 
-## 建議排程時間表
+## Suggested schedule
 
-| 時間 | phase | 說明 |
+| Time | phase | What it does |
 |---|---|---|
-| 08:50 | `premarket` | 開盤前簡報：選股、算基準布林通道 |
-| 09:00 ~ 12:00（每 30 分） | `update` | 盤中動態更新，共 7 次 |
-| 12:30, 13:00, 13:25 | `close_watch` | 收盤前賣點追蹤，共 3 次 |
-| 13:35 | `close_summary` | 收盤總結 |
+| 08:50 | `premarket` | Pre-market briefing: pick stocks and compute the Bollinger baseline |
+| 09:00–12:00 (every 30 min) | `update` | Intraday updates, 7 runs |
+| 12:30, 13:00, 13:25 | `close_watch` | Pre-close sell-zone tracking, 3 runs |
+| 13:35 | `close_summary` | Closing summary |
 
-台股交易時間是 09:00–13:30，所以 13:25 是最後一次盤中快照，13:35 抓收盤後的資料做總結。
+The Taiwan market trades from 09:00 to 13:30, so 13:25 is the last intraday snapshot and 13:35 uses the post-close data for the summary.
 
-## 方式 A：launchd（推薦，macOS 原生排程）
+## Option A: launchd (recommended, the native macOS scheduler)
 
-直接執行安裝腳本，會自動產生 12 個 plist 並載入：
+Run the installer. It generates one plist per entry in its `SLOTS` array and loads them:
 
 ```bash
-cd ~/path/to/tw-stock-daily-tracker   # 換成 skill 實際安裝的路徑
+cd ~/path/to/tw-stock-daily-tracker   # replace with where the skill is installed
 bash scripts/install_launchd_jobs.sh
 ```
 
-確認排程是否載入成功：
+Check that the jobs loaded:
 
 ```bash
 launchctl list | grep tw-stock-tracker
 ```
 
-log 檔案會寫在 `~/Library/Logs/tw-stock-tracker/`，每個時段各自獨立的 `.out.log` / `.err.log`，方便排查某個時段執行失敗的原因。
+Logs go to `~/Library/Logs/tw-stock-tracker/`, with separate `.out.log` / `.err.log` files per time slot, which makes it easy to see why a particular slot failed.
 
-卸載全部排程：
+Remove every job:
 
 ```bash
 bash scripts/install_launchd_jobs.sh --uninstall
 ```
 
-**注意事項：**
-- launchd 是每天都會觸發（含週末），是否為交易日的判斷交給 skill 內部邏輯處理（非交易日會自己跳過、只寫一行 log）。這樣設計比在 plist 裡塞星期幾邏輯簡單很多。
-- 電腦在排程時間必須是開機且沒有睡眠。如果會讓 Mac 睡眠，建議搭配「電源與電池」設定裡的排定啟動，或用 `pmset` 設定喚醒時間。
-- 從舊版（路徑寫死在腳本裡的版本）升級時，請先設定 `TW_STOCK_INVESTING_DIR`，再重新執行一次安裝腳本，讓每個 plist 都帶上這個環境變數。
-- 如果之後想調整時間或新增/減少排程次數，直接改 `scripts/install_launchd_jobs.sh` 裡的 `SLOTS` 陣列，重新執行一次腳本即可（會先 unload 舊的再重新 load）。
+**Notes:**
+- launchd triggers every day, weekends included. The skill itself decides whether it is a trading day (on non-trading days it skips and writes one log line), which is much simpler than putting weekday logic in the plist.
+- The computer must be on and awake at the scheduled times. If the Mac sleeps, schedule a wake-up under Battery settings or with `pmset`.
+- When upgrading from the old version (with the path hardcoded in the scripts), set `TW_STOCK_INVESTING_DIR` first and run the installer again so every plist carries the variable.
+- To change the times or the number of runs, edit the `SLOTS` array in `scripts/install_launchd_jobs.sh` and run the script again (it unloads the old jobs before loading the new ones).
 
-## 方式 B：crontab（比較陽春但簡單）
+## Option B: crontab (more basic but simple)
 
-如果不想用 launchd，也可以直接編輯 crontab（`crontab -e`），加入類似下面的內容（記得把路徑換成實際安裝路徑，`claude` 換成 `which claude` 查到的完整路徑）：
+If you would rather not use launchd, edit the crontab (`crontab -e`) and add lines like the ones below (replace the paths with the real install path, and `claude` with the full path from `which claude`).
 
-cron 不會讀 `~/.zshrc`，所以要在 crontab 最上面另外設定 `TW_STOCK_INVESTING_DIR`（cron 允許這種變數設定行；路徑有空白也不需要加引號，但不能用 `~`，要寫完整路徑）：
+cron does not read `~/.zshrc`, so set `TW_STOCK_INVESTING_DIR` at the top of the crontab (cron allows variable lines like this; no quotes are needed even when the path has spaces, but `~` does not work, so write the full path):
 
 ```cron
-TW_STOCK_INVESTING_DIR=/Users/<你>/Library/Mobile Documents/iCloud~md~obsidian/Documents/<vault 名稱>/Investing
-50 8 * * 1-5   /usr/local/bin/claude -p "請執行 tw-stock-daily-tracker skill，phase=premarket，time_label=0850"
-0,30 9-11 * * 1-5   /usr/local/bin/claude -p "請執行 tw-stock-daily-tracker skill，phase=update，time_label=從現在時間帶入（例如0900、0930）"
-0 12 * * 1-5   /usr/local/bin/claude -p "請執行 tw-stock-daily-tracker skill，phase=update，time_label=1200"
-30 12 * * 1-5  /usr/local/bin/claude -p "請執行 tw-stock-daily-tracker skill，phase=close_watch，time_label=1230"
-0 13 * * 1-5   /usr/local/bin/claude -p "請執行 tw-stock-daily-tracker skill，phase=close_watch，time_label=1300"
-25 13 * * 1-5  /usr/local/bin/claude -p "請執行 tw-stock-daily-tracker skill，phase=close_watch，time_label=1325"
-35 13 * * 1-5  /usr/local/bin/claude -p "請執行 tw-stock-daily-tracker skill，phase=close_summary，time_label=1335"
+TW_STOCK_INVESTING_DIR=/Users/<you>/Library/Mobile Documents/iCloud~md~obsidian/Documents/<vault name>/Investing
+50 8 * * 1-5   /usr/local/bin/claude -p "Run the tw-stock-daily-tracker skill, phase=premarket, time_label=0850"
+0,30 9-11 * * 1-5   /usr/local/bin/claude -p "Run the tw-stock-daily-tracker skill, phase=update, time_label=the current time (for example 0900 or 0930)"
+0 12 * * 1-5   /usr/local/bin/claude -p "Run the tw-stock-daily-tracker skill, phase=update, time_label=1200"
+30 12 * * 1-5  /usr/local/bin/claude -p "Run the tw-stock-daily-tracker skill, phase=close_watch, time_label=1230"
+0 13 * * 1-5   /usr/local/bin/claude -p "Run the tw-stock-daily-tracker skill, phase=close_watch, time_label=1300"
+25 13 * * 1-5  /usr/local/bin/claude -p "Run the tw-stock-daily-tracker skill, phase=close_watch, time_label=1325"
+35 13 * * 1-5  /usr/local/bin/claude -p "Run the tw-stock-daily-tracker skill, phase=close_summary, time_label=1335"
 ```
 
-`cron` 的一行沒辦法很乾淨地把 `time_label` 動態帶成當下時間，所以每個時間點還是建議各寫一行明確指定，跟上面表格一一對應（範例只列了部分，9:00~11:30 中間的整點/半點依同樣規則補齊）。
+A single cron line cannot cleanly fill `time_label` with the current time, so write one explicit line per time slot to match the table above (the example lists only some; fill in the other hours and half-hours between 9:00 and 11:30 the same way).
 
-cron 的缺點是 Mac 睡眠時錯過的排程不會補跑，長時間沒開機的話當天可能會漏掉幾個時段的更新，這點跟 launchd 差不多，只是 launchd 生態上更貼近 macOS、管理上（分開的 log、labels）比較清楚，所以還是建議優先用方式 A。
+cron does not catch up on runs missed while the Mac sleeps, so a day without the computer on may miss several updates. launchd behaves similarly, but it fits macOS better and is easier to manage (separate logs and labels), so option A is still recommended.
 
-## 測試單次執行（不用等排程時間到）
+## Test a single run (without waiting for the schedule)
 
-安裝完 skill 之後，想先手動測試某個階段能不能正常跑，直接在終端機打：
+After installing the skill, test a phase by hand in the terminal:
 
 ```bash
-claude -p "請執行 tw-stock-daily-tracker skill，phase=premarket，time_label=0850"
+claude -p "Run the tw-stock-daily-tracker skill, phase=premarket, time_label=0850"
 ```
 
-看它能不能正確跑完整個開盤前簡報流程、把報告跟圖表以 Obsidian 格式寫到 vault 的 `$TW_STOCK_INVESTING_DIR/Daily/{今天日期}/` 底下。確認沒問題後再裝排程。
+Check that it completes the whole pre-market flow and writes the report and charts in Obsidian format under `$TW_STOCK_INVESTING_DIR/Daily/{today}/`. Install the schedule once that works.

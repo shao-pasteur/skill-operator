@@ -3,5 +3,18 @@
   "interface": {
     "displayName": "skill-operator"
   },
-  "plugins": []
+  "plugins": [
+    {
+      "name": "finance",
+      "source": {
+        "source": "local",
+        "path": "./plugins/finance"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "投資與財務"
+    }
+  ]
 }

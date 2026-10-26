@@ -42,7 +42,11 @@ https://github.com/pasteur-yuan/skill-operator/releases/download/latest/<skill �
 ## Skill 目錄
 
 <!-- catalog:start -->
-_目前還沒有 skill。_
+### 投資與財務（`finance`）
+
+| Skill | 說明 | 網頁版 |
+|---|---|---|
+| `tw-stock-daily-tracker` | 在台股交易日，於開盤前、盤中（9:00~12:00 每 30 分鐘）、收盤前，自動收集前一晚美股走勢與國際新聞、判斷當天新聞熱度最高的三個產業、列出每個產業成… | — |
 <!-- catalog:end -->
 
 ## 開發

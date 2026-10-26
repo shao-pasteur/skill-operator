@@ -3,5 +3,11 @@
   "owner": {
     "name": "Yuan"
   },
-  "plugins": []
+  "plugins": [
+    {
+      "name": "finance",
+      "source": "./plugins/finance",
+      "description": "台股追蹤、技術分析、財報整理"
+    }
+  ]
 }

@@ -1,0 +1,9 @@
+{
+  "name": "finance",
+  "description": "台股追蹤、技術分析、財報整理",
+  "author": {
+    "name": "Yuan"
+  },
+  "license": "MIT",
+  "skills": "./skills/"
+}

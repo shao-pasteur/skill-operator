@@ -11,9 +11,11 @@ repo 是公開的，不需要任何 git 認證。下方的 `<分類>` 換成「S
 | 平台 | 加入 marketplace | 安裝分類 |
 |---|---|---|
 | Claude Code | `claude plugin marketplace add pasteur-yuan/skill-operator` | `claude plugin install <分類>@skill-operator` |
-| Codex | `codex plugin marketplace add pasteur-yuan/skill-operator` | 在 Codex 中執行 `/plugins` 選擇安裝 |
+| Codex | `codex plugin marketplace add pasteur-yuan/skill-operator` | `codex plugin add <分類>@skill-operator` |
 | Copilot CLI | `copilot plugin marketplace add pasteur-yuan/skill-operator` | `copilot plugin install <分類>@skill-operator` |
 | Cursor | 待驗證 | 待驗證 |
+
+Claude Code 2.1.275 以上也可以一步完成：`claude plugin install <分類> --marketplace pasteur-yuan/skill-operator`。
 
 一次安裝多個分類：
 

@@ -285,10 +285,10 @@ for c in dev writing finance; do claude plugin install "$c@skill-operator"; done
 
 每一項都已有決定好的備案，驗證結果只影響產生腳本或 README 的細節，不影響整體結構。
 
-| # | 項目 | 備案 |
-|---|---|---|
-| 1 | Cursor marketplace.json 與 plugin.json 的確切格式；個人帳號如何加入 git marketplace | 依官方文件產生；若個人帳號無法使用 marketplace，README 改寫為手動複製 skill 資料夾的方式 |
-| 2 | Copilot CLI 在 plugin 資料夾內讀取 plugin.json 的路徑 | 產生腳本多寫一份到 Copilot 要求的路徑 |
-| 3 | Codex 的 CLI 安裝指令；未寫 `version` 時的更新行為 | 指令依實測寫入 README；更新行為依第 9 節備案 |
-| 4 | ChatGPT 消費版的 skill 上傳入口；Gemini App 是否接受 zip 與其格式 | 依第 10 節多產生一種 zip 格式；Gemini App 不接受 zip 時，README 說明直接上傳 `SKILL.md`（僅適用無附檔的 skill） |
-| 5 | `claude plugin validate` 在 CI 中是否需要登入 | 需要則從 CI 移除，保留在本機 `make check` 中選擇性執行 |
+| # | 項目 | 備案 | 結果（2026-10-27） |
+|---|---|---|---|
+| 1 | Cursor marketplace.json 與 plugin.json 的確切格式；個人帳號如何加入 git marketplace | 依官方文件產生；若個人帳號無法使用 marketplace，README 改寫為手動複製 skill 資料夾的方式 | 待使用者手動驗證（本機沒有 Cursor） |
+| 2 | Copilot CLI 在 plugin 資料夾內讀取 plugin.json 的路徑 | 產生腳本多寫一份到 Copilot 要求的路徑 | 已驗證：Copilot CLI 讀取 `.claude-plugin/` 的 marketplace.json 與 plugin.json，`copilot plugin install finance@skill-operator` 成功安裝 1 個 skill，不需登入，不需額外檔案 |
+| 3 | Codex 的 CLI 安裝指令；未寫 `version` 時的更新行為 | 指令依實測寫入 README；更新行為依第 9 節備案 | 已驗證安裝：`codex plugin marketplace add` + `codex plugin add finance@skill-operator`，讀取 `.agents/plugins/marketplace.json`。未寫 `version` 時的更新行為尚未實測，暫不套用備案 |
+| 4 | ChatGPT 消費版的 skill 上傳入口；Gemini App 是否接受 zip 與其格式 | 依第 10 節多產生一種 zip 格式；Gemini App 不接受 zip 時，README 說明直接上傳 `SKILL.md`（僅適用無附檔的 skill） | 待使用者手動驗證（目前沒有網頁版 skill，Release 沒有 zip） |
+| 5 | `claude plugin validate` 在 CI 中是否需要登入 | 需要則從 CI 移除，保留在本機 `make check` 中選擇性執行 | 已驗證：不需登入，CI 保留此步驟並通過 |

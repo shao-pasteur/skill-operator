@@ -1,294 +1,295 @@
-# skill-operator 設計規格
+# skill-operator design spec
 
-- 日期：2026-10-26
-- 狀態：待審閱
-- Repo：`pasteur-yuan/skill-operator`（GitHub，公開）
+- Date: 2026-10-26 (revised 2026-10-27: repo moved to the `shao-pasteur` organization; repo content translated to English)
+- Status: approved and implemented
+- Repo: `shao-pasteur/skill-operator` (GitHub, public)
 
-## 1. 目標
+## 1. Goals
 
-用一個公開的 GitHub repo 管理自己開發的 AI agent skill，做到：
+Manage my own AI agent skills in one public GitHub repo, so that:
 
-1. **一份內容，多家 AI 使用**：skill 以 [Agent Skills 開放標準](https://agentskills.io/specification)（`SKILL.md`）撰寫一次。
-2. **CLI / IDE agent 透過 marketplace plugin 安裝**：Claude Code、Codex、Copilot CLI、Cursor。
-3. **網頁版聊天 App 透過 zip 上傳**：claude.ai、ChatGPT、Gemini App。
-4. **依用途分類，分類即安裝單位**：每個分類是一個 plugin，可以只裝需要的分類。
+1. **One source serves many AI tools**: each skill is written once in the [Agent Skills open standard](https://agentskills.io/specification) (`SKILL.md`).
+2. **CLI and IDE agents install it through marketplace plugins**: Claude Code, Codex, Copilot CLI, Cursor.
+3. **Web chat apps get zips to upload**: claude.ai, ChatGPT, Gemini.
+4. **Skills are grouped by purpose, and a category is the unit of installation**: each category is a plugin, so you install only the categories you need.
 
-### 成功標準
+### Success criteria
 
-- 在一台乾淨的機器上，Claude Code、Codex、Copilot CLI 都能加入 marketplace 並**只安裝單一分類**，安裝後 skill 可被觸發。
-- 新增一個 skill 只需要「`make new` → 撰寫 → commit → push」，全程不手動編輯任何 JSON。
-- push 後，其他機器的 CLI 能取得更新；網頁版相容的 skill 會自動出現在 `latest` Release 的 zip 中。
-- `make check` 與 CI 全綠。
+- On a clean machine, Claude Code, Codex and Copilot CLI can all add the marketplace and **install a single category**, and the installed skills trigger.
+- Adding a skill takes only "`make new` → write → commit → push", with no hand-edited JSON.
+- After a push, CLIs on other machines receive the update, and web-compatible skills appear as zips in the `latest` release automatically.
+- `make check` and CI are green.
 
-## 2. 範圍
+## 2. Scope
 
-### 範圍內
+### In scope
 
-- Skill 格式規範與驗證
-- 分類設定檔與各平台 manifest 的自動產生
-- 本機與 CI 的驗證
-- 網頁版 zip 打包與 Release 發佈
-- 各平台安裝說明（README）
-- 新增、搬移 skill 的工具（`make new`、`make import`）
+- Skill format rules and validation
+- Generating the category settings into every platform's manifests
+- Local and CI validation
+- Web zip packaging and release publishing
+- Install instructions for each platform (README)
+- Tools to add and migrate skills (`make new`, `make import`)
 
-### 範圍外（初版不做）
+### Out of scope (not in the first version)
 
-| 項目 | 原因 / 日後怎麼加 |
+| Item | Why / how to add it later |
 |---|---|
-| Gemini CLI | 只讀 repo 根目錄的 `gemini-extension.json` 與 `skills/`，與「一分類一資料夾」衝突。日後要加：產生腳本多產出根目錄的平面鏡像 + `gemini-extension.json`，不需重構 |
-| Grok | 沒有官方 skill 機制 |
-| `all` plugin | 沒有平面鏡像時 Codex、Cursor 做不出來。改以 README 的迴圈指令一次裝多個分類 |
-| Skill 效果評測（eval） | 需要 API key 與成本，等 skill 數量多了再接 `skill-creator` 的 eval 流程 |
-| `meta` 分類底下的 skill | `AGENTS.md` + `make new` 已涵蓋需求；分類保留但為空 |
-| 上架官方目錄（Cursor marketplace、OpenAI plugin directory 等） | repo 公開後可以做，但不在初版 |
+| Gemini CLI | It reads only `gemini-extension.json` and `skills/` at the repo root, which conflicts with one folder per category. To add it later, have the generator also produce a flat root mirror plus `gemini-extension.json`; no restructuring needed |
+| Grok | No official skill mechanism |
+| An `all` plugin | Codex and Cursor cannot build one without a flat mirror. The README shows a loop that installs several categories instead |
+| Skill quality evals | They need API keys and cost money; hook up `skill-creator`'s eval flow once there are more skills |
+| Skills in the `meta` category | `AGENTS.md` plus `make new` already cover the need; the category stays but is empty |
+| Listing in official directories (Cursor marketplace, the OpenAI plugin directory and so on) | Possible now that the repo is public, but not in the first version |
 
-## 3. 平台支援矩陣
+## 3. Platform support matrix
 
-| 平台 | 安裝方式 | 讀取的 manifest | 分類安裝 |
+| Platform | Install method | Manifests it reads | Install by category |
 |---|---|---|---|
-| Claude Code | marketplace | `.claude-plugin/marketplace.json`、`plugins/<id>/.claude-plugin/plugin.json` | ✅ |
-| Codex | marketplace | `.agents/plugins/marketplace.json`、`plugins/<id>/.codex-plugin/plugin.json` | ✅ |
-| Copilot CLI | marketplace | `.claude-plugin/marketplace.json`（Copilot 會讀此路徑）、plugin 資料夾內的 plugin.json | ✅ |
-| Cursor | marketplace | `.cursor-plugin/marketplace.json`、`plugins/<id>/.cursor-plugin/plugin.json` | ✅ |
-| claude.ai | 手動上傳 zip | — | 以 skill 為單位 |
-| ChatGPT | 手動上傳 zip | — | 以 skill 為單位 |
-| Gemini App | 手動上傳 zip 或 `SKILL.md` | — | 以 skill 為單位 |
+| Claude Code | marketplace | `.claude-plugin/marketplace.json`, `plugins/<id>/.claude-plugin/plugin.json` | ✅ |
+| Codex | marketplace | `.agents/plugins/marketplace.json`, `plugins/<id>/.codex-plugin/plugin.json` | ✅ |
+| Copilot CLI | marketplace | `.claude-plugin/marketplace.json` (Copilot reads this path) and the plugin.json in the plugin folder | ✅ |
+| Cursor | marketplace | `.cursor-plugin/marketplace.json`, `plugins/<id>/.cursor-plugin/plugin.json` | ✅ |
+| claude.ai | upload a zip by hand | — | per skill |
+| ChatGPT | upload a zip by hand | — | per skill |
+| Gemini | upload a zip or `SKILL.md` by hand | — | per skill |
 
-## 4. Skill 格式
+## 4. Skill format
 
-完全遵循 Agent Skills 開放標準，另外只使用 `metadata` 底下的一個自訂鍵。
+Follows the Agent Skills open standard exactly, plus a single custom key under `metadata`.
 
 ```markdown
 ---
 name: tw-stock-tracker
-description: 在台股交易日…當使用者要求…時使用。
-compatibility: 需要 Python 3.11+ 與網路連線
+description: On Taiwan stock trading days… Use when the user asks for…
+compatibility: Requires Python 3.11+ and network access
 metadata:
   web: "false"
 ---
-（指令內容）
+(instructions)
 ```
 
-| 欄位 | 必填 | 規則 |
+| Field | Required | Rules |
 |---|---|---|
-| `name` | 是 | 1–64 字元；只能用 `a-z`、`0-9`、`-`；不能以 `-` 開頭或結尾；不能有 `--`；**必須與資料夾同名**；**全 repo 唯一** |
-| `description` | 是 | 1–1024 字元；寫「做什麼」與「什麼時候用」 |
-| `compatibility` | 否 | 1–500 字元；只有附腳本或有環境需求的 skill 才寫 |
-| `license` | 否 | 不寫時沿用 repo 根目錄的 `LICENSE` |
-| `metadata.web` | 視情況 | `"true"` 或 `"false"`（字串）。沒有 `scripts/` 的 skill 預設為 `"true"`；**有 `scripts/` 的 skill 必須明確填寫** |
-| 平台專屬欄位（如 `allowed-tools`） | 否 | 允許；驗證時只發警告 |
+| `name` | yes | 1–64 characters; only `a-z`, `0-9`, `-`; no leading or trailing `-`; no `--`; **must match the folder name**; **unique across the repo** |
+| `description` | yes | 1–1024 characters; says what the skill does and when to use it |
+| `compatibility` | no | 1–500 characters; only for skills with scripts or environment requirements |
+| `license` | no | Falls back to the repo's root `LICENSE` |
+| `metadata.web` | depends | `"true"` or `"false"` (a string). Skills without `scripts/` default to `"true"`; **skills with `scripts/` must set it** |
+| Platform-specific fields (such as `allowed-tools`) | no | Allowed; validation only warns |
 
-其他規則：
+Other rules:
 
-- **分類由資料夾決定**，frontmatter 不寫分類。
-- **skill 不帶版本號**（見第 9 節）。
-- SKILL.md 建議少於 500 行；詳細資料放 `references/`，可執行檔放 `scripts/`，樣板與資料放 `assets/`。
-- **不得包含個人資訊**（見第 12 節）。需要個人設定（例如 Obsidian vault 路徑）時，從環境變數或 repo 以外的設定檔讀取，並在 SKILL.md 中說明。
+- **The folder decides the category**; the frontmatter does not name it.
+- **Skills have no version number** (see section 9).
+- Keep `SKILL.md` under 500 lines; details go in `references/`, executables in `scripts/`, templates and data in `assets/`.
+- **No personal information** (see section 12). When a skill needs personal settings (such as an Obsidian vault path), read them from environment variables or a config file outside the repo and document them in `SKILL.md`.
+- **Repo content is in English.** A skill may still produce output in another language when that is its purpose; `tw-stock-daily-tracker` writes its reports in Traditional Chinese and says so in its `SKILL.md`.
 
-## 5. 分類
+## 5. Categories
 
-分類定義在 `categories.yaml`，是唯一需要手動維護的設定檔。分類 `id` 同時是 plugin 名稱與 Claude 中的 skill 前綴（如 `/dev:code-review`），所以要短。分類數量建議 5–8 個。
+Categories are defined in `categories.yaml`, the only settings file maintained by hand. A category `id` is both the plugin name and the skill prefix in Claude (such as `/dev:code-review`), so keep it short. Aim for 5–8 categories.
 
 ```yaml
 marketplace: skill-operator
 owner:
   name: Yuan
-  github: pasteur-yuan
+  github: shao-pasteur
 categories:
   - id: dev
-    title: 軟體開發
-    description: 程式碼審查、除錯、git、測試、架構設計
+    title: Software development
+    description: Code review, debugging, git, testing and architecture design
   - id: writing
-    title: 寫作與文件
-    description: 文章、翻譯、簡報、文件格式轉換
+    title: Writing and documents
+    description: Articles, translation, presentations and document conversion
   - id: research
-    title: 研究與知識管理
-    description: 查資料、摘要、Obsidian 筆記整理
+    title: Research and knowledge management
+    description: Looking things up, summarizing and organizing Obsidian notes
   - id: finance
-    title: 投資與財務
-    description: 台股追蹤、技術分析、財報整理
+    title: Investing and finance
+    description: Taiwan stock tracking, technical analysis and financial report digests
   - id: productivity
-    title: 個人效率
-    description: 排程、日常流程自動化
+    title: Personal productivity
+    description: Scheduling and automating daily routines
   - id: meta
-    title: Skill 管理
-    description: 在這個 repo 裡建立、檢查新 skill 的工具
+    title: Skill management
+    description: Tools for creating and checking new skills in this repo
 ```
 
-一個 skill 只屬於一個分類；用途重疊時以主要用途為準。
+A skill belongs to exactly one category; when uses overlap, pick the main one.
 
-## 6. Repo 結構
+## 6. Repo layout
 
 ```
 skill-operator/
-├── categories.yaml                     # 手動維護
+├── categories.yaml                     # maintained by hand
 ├── plugins/
-│   └── <分類 id>/
-│       ├── skills/<skill>/SKILL.md     # 手動維護（可附 scripts/、references/、assets/）
-│       ├── .claude-plugin/plugin.json  # 產生
-│       ├── .codex-plugin/plugin.json   # 產生
-│       └── .cursor-plugin/plugin.json  # 產生
-├── .claude-plugin/marketplace.json     # 產生
-├── .agents/plugins/marketplace.json    # 產生
-├── .cursor-plugin/marketplace.json     # 產生
-├── scripts/                            # 產生、驗證、打包、腳手架的 Python CLI 與測試
-├── .github/workflows/                  # CI 與 Release
+│   └── <category id>/
+│       ├── skills/<skill>/SKILL.md     # maintained by hand (optional scripts/, references/, assets/)
+│       ├── .claude-plugin/plugin.json  # generated
+│       ├── .codex-plugin/plugin.json   # generated
+│       └── .cursor-plugin/plugin.json  # generated
+├── .claude-plugin/marketplace.json     # generated
+├── .agents/plugins/marketplace.json    # generated
+├── .cursor-plugin/marketplace.json     # generated
+├── scripts/                            # Python CLI for generating, validating, packaging and scaffolding, plus tests
+├── .github/workflows/                  # CI and releases
 ├── Makefile
-├── README.md                           # 安裝說明 + 產生的「Skill 目錄」區塊
-├── AGENTS.md                           # 給 AI agent 的 repo 規則
-├── CLAUDE.md                           # 內容只有一行：指向 AGENTS.md
+├── README.md                           # install instructions + the generated Skill catalog block
+├── AGENTS.md                           # repo rules for AI agents
+├── CLAUDE.md                           # one line pointing to AGENTS.md
 ├── LICENSE                             # MIT
-├── .gitattributes                      # 將產生檔標為 linguist-generated
-└── .gitignore                          # dist/ 等
+├── .gitattributes                      # marks generated files as linguist-generated
+└── .gitignore                          # dist/ and so on
 ```
 
-### Makefile 目標
+### Makefile targets
 
-| 指令 | 作用 |
+| Command | What it does |
 |---|---|
-| `make build` | 從 `categories.yaml` 與 SKILL.md 產生所有 manifest 與 README 目錄區塊 |
-| `make check` | 執行第 8 節的全部驗證 |
-| `make package` | 打包網頁版 zip 到 `dist/` |
-| `make new CATEGORY=<id> NAME=<name>` | 建立新 skill 的樣板 |
-| `make import SRC=<path> CATEGORY=<id>` | 把既有 skill 資料夾複製進 repo 並驗證 |
-| `make hooks` | 安裝 git pre-commit hook（執行 `make build && make check`） |
-| `make test` | 執行 `scripts/` 的 pytest |
+| `make build` | Generate every manifest and the README catalog block from `categories.yaml` and the SKILL.md files |
+| `make check` | Run every check in section 8 |
+| `make package` | Package web zips into `dist/` |
+| `make new CATEGORY=<id> NAME=<name>` | Create a new skill from the template |
+| `make import SRC=<path> CATEGORY=<id>` | Copy an existing skill folder into the repo and validate it |
+| `make hooks` | Install the git pre-commit hook (build, make sure generated files are staged, then check) |
+| `make test` | Run the pytest suite for `scripts/` |
 
-## 7. 產生腳本（`make build`）
+## 7. Generator (`make build`)
 
-- **技術**：Python 3.11+，透過 `uv run` 執行；依賴宣告在根目錄 `pyproject.toml`（uv 自動管理環境，不需手動建 venv），唯一執行期依賴為 PyYAML（測試另需 pytest）。GitHub repo 路徑由 `categories.yaml` 的 `owner.github` 與 `marketplace` 組成（`<owner.github>/<marketplace>`）。
-- **輸入**：`categories.yaml`，加上掃描 `plugins/*/skills/*/SKILL.md` 的 frontmatter。
-- **輸出**：
-  - 每個分類 3 份 plugin.json（Claude、Codex、Cursor），`name` 與 `description` 取自 `categories.yaml`。
-  - 根目錄 3 份 marketplace.json，各依該平台格式，例如：
+- **Technology**: Python 3.11+, run with `uv run`. Dependencies are declared in the root `pyproject.toml` (uv manages the environment, no manual venv). The only runtime dependency is PyYAML (tests also need pytest). The GitHub repo path is built from `owner.github` and `marketplace` in `categories.yaml` (`<owner.github>/<marketplace>`).
+- **Input**: `categories.yaml`, plus the frontmatter of every `plugins/*/skills/*/SKILL.md`.
+- **Output**:
+  - Three plugin.json files per category (Claude, Codex, Cursor), with `name` and `description` from `categories.yaml`.
+  - Three marketplace.json files at the root, each in its platform's format, for example:
 
-    Claude（`.claude-plugin/marketplace.json`）：
+    Claude (`.claude-plugin/marketplace.json`):
     ```json
     {
       "name": "skill-operator",
-      "owner": { "name": "Yuan", "url": "https://github.com/pasteur-yuan" },
+      "owner": { "name": "Yuan" },
       "plugins": [
-        { "name": "dev", "source": "./plugins/dev", "description": "程式碼審查、除錯、git、測試、架構設計" }
+        { "name": "dev", "source": "./plugins/dev", "description": "Code review, debugging, git, testing and architecture design" }
       ]
     }
     ```
 
-    Codex（`.agents/plugins/marketplace.json`）：
+    Codex (`.agents/plugins/marketplace.json`):
     ```json
     {
       "name": "skill-operator",
-      "interface": { "displayName": "Skill Operator" },
+      "interface": { "displayName": "skill-operator" },
       "plugins": [
         {
           "name": "dev",
           "source": { "source": "local", "path": "./plugins/dev" },
           "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
-          "category": "軟體開發"
+          "category": "Software development"
         }
       ]
     }
     ```
-  - README 中 `<!-- catalog:start -->` 與 `<!-- catalog:end -->` 之間的「Skill 目錄」表格：分類 → skill → 一行說明 → 網頁版是否可用。
-- **規則**：
-  - 產生的檔案 commit 進 git（各家 marketplace 直接從 git 讀取）。
-  - 輸出是確定性的（相同輸入產生逐位元組相同的輸出），以便 CI 比對。
-  - 沒有任何 skill 的分類不出現在 marketplace 中，也不產生 plugin.json。
-  - 任何錯誤（yaml 格式錯、`plugins/` 下有不在 `categories.yaml` 的資料夾、frontmatter 無法解析）都直接失敗，**不寫入任何檔案**。
-  - 所有 manifest **不寫 `version`**（見第 9 節）。
+  - The Skill catalog table in the README between `<!-- catalog:start -->` and `<!-- catalog:end -->`: category → skill → one-line description → whether web apps can use it.
+- **Rules**:
+  - Generated files are committed (every marketplace reads straight from git).
+  - Output is deterministic (the same input gives byte-identical output) so CI can compare it.
+  - Categories without skills do not appear in the marketplaces and get no plugin.json.
+  - Any error (bad YAML, a folder under `plugins/` that is not in `categories.yaml`, unparsable frontmatter) fails immediately and **writes nothing**.
+  - No manifest has a `version` (see section 9).
 
-## 8. 驗證與 CI
+## 8. Validation and CI
 
 ### `make check`
 
-**錯誤（阻擋 commit 與 CI）：**
+**Errors (block the commit and CI):**
 
-| 檢查 | 內容 |
+| Check | What it covers |
 |---|---|
-| 標準格式 | 第 4 節的所有欄位規則 |
-| repo 規則 | `name` 全 repo 唯一；分類資料夾必須在 `categories.yaml` 中；有 `scripts/` 的 skill 必須填 `metadata.web` |
-| 檔案引用 | SKILL.md 中引用的相對路徑（`references/…`、`scripts/…`、`assets/…`）必須存在 |
-| 產生檔同步 | 在暫存目錄重新 build，與 commit 的內容比對；不一致時提示執行 `make build` |
-| 腳本語法 | `.py` 執行 `py_compile`，`.sh` 執行 `bash -n`（不執行腳本） |
-| 個人資訊 | `plugins/**` 中出現使用者家目錄的絕對路徑（`/Users/<名稱>/`、`/home/<名稱>/`、`C:\Users\<名稱>\`）。`<…>` 形式的佔位符不算 |
+| Standard format | Every field rule in section 4 |
+| Repo rules | `name` unique across the repo; category folders must be in `categories.yaml`; skills with `scripts/` must set `metadata.web` |
+| File references | Relative paths referenced in SKILL.md (`references/…`, `scripts/…`, `assets/…`) must exist |
+| Generated files in sync | Rebuild into memory and compare with the committed files; on a mismatch, tell the user to run `make build` |
+| Script syntax | `.py` files are compiled, `.sh` files run through `bash -n` (scripts are never executed) |
+| Personal information | Absolute home paths in `plugins/**` (`/Users/<name>`, `/home/<name>`, `C:\Users\<name>`). Placeholders of the form `<…>` do not count |
 
-**警告（不阻擋）：** SKILL.md 超過 500 行；frontmatter 含平台專屬欄位；`description` 少於 50 字元；`plugins/**` 中出現 email 地址。
+**Warnings (do not block):** SKILL.md over 500 lines; platform-specific frontmatter fields; `description` under 50 characters; email addresses in `plugins/**`.
 
 ### GitHub Actions
 
-| Workflow | 觸發 | 內容 |
+| Workflow | Trigger | What it does |
 |---|---|---|
-| `check.yml` | push、pull request | `make test`、`make check`、gitleaks 掃描 secret；額外執行 `claude plugin validate .`（若在 CI 中需要登入則移除此步） |
-| `release.yml` | push 到 `main` 且有改到 `plugins/**` | 見第 10 節 |
+| `check.yml` | push, pull request | `make test`, `make check`, a gitleaks secret scan, and `claude plugin validate .` |
+| `release.yml` | push to `main` that touches `plugins/**` | See section 10 |
 
-## 9. 版本與更新（CLI 平台）
+## 9. Versions and updates (CLI platforms)
 
-- 所有 plugin.json 與 marketplace.json **都不寫 `version`**。依 Claude Code 官方行為，此時以 git commit 判斷版本：**push 到 `main` 即發佈**，不需 bump 版本或打 tag。
-- 代價：任何 commit 都會讓所有分類被視為有更新而重新複製；skill 都是小檔案，可忽略。
-- Claude Code 的背景自動更新預設關閉，每台機器首次安裝後需在 `/plugin` → Marketplaces 開啟一次。
-- **備案**：若 Codex、Cursor 或 Copilot 實測發現必須有 `version` 才能偵測更新，則由產生腳本自動將「該分類 `skills/` 內容的雜湊值」寫成版本號。內容不變則版本不變，只有改到的分類會更新，仍不需手動管理。
+- No plugin.json or marketplace.json has a `version`. Claude Code then uses the git commit as the version: **a push to `main` is a release**, with no version bumps or tags.
+- Cost: every commit makes every category look updated and get copied again; skills are small files, so this is negligible.
+- Claude Code's background auto-update is off by default; turn it on once per machine under `/plugin` → Marketplaces after the first install.
+- **Fallback**: if Codex, Cursor or Copilot turn out to need a `version` to detect updates, the generator writes a hash of the category's `skills/` content as the version. The version only changes when the content does, so only touched categories update, and nothing is managed by hand.
 
-## 10. 網頁版 zip 發佈
+## 10. Web zip releases
 
-- `make package`：將每個 `metadata.web` 為 `"true"`（或無 `scripts/` 而預設為 true）的 skill 打包成 `dist/<name>.zip`，zip 內為單一最上層資料夾 `<name>/`。`dist/` 不進 git。
-- `release.yml`：重新打包所有 zip，覆蓋到固定 tag 的 **`latest` Release**。下載網址固定為 `https://github.com/pasteur-yuan/skill-operator/releases/download/latest/<name>.zip`。
-- Release 說明自動列出本次 push 中有變動的 skill，提示哪些需要重新上傳（網頁版沒有自動更新）。
-- 各平台上傳位置：claude.ai 為「設定 → Skills → 上傳 zip」；ChatGPT 與 Gemini App 實作時實測後寫入 README（見第 13 節）。
-- 若某平台要求不同的 zip 格式（例如 `SKILL.md` 直接位於 zip 根目錄），打包腳本為該平台多產生一種格式，檔名加上平台後綴。
+- `make package`: packages every skill whose `metadata.web` is `"true"` (or that defaults to true because it has no `scripts/`) into `dist/<name>.zip`, with a single top-level folder `<name>/` inside. `dist/` is not committed.
+- `release.yml`: repackages every zip and replaces the assets of the fixed-tag **`latest` release**. Downloads always live at `https://github.com/shao-pasteur/skill-operator/releases/download/latest/<name>.zip`.
+- The release notes list the skills that changed in the push, so you know which to upload again (web apps do not update on their own).
+- Where to upload: claude.ai is "Settings → Skills → upload the zip"; ChatGPT and Gemini are added to the README once tested (see section 13).
+- If a platform needs a different zip layout (for example `SKILL.md` at the zip root), the packager produces an extra layout for that platform with a platform suffix in the file name.
 
-## 11. 安裝與工作流
+## 11. Installation and workflows
 
-### 安裝（README）
+### Install (README)
 
-repo 公開，不需要任何 git 認證。
+The repo is public, so no git credentials are needed.
 
-| 平台 | 加入 marketplace | 安裝分類 |
+| Platform | Add the marketplace | Install a category |
 |---|---|---|
-| Claude Code | `claude plugin marketplace add pasteur-yuan/skill-operator` | `claude plugin install dev@skill-operator`；之後到 `/plugin` → Marketplaces 開啟自動更新 |
-| Codex | `codex plugin marketplace add pasteur-yuan/skill-operator` | 在 `/plugins` 中安裝 |
-| Copilot CLI | `copilot plugin marketplace add pasteur-yuan/skill-operator` | `copilot plugin install dev@skill-operator` |
-| Cursor | 依實測結果撰寫（見第 13 節） | — |
+| Claude Code | `claude plugin marketplace add shao-pasteur/skill-operator` | `claude plugin install dev@skill-operator`; then turn on auto-update under `/plugin` → Marketplaces |
+| Codex | `codex plugin marketplace add shao-pasteur/skill-operator` | `codex plugin add dev@skill-operator` |
+| Copilot CLI | `copilot plugin marketplace add shao-pasteur/skill-operator` | `copilot plugin install dev@skill-operator` |
+| Cursor | Written once tested (see section 13) | — |
 
-一次安裝多個分類：
+Install several categories at once:
 
 ```bash
 for c in dev writing finance; do claude plugin install "$c@skill-operator"; done
 ```
 
-### 新增 skill
+### Adding a skill
 
-1. `make new CATEGORY=dev NAME=foo`：建立 `plugins/dev/skills/foo/SKILL.md` 樣板。
-2. 撰寫內容（自己寫或請 agent 寫；agent 依 `AGENTS.md` 的規則操作）。
-3. 本機試用：`claude --plugin-dir ./plugins/dev`。
-4. `git commit`：pre-commit hook 執行 `make build && make check`。
-5. `git push`：CLI 透過更新取得；網頁版 zip 自動重建。
+1. `make new CATEGORY=dev NAME=foo`: creates the `plugins/dev/skills/foo/SKILL.md` template.
+2. Write the content (yourself or with an agent; agents follow the rules in `AGENTS.md`).
+3. Try it locally: `claude --plugin-dir ./plugins/dev`.
+4. `git commit`: the pre-commit hook builds, makes sure generated files are staged and runs the checks.
+5. `git push`: CLIs pick it up through updates; web zips are rebuilt automatically.
 
-### 搬移既有 skill
+### Migrating an existing skill
 
-1. `make import SRC=~/.claude/skills/<name> CATEGORY=<id>`：複製並驗證。
-2. 修正驗證錯誤。最常見的是個人路徑，例如 `tw-stock-daily-tracker` 目前在 `SKILL.md` 與 `scripts/build_report.py` 中寫死了 Obsidian vault 路徑，需改為從環境變數讀取。
-3. 確認安裝 plugin 版本後可用，再**刪除本機原本那份**，避免同一 skill 出現兩份造成誤觸發。
+1. `make import SRC=~/.claude/skills/<name> CATEGORY=<id>`: copies and validates it.
+2. Fix the validation errors. The most common is a personal path; for example, `tw-stock-daily-tracker` had its Obsidian vault path hardcoded in `SKILL.md` and `scripts/build_report.py` and now reads it from an environment variable.
+3. Once the plugin version works, **delete the local copy** so the same skill does not exist twice and trigger by mistake.
 
-### `AGENTS.md` 內容要點
+### What `AGENTS.md` covers
 
-- 只編輯 `plugins/*/skills/**` 與 `categories.yaml`；不手動編輯任何產生的 JSON 或 README 目錄區塊。
-- 修改後執行 `make build && make check`。
-- 第 4 節的 skill 格式規則與第 12 節的個人資訊規則。
+- Edit only `plugins/*/skills/**` and `categories.yaml`; never hand-edit generated JSON or the README catalog block.
+- Run `make build && make check` after changes.
+- The skill format rules in section 4 and the personal information rules in section 12.
 
-## 12. 公開 repo 注意事項
+## 12. Public repo considerations
 
-- **授權**：MIT，放在根目錄 `LICENSE`。
-- **個人資訊**：skill 內容與腳本不得包含家目錄絕對路徑、帳號、email、API key。由 `make check` 的個人資訊檢查與 CI 的 gitleaks 把關。
-- **個人設定**：需要個人化的值（路徑、帳號名稱）一律從環境變數或 `~/.config/<skill-name>/` 讀取，並在 SKILL.md 中寫明需要哪些設定、缺少時如何提示使用者。
-- **git 歷史**：公開前確認歷史中沒有個人資訊；gitleaks 會掃描完整歷史。
+- **License**: MIT, in the root `LICENSE`.
+- **Personal information**: skill content and scripts must not contain absolute home paths, account names, email addresses or API keys. `make check`'s personal information check and the gitleaks scan in CI guard this.
+- **Personal settings**: personal values (paths, account names) always come from environment variables or `~/.config/<skill-name>/`, and `SKILL.md` says which settings are needed and how to prompt the user when they are missing.
+- **Git history**: check that the history holds no personal information before publishing; gitleaks scans the full history.
 
-## 13. 實作時需驗證的項目
+## 13. Items verified during implementation
 
-每一項都已有決定好的備案，驗證結果只影響產生腳本或 README 的細節，不影響整體結構。
+Each item had a fallback decided up front; the results only affect generator or README details, not the overall structure.
 
-| # | 項目 | 備案 | 結果（2026-10-27） |
+| # | Item | Fallback | Result (2026-10-27) |
 |---|---|---|---|
-| 1 | Cursor marketplace.json 與 plugin.json 的確切格式；個人帳號如何加入 git marketplace | 依官方文件產生；若個人帳號無法使用 marketplace，README 改寫為手動複製 skill 資料夾的方式 | 待使用者手動驗證（本機沒有 Cursor） |
-| 2 | Copilot CLI 在 plugin 資料夾內讀取 plugin.json 的路徑 | 產生腳本多寫一份到 Copilot 要求的路徑 | 已驗證：Copilot CLI 讀取 `.claude-plugin/` 的 marketplace.json 與 plugin.json，`copilot plugin install finance@skill-operator` 成功安裝 1 個 skill，不需登入，不需額外檔案 |
-| 3 | Codex 的 CLI 安裝指令；未寫 `version` 時的更新行為 | 指令依實測寫入 README；更新行為依第 9 節備案 | 已驗證安裝：`codex plugin marketplace add` + `codex plugin add finance@skill-operator`，讀取 `.agents/plugins/marketplace.json`。未寫 `version` 時的更新行為尚未實測，暫不套用備案 |
-| 4 | ChatGPT 消費版的 skill 上傳入口；Gemini App 是否接受 zip 與其格式 | 依第 10 節多產生一種 zip 格式；Gemini App 不接受 zip 時，README 說明直接上傳 `SKILL.md`（僅適用無附檔的 skill） | 待使用者手動驗證（目前沒有網頁版 skill，Release 沒有 zip） |
-| 5 | `claude plugin validate` 在 CI 中是否需要登入 | 需要則從 CI 移除，保留在本機 `make check` 中選擇性執行 | 已驗證：不需登入，CI 保留此步驟並通過 |
+| 1 | Cursor's exact marketplace.json and plugin.json formats; how a personal account adds a git marketplace | Generate per the official docs; if personal accounts cannot use marketplaces, the README explains copying skill folders by hand | Left for the user to verify by hand (Cursor is not installed on this machine) |
+| 2 | Where Copilot CLI looks for plugin.json inside a plugin folder | Have the generator write an extra copy where Copilot expects it | Verified: Copilot CLI reads the marketplace.json and plugin.json under `.claude-plugin/`; `copilot plugin install finance@skill-operator` installed 1 skill with no login and no extra files |
+| 3 | Codex's CLI install command; how it updates without a `version` | Write the tested command into the README; handle updates with the fallback in section 9 | Install verified: `codex plugin marketplace add` + `codex plugin add finance@skill-operator`, reading `.agents/plugins/marketplace.json`. Update behavior without `version` not tested yet; fallback not applied |
+| 4 | Where ChatGPT's consumer app uploads skills; whether Gemini accepts zips and in what layout | Produce an extra zip layout per section 10; if Gemini does not take zips, the README says to upload `SKILL.md` directly (only for skills without extra files) | Left for the user to verify by hand (there are no web skills yet, so the release has no zips) |
+| 5 | Whether `claude plugin validate` needs a login in CI | If it does, drop it from CI and keep it as an optional local step in `make check` | Verified: no login needed; the CI step stays and passes |

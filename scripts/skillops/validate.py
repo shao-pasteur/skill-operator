@@ -14,9 +14,9 @@ _SKILL_DIRS = ("scripts/", "references/", "assets/")
 _LINK_RE = re.compile(r"\]\(([^)\s]+)\)")
 _BARE_REF_RE = re.compile(r"(?<![A-Za-z0-9_/.:-])((?:scripts|references|assets)/[A-Za-z0-9_./-]+)")
 _PERSONAL_PATH_RES = [
-    re.compile(r"/Users/[^/\s<>\"'`]+/"),
-    re.compile(r"/home/[^/\s<>\"'`]+/"),
-    re.compile(r"(?i)C:\\Users\\[^\\\s<>]+\\"),
+    re.compile(r"/Users/[^/\s<>\"'`]+"),
+    re.compile(r"/home/[^/\s<>\"'`]+"),
+    re.compile(r"(?i)C:\\{1,2}Users\\{1,2}[^\\\s<>\"']+"),
 ]
 _EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 

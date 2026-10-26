@@ -113,7 +113,8 @@ def test_python_check_writes_no_pycache(repo):
     assert not list(path.rglob("__pycache__"))
 
 
-@pytest.mark.parametrize("text", ["/Users/alice/x", "/home/bob/x", r"C:\Users\carol\x"])
+@pytest.mark.parametrize("text", ["/Users/alice/x", "/home/bob/x", r"C:\Users\carol\x",
+                                  'HOME = "/Users/alice"', "cd /home/bob", r'p = "C:\\Users\\carol\\x"'])
 def test_personal_path_is_error(repo, text):
     repo.add_skill("dev", "foo", body="見 references/a.md\n", files={"references/a.md": text})
     issues = [i for i in run(repo) if i.level == "error"]

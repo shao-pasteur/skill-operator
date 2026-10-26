@@ -14,6 +14,7 @@ from skillops.release_notes import (  # noqa: E402
     git_changed_paths,
     render_release_notes,
 )
+from skillops.scaffold import ScaffoldError, import_skill, new_skill  # noqa: E402
 from skillops.validate import Issue, validate_catalog  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -54,6 +55,19 @@ def cmd_release_notes(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_new(args: argparse.Namespace) -> int:
+    print(new_skill(args.root, args.category, args.name))
+    return 0
+
+
+def cmd_import(args: argparse.Namespace) -> int:
+    dest = import_skill(args.root, args.src, args.category)
+    print(f"已複製到 {dest}")
+    rel = dest.relative_to(args.root).as_posix() + "/"
+    issues = [i for i in validate_catalog(load_catalog(args.root)) if i.path.startswith(rel)]
+    return print_issues(issues)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="skillops", description="skill-operator 的管理工具")
     parser.add_argument("--root", type=Path, default=REPO_ROOT, help="repo 根目錄")
@@ -67,6 +81,14 @@ def build_parser() -> argparse.ArgumentParser:
     notes.add_argument("--base", default=None, help="上一次 push 的 commit；省略代表全部視為有變動")
     notes.add_argument("--head", default="HEAD")
     notes.set_defaults(func=cmd_release_notes)
+    new = sub.add_parser("new", help="從樣板建立新 skill")
+    new.add_argument("--category", required=True)
+    new.add_argument("--name", required=True)
+    new.set_defaults(func=cmd_new)
+    imp = sub.add_parser("import", help="把既有的 skill 資料夾複製進 repo 並驗證")
+    imp.add_argument("--src", type=Path, required=True)
+    imp.add_argument("--category", required=True)
+    imp.set_defaults(func=cmd_import)
     return parser
 
 
@@ -74,7 +96,7 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         return args.func(args)
-    except CatalogError as e:
+    except (CatalogError, ScaffoldError) as e:
         print(f"ERROR {e}")
         return 1
 

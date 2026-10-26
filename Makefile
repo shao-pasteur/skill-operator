@@ -1,6 +1,6 @@
 PY := uv run python scripts/cli.py
 
-.PHONY: build check test package
+.PHONY: build check test package new import
 
 build: ; $(PY) build
 
@@ -11,3 +11,5 @@ check:
 test: ; uv run pytest
 
 package: ; $(PY) package --out dist
+new: ; $(PY) new --category $(CATEGORY) --name $(NAME)
+import: ; $(PY) import --src $(SRC) --category $(CATEGORY)

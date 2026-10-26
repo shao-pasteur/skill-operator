@@ -156,7 +156,7 @@ skill-operator/
 
 ## 7. 產生腳本（`make build`）
 
-- **技術**：Python 3.11+，透過 `uv run` 執行；依賴以 PEP 723 inline metadata 宣告，唯一外部依賴為 PyYAML（測試另需 pytest）。
+- **技術**：Python 3.11+，透過 `uv run` 執行；依賴宣告在根目錄 `pyproject.toml`（uv 自動管理環境，不需手動建 venv），唯一執行期依賴為 PyYAML（測試另需 pytest）。GitHub repo 路徑由 `categories.yaml` 的 `owner.github` 與 `marketplace` 組成（`<owner.github>/<marketplace>`）。
 - **輸入**：`categories.yaml`，加上掃描 `plugins/*/skills/*/SKILL.md` 的 frontmatter。
 - **輸出**：
   - 每個分類 3 份 plugin.json（Claude、Codex、Cursor），`name` 與 `description` 取自 `categories.yaml`。

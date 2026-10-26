@@ -81,3 +81,15 @@ def test_notes_nothing_changed(repo):
 def test_notes_no_web_skills(repo):
     notes = render_release_notes(load_catalog(repo.root), None)
     assert "_目前沒有網頁版 skill。_" in notes
+
+
+@pytest.mark.parametrize("base,head", [("--output={out}", "HEAD"), ("HEAD", "-p")])
+def test_git_changed_paths_rejects_option_like_revs(tmp_path, base, head):
+    base = base.format(out=tmp_path / "x")
+    repo_dir = tmp_path / "g"
+    init_repo(repo_dir)
+    (repo_dir / "a.txt").write_text("a")
+    git(repo_dir, "add", ".")
+    git(repo_dir, "commit", "-qm", "a")
+    assert git_changed_paths(repo_dir, base, head) is None
+    assert not (tmp_path / "x").exists()

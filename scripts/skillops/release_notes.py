@@ -9,8 +9,10 @@ from skillops.catalog import Catalog
 def git_changed_paths(root: Path, base: str | None, head: str) -> list[str] | None:
     if not base or set(base) == {"0"}:
         return None
+    if base.startswith("-") or head.startswith("-"):
+        return None
     result = subprocess.run(
-        ["git", "-C", str(root), "diff", "--name-only", base, head],
+        ["git", "-C", str(root), "diff", "--name-only", "--end-of-options", base, head],
         capture_output=True, text=True,
     )
     if result.returncode != 0:

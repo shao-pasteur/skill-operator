@@ -1,8 +1,2 @@
 #!/bin/sh
-set -e
-uv run python scripts/cli.py build
-if ! git diff --quiet -- README.md .claude-plugin .agents .cursor-plugin 'plugins/*/.claude-plugin' 'plugins/*/.codex-plugin' 'plugins/*/.cursor-plugin'; then
-  echo "產生檔已更新，請 git add 後再 commit 一次。" >&2
-  exit 1
-fi
-uv run python scripts/cli.py check
+exec uv run python scripts/cli.py precommit

@@ -1,12 +1,13 @@
 """Command-line entry point: uv run python scripts/cli.py <command>."""
 
 import argparse
+import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from skillops.build import check_generated, write_generated  # noqa: E402
+from skillops.build import check_generated, generated_files, write_generated  # noqa: E402
 from skillops.catalog import CatalogError, load_catalog  # noqa: E402
 from skillops.package import package_skills  # noqa: E402
 from skillops.release_notes import (  # noqa: E402
@@ -38,6 +39,26 @@ def cmd_build(args: argparse.Namespace) -> int:
 def cmd_check(args: argparse.Namespace) -> int:
     catalog = load_catalog(args.root)
     return print_issues(validate_catalog(catalog) + check_generated(catalog))
+
+
+def unstaged_paths(root: Path, paths: list[str]) -> list[str]:
+    result = subprocess.run(
+        ["git", "-C", str(root), "status", "--porcelain", "--untracked-files=all", "--", *paths],
+        capture_output=True, text=True, check=True,
+    )
+    # Column 2 is the worktree state; "??" marks untracked files.
+    return sorted(line[3:] for line in result.stdout.splitlines() if line[1] != " ")
+
+
+def cmd_precommit(args: argparse.Namespace) -> int:
+    removed = write_generated(load_catalog(args.root))
+    catalog = load_catalog(args.root)
+    pending = unstaged_paths(args.root, sorted(set(generated_files(catalog)) | set(removed)))
+    if pending:
+        print("產生檔有變動但還沒加入這次 commit，請執行：")
+        print("  git add " + " ".join(pending))
+        return 1
+    return cmd_check(args)
 
 
 def cmd_package(args: argparse.Namespace) -> int:
@@ -81,6 +102,9 @@ def build_parser() -> argparse.ArgumentParser:
     notes.add_argument("--base", default=None, help="上一次 push 的 commit；省略代表全部視為有變動")
     notes.add_argument("--head", default="HEAD")
     notes.set_defaults(func=cmd_release_notes)
+    sub.add_parser("precommit", help="pre-commit hook：build、確認產生檔已加入 commit、再 check").set_defaults(
+        func=cmd_precommit
+    )
     new = sub.add_parser("new", help="從樣板建立新 skill")
     new.add_argument("--category", required=True)
     new.add_argument("--name", required=True)

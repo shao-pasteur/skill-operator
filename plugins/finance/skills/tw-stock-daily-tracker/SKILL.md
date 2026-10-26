@@ -112,6 +112,7 @@ $TW_STOCK_INVESTING_DIR/
 
 - 用 `launchctl list | grep tw-stock` 或 `crontab -l` 確認排程有正確載入
 - 提醒使用者電腦在排程觸發時間必須是開機且未睡眠狀態，launchd 對「補跑錯過的排程」支援度比 cron 好一些
+- **安裝排程前先告知風險**：`scripts/install_launchd_jobs.sh` 會以 `claude -p --dangerously-skip-permissions` 執行，背景執行時不會詢問任何權限。新聞或網頁內容若夾帶惡意指令，agent 可能不經確認就執行。請使用者確認接受這個風險再安裝；不接受的話，可以改用互動方式手動執行各階段。
 
 ## 設定檔 config.json（可變更欄位，每次執行都讀取）
 

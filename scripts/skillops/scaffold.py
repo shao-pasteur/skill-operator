@@ -4,7 +4,7 @@ import shutil
 from pathlib import Path
 
 from skillops.catalog import NAME_RE, load_catalog
-from skillops.package import EXCLUDE_NAMES, EXCLUDE_SUFFIXES
+from skillops.package import EXCLUDE_PATTERNS
 
 SKILL_TEMPLATE = """---
 name: {name}
@@ -52,6 +52,5 @@ def import_skill(root: Path, src: Path, category: str) -> Path:
         # A link could pull files from outside the skill into this public repo.
         raise ScaffoldError(f"{src} 裡有 symlink，請改成實際檔案後再匯入：{'、'.join(links)}")
     dest = _destination(root, category, src.name)
-    patterns = [*EXCLUDE_NAMES, *(f"*{suffix}" for suffix in EXCLUDE_SUFFIXES)]
-    shutil.copytree(src, dest, ignore=shutil.ignore_patterns(*patterns))
+    shutil.copytree(src, dest, ignore=shutil.ignore_patterns(*EXCLUDE_PATTERNS))
     return dest

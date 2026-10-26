@@ -42,9 +42,25 @@ def test_zip_is_deterministic(repo, tmp_path):
 
 def test_stale_zips_removed(repo, tmp_path):
     out = tmp_path / "dist"
-    out.mkdir()
-    (out / "old.zip").write_bytes(b"x")
     repo.add_skill("dev", "foo")
+    package_skills(load_catalog(repo.root), out)
+    (out / "old.zip").write_bytes(b"x")
     package_skills(load_catalog(repo.root), out)
     assert not (out / "old.zip").exists()
     assert (out / "foo.zip").exists()
+
+
+def test_unrelated_zips_kept_in_foreign_folder(repo, tmp_path):
+    out = tmp_path / "Downloads"
+    out.mkdir()
+    (out / "photos.zip").write_bytes(b"x")
+    repo.add_skill("dev", "foo")
+    package_skills(load_catalog(repo.root), out)
+    assert (out / "photos.zip").exists()
+    assert (out / "foo.zip").exists()
+
+
+def test_zip_excludes_env_and_os_junk(repo, tmp_path):
+    repo.add_skill("dev", "foo", files={".env": "KEY=1", ".env.local": "KEY=2", "._SKILL.md": "", "Thumbs.db": ""})
+    [z] = package_skills(load_catalog(repo.root), tmp_path / "dist")
+    assert zipfile.ZipFile(z).namelist() == ["foo/SKILL.md"]

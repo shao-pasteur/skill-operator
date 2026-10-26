@@ -93,3 +93,11 @@ def test_import_rejects_symlinks(repo, tmp_path):
     with pytest.raises(ScaffoldError, match="symlink"):
         import_skill(repo.root, src, "dev")
     assert not (repo.root / "plugins/dev/skills/foo").exists()
+
+
+def test_import_skips_env_files(repo, tmp_path):
+    src = make_src(tmp_path)
+    (src / ".env").write_text("OPENAI_API_KEY=sk-test")
+    (src / ".env.local").write_text("X=1")
+    dest = import_skill(repo.root, src, "dev")
+    assert not (dest / ".env").exists() and not (dest / ".env.local").exists()

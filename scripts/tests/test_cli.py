@@ -26,3 +26,18 @@ def test_cli_warnings_do_not_fail(repo, capsys):
     main(["--root", str(repo.root), "build"])
     assert main(["--root", str(repo.root), "check"]) == 0
     assert "WARN" in capsys.readouterr().out
+
+
+def test_cli_package(repo, tmp_path, capsys):
+    repo.add_skill("dev", "foo")
+    out = tmp_path / "dist"
+    assert main(["--root", str(repo.root), "package", "--out", str(out)]) == 0
+    assert (out / "foo.zip").exists()
+    assert "foo.zip" in capsys.readouterr().out
+
+
+def test_cli_release_notes_without_base(repo, capsys):
+    repo.add_skill("dev", "foo")
+    assert main(["--root", str(repo.root), "release-notes", "--head", "HEAD"]) == 0
+    head = capsys.readouterr().out.split("## 所有網頁版 skill")[0]
+    assert "`foo`" in head

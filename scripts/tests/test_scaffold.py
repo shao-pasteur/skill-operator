@@ -82,3 +82,14 @@ def test_cli_new_prints_path(repo, capsys):
 def test_cli_new_error(repo, capsys):
     assert main(["--root", str(repo.root), "new", "--category", "ghost", "--name", "bar"]) == 1
     assert "ERROR" in capsys.readouterr().out
+
+
+def test_import_rejects_symlinks(repo, tmp_path):
+    secret = tmp_path / "secret.txt"
+    secret.write_text("private")
+    src = make_src(tmp_path)
+    (src / "references").mkdir()
+    (src / "references" / "leak.md").symlink_to(secret)
+    with pytest.raises(ScaffoldError, match="symlink"):
+        import_skill(repo.root, src, "dev")
+    assert not (repo.root / "plugins/dev/skills/foo").exists()

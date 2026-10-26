@@ -47,6 +47,10 @@ def import_skill(root: Path, src: Path, category: str) -> Path:
     src = src.expanduser().resolve()
     if not (src / "SKILL.md").is_file():
         raise ScaffoldError(f"{src} 裡沒有 SKILL.md")
+    links = sorted(p.relative_to(src).as_posix() for p in src.rglob("*") if p.is_symlink())
+    if links:
+        # A link could pull files from outside the skill into this public repo.
+        raise ScaffoldError(f"{src} 裡有 symlink，請改成實際檔案後再匯入：{'、'.join(links)}")
     dest = _destination(root, category, src.name)
     patterns = [*EXCLUDE_NAMES, *(f"*{suffix}" for suffix in EXCLUDE_SUFFIXES)]
     shutil.copytree(src, dest, ignore=shutil.ignore_patterns(*patterns))

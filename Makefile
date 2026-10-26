@@ -1,6 +1,6 @@
 PY := uv run python scripts/cli.py
 
-.PHONY: build check test package new import
+.PHONY: build check test package new import hooks
 
 build: ; $(PY) build
 
@@ -13,3 +13,4 @@ test: ; uv run pytest
 package: ; $(PY) package --out dist
 new: ; $(PY) new --category $(CATEGORY) --name $(NAME)
 import: ; $(PY) import --src $(SRC) --category $(CATEGORY)
+hooks: ; git config core.hooksPath .githooks

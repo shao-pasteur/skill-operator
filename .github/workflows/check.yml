@@ -1,0 +1,27 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - name: Test scripts
+        run: uv run pytest
+      - name: Check skills and generated files
+        run: uv run python scripts/cli.py check
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Validate with Claude Code
+        run: |
+          if [ -f .claude-plugin/marketplace.json ]; then
+            npx -y @anthropic-ai/claude-code plugin validate .
+          fi

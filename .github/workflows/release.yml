@@ -1,0 +1,35 @@
+name: release
+
+on:
+  push:
+    branches: [main]
+    paths: ["plugins/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  latest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - name: Package web skills
+        run: uv run python scripts/cli.py package --out dist
+      - name: Write release notes
+        env:
+          BASE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: uv run python scripts/cli.py release-notes --base "$BASE_SHA" --head "$HEAD_SHA" > notes.md
+      - name: Publish the latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          shopt -s nullglob
+          files=(dist/*.zip)
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest "${files[@]}" --title "latest" --notes-file notes.md --target "$HEAD_SHA"

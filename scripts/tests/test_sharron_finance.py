@@ -302,3 +302,33 @@ def test_suggest_cli_prints_its_basis(tmp_path, capsys):
     code, out, _ = run_main(capsys, "--skill-dir", str(make_skill(tmp_path)), "suggest", "--platform", "claude-code",
                             "--playbook", "research", "--difficulty", "3")
     assert code == 0 and out == {"budget_usd": 1.5, "method": "default", "n": 0}
+
+
+def test_record_with_no_usage_since_the_start_time_is_unknown(tmp_path, monkeypatch, capsys):
+    skill = make_skill(tmp_path)
+    (skill / "config.toml").write_text(FAKE_PRICES)
+    write_transcripts(tmp_path / "claude", "s1", [line("2026-10-27T01:59:00Z")])  # before --since
+    use_claude(monkeypatch, tmp_path / "claude")
+    code, out, _ = run_main(capsys, "--skill-dir", str(skill), *RECORD, "--platform", "claude-code", "--models", "T2")
+    assert code == 0 and "no usage" in out["note"]
+    assert (out["row"]["measurement"], out["row"]["cost_usd"], out["row"]["input_tokens"]) == ("unknown", "unknown", "unknown")
+    assert ledger.successful_rows(ledger.parse_ledger((skill / "ledger/costs.md").read_text())) == []
+
+
+def test_record_with_no_usage_uses_the_reported_flags(tmp_path, monkeypatch, capsys):
+    skill = make_skill(tmp_path)
+    write_transcripts(tmp_path / "claude", "s1", [line("2026-10-27T01:59:00Z")])
+    use_claude(monkeypatch, tmp_path / "claude")
+    code, out, _ = run_main(capsys, "--skill-dir", str(skill), *RECORD, "--platform", "claude-code",
+                            "--input-tokens", "7", "--output-tokens", "3", "--cache-tokens", "0", "--cost-usd", "0.5")
+    assert code == 0 and (out["row"]["measurement"], out["row"]["cost_usd"], out["row"]["input_tokens"]) == ("measured", "0.5000", "7")
+
+
+def test_usage_with_no_usage_since_the_start_time_is_unknown(tmp_path, monkeypatch, capsys):
+    skill = make_skill(tmp_path)
+    write_transcripts(tmp_path / "claude", "s1", [line("2026-10-27T01:59:00Z")])
+    use_claude(monkeypatch, tmp_path / "claude")
+    code, out, _ = run_main(capsys, "--skill-dir", str(skill), "usage", "--platform", "claude-code",
+                            "--since", "2026-10-27T10:00:00+08:00", "--budget", "1.0")
+    assert code == 0 and "no usage" in out["note"]
+    assert (out["measurement"], out["cost_usd"], out["limit_usd"], out["over_budget"]) == ("unknown", None, None, None)

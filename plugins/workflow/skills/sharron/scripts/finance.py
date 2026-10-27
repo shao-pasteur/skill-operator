@@ -48,6 +48,7 @@ ENV_SESSION = "CLAUDE_CODE_SESSION_ID"
 AGENT_PREFIX = "agent-"
 P80_MIN_TASKS = 5  # tasks with the same difficulty
 REGRESSION_MIN_TASKS = 10  # tasks in the playbook
+NO_USAGE_NOTE = "the transcripts hold no usage since --since; check the start time and the session"
 CONCRETE_PLATFORMS = tuple(p for p in config.PLATFORMS if p != "auto")
 _SAFE_NAME_RE = re.compile(r"[A-Za-z0-9._-]+")
 
@@ -262,6 +263,7 @@ class Measurement:
     cost: float | None = None
     models: list[str] | None = None
     unpriced: list[str] | None = None
+    note: str | None = None  # why nothing was measured, for the person reading the JSON
 
 
 def _ids(text: str | None) -> frozenset[str] | None:
@@ -284,6 +286,8 @@ def _measure_claude_code(args: argparse.Namespace, settings: config.Settings) ->
     if not files:
         return None
     usage = sum_usage(files, args.since)
+    if not usage:  # a wrong start time or session must not become a measured cost of 0
+        return Measurement("unknown", note=NO_USAGE_NOTE)
     cost, unpriced = price_usage(usage, settings.values.get("prices", {}))
     return Measurement(
         "measured",
@@ -304,7 +308,9 @@ def _measure_reported(args: argparse.Namespace) -> Measurement | None:
 
 def _measure(args: argparse.Namespace, platform: str, settings: config.Settings) -> Measurement:
     found = _measure_claude_code(args, settings) if platform == "claude-code" else None
-    return found or (_measure_reported(args) if hasattr(args, "input_tokens") else None) or Measurement("unknown")
+    if found and found.measurement == "measured":
+        return found
+    return _measure_reported(args) or found or Measurement("unknown")
 
 
 def _number(value: int | float | None) -> str:
@@ -343,6 +349,7 @@ def _cmd_usage(args: argparse.Namespace, settings: config.Settings) -> dict:
         "measurement": measured.measurement, "cost_usd": cost, "unpriced_models": measured.unpriced or [],
         "input_tokens": measured.input, "output_tokens": measured.output, "cache_tokens": measured.cache,
         "models": measured.models or [], "budget_usd": args.budget, "limit_usd": limit, "over_budget": over,
+        "note": measured.note,
     }
 
 
@@ -350,7 +357,7 @@ def _cmd_record(args: argparse.Namespace, settings: config.Settings) -> dict:
     platform = _resolve_platform(args, settings)
     measured = _measure(args, platform, settings)
     result = record(args.skill_dir, _build_row(args, platform, measured))
-    return {**result, "unpriced_models": measured.unpriced or []}
+    return {**result, "unpriced_models": measured.unpriced or [], "note": measured.note}
 
 
 def _cmd_correct(args: argparse.Namespace, settings: config.Settings) -> dict:

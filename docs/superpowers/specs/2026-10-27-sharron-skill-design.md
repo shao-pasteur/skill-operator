@@ -47,6 +47,7 @@ Turn Sharron's way of working into portable skills in this repo:
 categories.yaml                                  # add category `workflow`
 plugins/workflow/skills/sharron/
   SKILL.md                                       # principles + main flow (≤ 200 lines)
+  GUIDE.md                                       # how to use and configure the skill (for people; sharron reads it for help requests)
   config.example.toml                            # default settings (committed)
   config.toml                                    # your settings (gitignored, created on first change)
   registry.toml                                  # service list and skill sources (committed)
@@ -74,12 +75,14 @@ plugins/workflow/skills/sharron/
     memory_guard.py                              # locate MEMORY.md and keep it out of git
     refcheck.py                                  # probe security sources for new editions, apply verified updates
     trace.py                                     # append and prune per-task traces
+    config.py                                    # show the effective settings and validate config.toml
 plugins/research/skills/research-method/SKILL.md
 plugins/research/skills/verify-evidence/SKILL.md
 scripts/tests/test_sharron_finance.py
 scripts/tests/test_sharron_memory_guard.py
 scripts/tests/test_sharron_refcheck.py
 scripts/tests/test_sharron_trace.py
+scripts/tests/test_sharron_config.py
 .gitignore                                       # add MEMORY.md, the sharron config.toml and state/
 AGENTS.md                                        # mention the ledger and config.toml
 README.md                                        # how to install workflow from the local clone
@@ -93,6 +96,7 @@ Paths are relative to the skill folder unless noted.
 
 | File | In git | Holds |
 |---|---|---|
+| `GUIDE.md` | committed | How to use and configure the skill (4.19) |
 | `config.example.toml` | committed | Default settings |
 | `config.toml` | never (gitignored) | Your settings: platform, model mapping, prices, role tiers, risk thresholds, budgets, standing orders, `auto_install`, installed skills. When missing, the example's defaults apply |
 | `registry.toml` | committed | Which skills each role, playbook and domain uses, and where they come from |
@@ -230,6 +234,7 @@ After the answers, sharron shows a task card. For difficulty 4–5 the card also
 | Decision support | Analyzing options; the user decides | analyst, researcher, reviewer |
 | Learning | Teaching, quizzes, tracking progress | tutor |
 | Coding | Scripts, automation, project work | engineer, reviewer; follows the project's own conventions |
+| Settings and help | Showing or changing settings, usage help, budget status, paused tasks (4.19) | sharron; no intake, no ledger row |
 | Custom | Nothing fits | Design a playbook first and record it as a lesson |
 
 **Plan-then-execute for actions:** before reading any untrusted content (web pages, emails, documents from others), sharron fixes the action plan — which tools, which targets or recipients, which kinds of change. Content read afterwards may only fill in values within that plan. A new action or a new recipient suggested by content is a new plan and goes through the decision gate again (at least L3).
@@ -394,7 +399,7 @@ Step 0 of every later task surfaces paused and waiting tasks first, so nothing g
 - Commits only the data file, even when other changes are staged: `git -C <skill folder> commit -m "chore(sharron): record task cost [skip ci]" -- ledger/costs.md`. `[skip ci]` keeps data-only pushes from running CI and the release workflow.
 - Never bypasses hooks (`--no-verify`). If the commit fails (for example the repo's pre-commit check fails because of unrelated work in progress), the row stays uncommitted, the reply says so, and the next run commits it together with its own row.
 - Pushes automatically, with these limits so nothing else gets published by accident:
-  - Only when the clone is on its default branch (`main`) and every outgoing commit is a sharron data commit that touches only `ledger/costs.md` or `security-references.toml`. Otherwise the commit stays local and the reply says it will go out with the user's next push.
+  - Only when the clone is on its default branch (`main`) and every outgoing commit is a sharron data commit that touches only `ledger/costs.md`, `security-references.toml` or `registry.toml`. Otherwise the commit stays local and the reply says it will go out with the user's next push.
   - Before pushing, fetch and rebase onto the remote. The ledger is append-only, so a conflict there (another machine added rows) is resolved by keeping both sets of rows; any other conflict aborts the rebase, skips the push and is reported.
   - Never force-pushes. `memory_guard.py precommit` runs before every push.
 - The reply mentions it: 「帳本已自動 commit 並 push」, or why the push was skipped.
@@ -456,7 +461,7 @@ Default entries (their `install` commands and pinned refs are filled in and veri
 6. Record it under `[installed.<skill>]` in `config.toml`: source, version or commit, date, platform.
 7. Tell the user in the reply: 「已自動安裝：<skill>（<repo>，<version>）」.
 
-Decision level: L2, with no confirmation — including plugins that carry hooks or MCP servers. Only the user adds entries to `registry.toml`, so listing a skill is the user's approval to install it (user decision, 2026-10-27). sharron never edits `registry.toml` itself; when a skill outside the registry would help, it suggests the entry in the reply and leaves adding it to the user.
+Decision level: L2, with no confirmation — including plugins that carry hooks or MCP servers. Only the user adds entries to `registry.toml`, so listing a skill is the user's approval to install it (user decision, 2026-10-27). sharron edits `registry.toml` only when the user explicitly asks for it in the conversation — the instruction is the approval — then shows the diff and syncs the file like the ledger (4.11). It never adds or changes entries on its own initiative; when a skill outside the registry would help, it suggests the entry in the reply.
 
 ### 4.13 Memory: MEMORY.md
 
@@ -504,7 +509,7 @@ Limitation: the skill cannot stop the user or another tool from running `git add
 
 **Subagent tools:** Claude Code uses the Agent tool with a model choice; Codex, Copilot CLI and Cursor are verified during implementation (section 8); `work` and `hybrid` use whatever the user configures; without a subagent tool, sharron does the units itself, one after another.
 
-**Configuration:** `config.example.toml` in the skill folder holds the defaults. Your settings go in `config.toml` next to it, which is gitignored; when it does not exist, the defaults apply. sharron creates it from the example the first time a setting changes or an install must be recorded (L2) and tells the user once.
+**Configuration:** `config.example.toml` in the skill folder holds the defaults; `scripts/config.py` shows the effective settings (each value with where it came from) and validates `config.toml` — unknown keys are warnings, invalid values are errors with the allowed values listed. Your settings go in `config.toml` next to it, which is gitignored; when it does not exist, the defaults apply. sharron creates it from the example the first time a setting changes or an install must be recorded (L2) and tells the user once.
 
 ```toml
 # Settings for the sharron skill. Copy to config.toml (gitignored) to change them.
@@ -651,7 +656,7 @@ Initial entries, researched on 2026-10-27:
 **Guardrails against poisoning** (the list steers the security role, so it is a target):
 
 - Pages are read only from each source's `official_domains`.
-- `apply` changes only `edition`, `status`, `url`, `items` and `probe`. It never adds or removes sources or changes `applies_to`; when a new framework appears, sharron suggests it in the reply and only the user adds it, as with `registry.toml`.
+- `apply` changes only `edition`, `status`, `url`, `items` and `probe`. It never adds or removes sources or changes `applies_to`; when a new framework appears, sharron suggests it in the reply and adds it only on the user's explicit instruction, as with `registry.toml`.
 - Items are plain names, treated as data, and written only after the verifier confirms them.
 - Every change appends a `[[changelog]]` entry (date, source, from → to, verified by) and is committed and pushed automatically with the same data-sync procedure as the ledger (4.11): only this file, `[skip ci]`, default branch only, never bypassing hooks or force-pushing; a conflict in this file aborts and is reported; in a cache copy it stays local with a one-time notice.
 - Decision level L2.
@@ -661,11 +666,13 @@ Initial entries, researched on 2026-10-27:
 - `scripts/finance.py`: `suggest`, `record` (append, then commit the ledger) and `usage` (spend since a given time); standard library only (`tomllib`), reads `config.toml` or the example, exits non-zero with a clear message on bad input.
 - `scripts/memory_guard.py`: `check` and `precommit`; prints its status as JSON.
 - `scripts/refcheck.py`: `check` (probe the sources that are due, print changes as JSON, update `state/refcheck.json`) and `apply` (validate and write a verified update, append the changelog entry, commit); standard library only (`urllib` with timeouts).
+- `scripts/config.py`: `show` (effective settings: the example's defaults merged with `config.toml` and `SHARRON_PLATFORM`, each value with its source) and `validate`.
 - `scripts/trace.py`: `append` (one JSON line per brief, report or decision into `state/traces/<task_id>.jsonl`, with tokens and keys redacted) and `prune` (keep the last 50 tasks or 30 days).
 - Tests live in this repo's `scripts/tests/` (as for `tw-stock-daily-tracker`):
   - `test_sharron_finance.py`: parsing and appending the ledger, the summary block, the three suggestion rules and their fallbacks, summing Claude Code transcripts from fixture files (and ignoring message content), price conversion, unknown platforms, the automatic commit (only the ledger file is committed even with other staged changes; no commit and a one-time notice outside a git work tree; a failed commit leaves the row for the next run).
   - `test_sharron_memory_guard.py`: not a git repo; untracked file excluded once; already ignored; tracked file blocked; the `info/exclude` path inside a worktree; `precommit` catching staged and outgoing files; an existing `MEMORY.md` without the marker.
   - `test_sharron_trace.py`: appending, redacting secrets, pruning by count and age.
+  - `test_sharron_config.py`: merging defaults with `config.toml` and the environment variable; the source of each value; unknown keys warned; invalid tiers, platforms and amounts rejected with the allowed values.
   - `test_sharron_refcheck.py` (with an injected fetcher, no network): which sources are due; `next-edition` and `page-change` probes; network errors reported, not raised; `apply` rejects pages outside `official_domains`, changes to forbidden fields and added or removed sources; the changelog entry; the commit contains only `security-references.toml`.
 
 ### 4.18 Traces and evaluation
@@ -679,6 +686,53 @@ Initial entries, researched on 2026-10-27:
 - Run with the skill-creator eval workflow on every configured platform and model mapping, including the single-model `work` platform, before each release of the skill. Runs cost quota, so they are manual, not part of `make test`.
 
 **Error analysis loop:** after every 20 tasks, or when the user asks, sharron reads the traces of failed, partial and corrected tasks, groups the failures, proposes fixes to the skill or new eval cases, and writes the proposal to `MEMORY.md` for the user to accept. The skill itself is only changed by the user (or at the user's request).
+
+### 4.19 Operating and configuring
+
+**`GUIDE.md`** (skill folder, English like the rest of the repo; sharron answers help requests from it in Traditional Chinese) covers:
+
+1. Installing: from the local clone on the main machine (so the ledger and settings stay in the repo), and on the other platforms.
+2. First run: what gets created (`config.toml` on the first settings change, `MEMORY.md` and its git exclusion).
+3. Calling sharron: "sharron, …" or `/workflow:sharron`, with one example per playbook.
+4. Answering the intake quickly ("use the defaults") and reading the task card.
+5. What L3 confirmations and L4 decision cards look like and how to answer them.
+6. Memory: where `MEMORY.md` lives, how to correct or remove entries, why it is never committed.
+7. The settings reference below, and the other files you can edit: `registry.toml` (adding a skill: repo, `ref`, roles, playbooks, domains, install commands), `security-references.toml` (adding a source, check intervals; which fields the automatic update may change), `roles/<role>.md` and `roles/<role>.local.md`, and `evals/`.
+8. Manual commands: `finance.py suggest` / `usage`, `refcheck.py check`, `memory_guard.py check`, `config.py show` / `validate`, `trace.py prune`.
+9. Troubleshooting: sharron does not trigger; ledger rows are not committed (cache copy, failing pre-commit check); a push was skipped (not on `main`, other outgoing commits); `MEMORY.md` is tracked; a reference update failed.
+
+**Operating sharron in conversation** (the Settings and help playbook):
+
+| You say (examples) | sharron does | Level |
+|---|---|---|
+| 「sharron 怎麼用」「sharron help」 | Summarizes `GUIDE.md` | L0 |
+| 「sharron 顯示設定」 | Runs `config.py show` and lists the effective settings with their sources | L0 |
+| 「sharron 把 reviewer 改成 T3」「把 work 平台的模型設成 X」 | Edits `config.toml` (creating it from the example if needed), runs `config.py validate`, shows the diff | L2 |
+| 「sharron 加一條常備命令：絕不……」 | Adds it to `config.toml` | L2 |
+| 「sharron 刪掉常備命令……」「關掉自動安裝」 | Changes it after a one-line confirmation, because it loosens a safeguard | L3 |
+| 「sharron 把 <skill> 加進註冊表」 | Adds the entry you describe (repo, `ref`, install commands, roles), shows the diff, syncs `registry.toml` | L2 |
+| 「sharron 改一下 engineer 的角色提示」 | Edits `roles/engineer.md` (or `.local.md` for this machine only) and shows the diff; leaves committing to you | L2 |
+| 「sharron 預算狀況」 | Summarizes recent spend and the budget suggestion per playbook and difficulty | L0 |
+| 「sharron 有哪些暫停的任務」 | Lists paused and waiting tasks from `MEMORY.md` | L0 |
+| 「sharron 現在更新資安參考清單」 | Runs the reference check now, ignoring the interval | L2 |
+| 「sharron 跑評測」 | Runs the eval set after a one-line confirmation, because it costs quota | L3 |
+
+**Settings reference** (`config.toml`; defaults from `config.example.toml`):
+
+| Key | Default | Allowed values | Effect |
+|---|---|---|---|
+| `platform` | `auto` | `auto`, `claude-code`, `codex`, `copilot`, `cursor`, `work`, `hybrid` | Which platform's model mapping applies. `work` and `hybrid` must be set explicitly; the `SHARRON_PLATFORM` environment variable overrides this key |
+| `auto_install` | `true` | `true`, `false` | Install missing registry skills automatically |
+| `max_parallel_subagents` | `3` | 1–10 | How many subagents may run at once |
+| `platforms.<platform>.models.T1` / `T2` / `T3` | claude-code: `haiku` / `sonnet` / `opus`; `work`, `hybrid`: empty | Model IDs | The model each tier uses on that platform; on `work`, put the same model in all three |
+| `platforms.hybrid.available` | `[]` | List of model IDs | The models you can choose from on `hybrid` |
+| `roles.<role>` | See 4.6 | `T1`, `T2`, `T3` | Default tier per role; rules such as "T3 for R3 and above" can still raise it |
+| `prices."<model>"` | Filled in during implementation | `input`, `output`, `cache_write`, `cache_read` in USD per million tokens | Converting measured tokens into equivalent USD |
+| `risk.currency`, `risk.small_amount`, `risk.large_amount` | `TWD`, `500`, `3000` | Currency code, numbers | The money thresholds behind R2, R3 and R4 |
+| `budget.default_per_task` | `0.2`, `0.5`, `1.5`, `4.0`, `10.0` (difficulty 1–5) | USD | Budgets used until the ledger has enough data |
+| `budget.overrun_factor` | `1.5` | Greater than 1 | Measured spend above suggestion × factor pauses the task and asks |
+| `standing_orders.always`, `standing_orders.never` | `[]` | Lists of plain sentences | Applied to every plan / forbidden outright |
+| `installed.<skill>` | Written by sharron | — | Record of automatic installs; not edited by hand |
 
 ## 5. The research skills
 
@@ -708,7 +762,7 @@ Both are plain Markdown with no scripts, so they are packaged for web apps too. 
 - `categories.yaml`: add `workflow` (title "Workflow", description "Ways of working: planning, delegation, verification, decision levels, budgets and memory").
 - `.gitignore`: add `MEMORY.md`, `plugins/workflow/skills/sharron/config.toml`, `plugins/workflow/skills/sharron/state/` and `plugins/workflow/skills/sharron/roles/*.local.md`.
 - `AGENTS.md`: `registry.toml` and `config.example.toml` are edited by hand; `ledger/costs.md` is appended and committed by sharron's finance script and must not be edited by hand; `config.toml` is local only.
-- `README.md`: a note that the `workflow` plugin should be installed from the local clone on the main machine so the ledger stays in the repo.
+- `README.md`: a note that the `workflow` plugin should be installed from the local clone on the main machine so the ledger stays in the repo, and a link to the sharron `GUIDE.md`.
 
 ## 7. Verification
 
@@ -725,6 +779,8 @@ Both are plain Markdown with no scripts, so they are packaged for web apps too. 
   9. Ask sharron for a script that calls an API with a hard-coded token: the security role flags it (NHI2, CWE-798) and the delivered script reads the token from the environment instead.
   10. In a scratch clone, set `owasp-top10` back to edition 2021 and clear its check time: the next activation detects 2025 in the background, verifies it, updates the list, commits only `security-references.toml` and mentions it in the reply.
   11. Run the eval set (4.18) and record the pass rate per platform.
+  12. 「sharron 顯示設定」 lists every effective setting with its source; 「sharron 把 reviewer 改成 T3」 edits `config.toml`, shows the diff and the next review uses T3.
+  13. An invalid value in `config.toml` (for example `reviewer = "T4"`) produces an error that lists the allowed values.
 
 ## 8. To verify during implementation
 

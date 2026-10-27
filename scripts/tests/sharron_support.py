@@ -12,26 +12,36 @@ SKILL_SRC = Path(__file__).resolve().parents[2] / "plugins/workflow/skills/sharr
 _loaded: dict[str, ModuleType] = {}
 
 
-def load(name: str) -> ModuleType:
-    """Import the skill's scripts/<name>.py as the module sharron_<name>; each name is imported once.
+def _load_from_file(module_name: str, path: Path) -> ModuleType:
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module  # dataclasses look their module up by name
+    try:
+        spec.loader.exec_module(module)
+    except BaseException:
+        del sys.modules[module_name]
+        raise
+    return module
 
-    The scripts folder goes to the END of sys.path: sibling imports such as `import config` work,
-    while stdlib names such as `trace` still resolve to the stdlib.
+
+def load(name: str) -> ModuleType:
+    """Return the skill's scripts/<name>.py as a module; each name is loaded once.
+
+    The scripts folder goes to the END of sys.path and the module is imported by its own name, so
+    load("ledger") is exactly the module that `import ledger` gives a sibling script. Exception and
+    dataclass classes therefore match, whether a test or a sibling script imported them.
+
+    The one exception is a name that is also a stdlib module (today: trace). Importing it by its own
+    name would return the stdlib module, so it is loaded from its file as sharron_<name> instead.
     """
     if name not in _loaded:
         scripts = SKILL_SRC / "scripts"
         if str(scripts) not in sys.path:
             sys.path.append(str(scripts))
-        module_name = f"sharron_{name}"
-        spec = importlib.util.spec_from_file_location(module_name, scripts / f"{name}.py")
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[module_name] = module  # dataclasses look their module up by name
-        try:
-            spec.loader.exec_module(module)
-        except BaseException:
-            del sys.modules[module_name]
-            raise
-        _loaded[name] = module
+        if name in sys.stdlib_module_names:
+            _loaded[name] = _load_from_file(f"sharron_{name}", scripts / f"{name}.py")
+        else:
+            _loaded[name] = importlib.import_module(name)
     return _loaded[name]
 
 

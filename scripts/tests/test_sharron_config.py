@@ -1,3 +1,4 @@
+import importlib
 import subprocess
 
 import pytest
@@ -228,3 +229,9 @@ def test_invalid_platform_is_reported_for_config_toml_and_for_the_environment(tm
 def test_an_unquoted_toml_date_is_shown_as_written(tmp_path):
     [p] = config.validate_settings(skill_with(tmp_path, "[installed.demo]\ndate = 2026-10-28\n"), environ={})
     assert p.message == "2026-10-28 is not allowed; use a string in quotes"
+
+
+def test_load_returns_the_module_that_sibling_scripts_import():
+    module = load("config")
+    assert module is importlib.import_module("config")
+    assert (SKILL_SRC / "scripts/config.py").samefile(module.__file__)

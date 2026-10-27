@@ -326,7 +326,7 @@ Default entries:
 6. Record it under `[installed.<skill>]` in `config.toml`: source, version or commit, date, platform.
 7. Tell the user in the reply: 「已自動安裝：<skill>（<repo>，<version>）」.
 
-Decision level: L2.
+Decision level: L2, with no confirmation — including plugins that carry hooks or MCP servers. Only the user adds entries to `registry.toml`, so listing a skill is the user's approval to install it (user decision, 2026-10-27). sharron never edits `registry.toml` itself; when a skill outside the registry would help, it suggests the entry in the reply and leaves adding it to the user.
 
 ### 4.13 Memory: MEMORY.md
 

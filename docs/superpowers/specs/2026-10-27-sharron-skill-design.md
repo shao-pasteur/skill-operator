@@ -70,12 +70,14 @@ plugins/workflow/skills/sharron/
     platforms.md                                 # platform detection, subagent tools, model mapping
     security-review.md                           # what the security role checks for each kind of artifact
     intake.md                                    # the intake questions and the task card
+    tags.md                                      # the tag vocabulary used to match skills to coding tasks
   scripts/
     finance.py                                   # record usage, commit the ledger, suggest budgets (standard library only)
     memory_guard.py                              # locate MEMORY.md and keep it out of git
     refcheck.py                                  # probe security sources for new editions, apply verified updates
     trace.py                                     # append and prune per-task traces
     config.py                                    # show the effective settings and validate config.toml
+    detect_stack.py                              # derive a coding task's tags (languages, layers, tools) from the workspace
 plugins/research/skills/research-method/SKILL.md
 plugins/research/skills/verify-evidence/SKILL.md
 scripts/tests/test_sharron_finance.py
@@ -83,6 +85,7 @@ scripts/tests/test_sharron_memory_guard.py
 scripts/tests/test_sharron_refcheck.py
 scripts/tests/test_sharron_trace.py
 scripts/tests/test_sharron_config.py
+scripts/tests/test_sharron_detect_stack.py
 .gitignore                                       # add MEMORY.md, the sharron config.toml and state/
 AGENTS.md                                        # mention the ledger and config.toml
 README.md                                        # how to install workflow from the local clone
@@ -429,27 +432,62 @@ status = "active"                      # active | disabled
 roles = ["researcher"]                 # roles that use it, or ["*"]
 playbooks = ["*"]                      # playbooks that use it, or ["*"]
 domains = ["*"]                        # domains that use it, or ["*"]
+tags = []                              # coding skills only: every tag must match the task (4.12)
 min_tier = "T1"
 ref = "<commit or tag>"                # pinned version; updates only when you change it
 
 [skills.install]                       # one command per platform, written by you, pinned to ref
 claude-code = "<command>"
+
+[[tools]]                              # command-line tools the security role runs (not skills)
+name = "skill-scanner"
+check = "<command that prints the version>"
+install = "<pinned install command>"
+run = "<how the security role invokes it>"
+sends_data = false                     # true when the tool uploads data to an outside service
 ```
 
-Default entries (their `install` commands and pinned refs are filled in and verified during implementation):
+Default entries (their `install` commands and pinned refs are filled in and verified during implementation; the refs of the entries carried over from the original Sharron registry start from the commits it had pinned on 2026-10-26):
 
-| Skill | Source | Roles | Domains |
-|---|---|---|---|
-| `research-method` | this repo | researcher | * |
-| `verify-evidence` | this repo | verifier | * |
-| `tw-stock-daily-tracker` | this repo | analyst | finance |
-| pstack principles: prove-it-works, never-block-on-the-human, guard-the-context-window, attack-the-premise | pstack | sharron | * |
-| pstack `principle-fix-root-causes`, `principle-attack-the-premise` | pstack | diagnostician | * |
-| pstack `unslop`, `technical-writing` | pstack | writer | * |
-| pstack `tdd` | pstack | engineer | coding |
-| pstack `teach` | pstack | tutor | learning |
+| Skill | Source | Roles | Domains / tags | Status |
+|---|---|---|---|---|
+| `research-method`, `verify-evidence` | this repo | researcher, verifier | * | active |
+| `principle-prove-it-works` | pstack (`cursor/plugins`, 99b609a) | sharron, verifier, reviewer | * | active |
+| `principle-never-block-on-the-human`, `principle-guard-the-context-window` | pstack | sharron | * | active |
+| `principle-attack-the-premise` | pstack | sharron, diagnostician | * | active |
+| `principle-fix-root-causes` | pstack | diagnostician | * | active |
+| `unslop`, `technical-writing` | pstack | writer | * | active |
+| `teach` | pstack | tutor | learning | active |
+| `tdd` | pstack | engineer | coding | active |
+| `taste-skill` | `Leonxlnx/taste-skill` (12af471) | engineer | tags: frontend, ui-design | active |
+| `threejs-fundamentals`, `-shaders`, `-geometry`, `-postprocessing`, `-animation`, `-performance`, `-react-three-fiber` | `CloudAI-X/threejs-skills` (0e18186) | engineer | tags: frontend, threejs | active |
+| `obsidian-markdown`, `obsidian-bases`, `json-canvas` | `kepano/obsidian-skills` (a1dc48e) | writer | * | active |
+| `obsidian-cli` | `kepano/obsidian-skills` | operator | * | disabled |
+| `defuddle` | `kepano/obsidian-skills` | researcher | * | disabled (needs the defuddle CLI) |
+| `skill-creator` | `anthropics/claude-plugins-official` (5826794) | sharron | * | active |
+| `security-guidance` (hook plugin) | `anthropics/claude-plugins-official` | security | * | active |
+| `static-analysis`, `differential-review`, `insecure-defaults`, `sharp-edges`, `supply-chain-risk-auditor`, `fp-check`, `open-sourcing`, `agentic-actions-auditor` | `trailofbits/skills` (CC-BY-SA-4.0) | security | * | active |
+| `rust-review` | `trailofbits/skills` | security | tags: rust | active |
+| Cloudflare skills | `cloudflare/skills` (Apache-2.0) | engineer | tags: cloudflare | active |
+
+`tw-stock-daily-tracker` is deliberately not in the registry.
+
+Default tools (`[[tools]]`, run by the security role after automatic installs, report only):
+
+| Tool | What it does | Note |
+|---|---|---|
+| Cisco `skill-scanner` | Rule-based scan of skills (static mode by default) | |
+| NVIDIA SkillSpector | Static checks of skills, SARIF output (static mode by default) | |
+| Snyk `agent-scan` | Scans installed agents, skills and MCP servers | `sends_data = true`: it checks them against Snyk's service, so data about installed components leaves the machine |
 
 **Service list:** for a unit with role R, playbook P, domain D and tier T, select the active entries whose `roles` include R or `*`, whose `playbooks` include P or `*`, whose `domains` include D or `*`, and whose `min_tier` ≤ T. sharron may add or drop a skill with a one-line reason.
+
+**Matching coding skills precisely:** a skill with `tags` is selected only when **every** one of its tags is among the task's tags, so a frontend skill (`frontend`, `ui-design`) can never be suggested for a backend task, and a Helm skill only when the task touches Helm.
+
+- Task tags come from `scripts/detect_stack.py` (deterministic, no model): manifests and files in the workspace (`pyproject.toml` → `python`; `package.json` → `javascript`, plus `typescript` with a `tsconfig.json`; `Cargo.toml` → `rust`; `go.mod` → `go`; `*.tf` → `terraform`; `Chart.yaml` → `helm` and `kubernetes`; manifests with `apiVersion` and `kind` → `kubernetes`; `*.sh` or a bash shebang → `bash`; `Dockerfile` → `docker`; React or Vue dependencies → `frontend`; `wrangler.toml` → `cloudflare`), then the request and the intake answers (the coding add-on question) add layers such as `backend`, `frontend`, `infra` or `cli`. The vocabulary lives in `references/tags.md`.
+- Skills without `tags` (for example `tdd`) apply to every coding task.
+- When more skills match than `max_skills_per_brief` (default 4), the most specific win (more matching tags), then the lower `min_tier`.
+- The brief lists each skill with the tags that matched it (for example `python-testing-patterns — matched: python`), so the choice can be checked.
 
 **Automatic installation** (when config `auto_install = true`, the default):
 
@@ -516,6 +554,7 @@ Limitation: the skill cannot stop the user or another tool from running `git add
 platform = "auto"                 # auto | claude-code | codex | copilot | cursor | work | hybrid
 auto_install = true               # install missing service-list skills automatically
 max_parallel_subagents = 3
+max_skills_per_brief = 4          # at most this many service-list skills per brief
 
 [platforms.claude-code.models]
 T1 = "haiku"
@@ -589,7 +628,7 @@ In addition, the critique step (4.4 step 8) includes a short self-check of sharr
 | Code and configuration | OWASP Top 10 and CWE Top 25; plus the API Security Top 10 for APIs, the CI/CD Top 10 for pipelines and the Non-Human Identities Top 10 when credentials are involved; dependencies checked for CVEs |
 | Operator actions | Privacy Top 10, Non-Human Identities Top 10, Agentic ASI02, ASI03, ASI09 |
 | Published or shared content | Privacy Top 10, LLM02, LLM07, NHI2, CWE-200 |
-| Installed skills, plugins, MCP servers | MCP Top 10, Agentic ASI04 and ASI05, LLM03, OWASP A03, CICD-SEC-3, CVEs in bundled dependencies |
+| Installed skills, plugins, MCP servers | Agentic Skills Top 10 (AST10), MCP Top 10, Agentic ASI04 and ASI05, LLM03, OWASP A03, CICD-SEC-3, CVEs in bundled dependencies; plus the registry `[[tools]]` scanners |
 | sharron's own operation (self-check) | Agentic Top 10, especially ASI01 goal hijack, ASI06 memory poisoning (`MEMORY.md`), ASI08 cascading failures |
 
 CAPEC, MITRE ATT&CK and MITRE ATLAS are used to reason about how a finding could be exploited, not as checklists.
@@ -637,6 +676,7 @@ Initial entries, researched on 2026-10-27:
 | `owasp-llm` | OWASP Top 10 for LLM Applications | 2025 | next-edition |
 | `owasp-agentic` | OWASP Top 10 for Agentic Applications | 2026 | next-edition |
 | `owasp-mcp` | OWASP MCP Top 10 | 2025 (beta) | page-change, checked daily |
+| `owasp-ast10` | OWASP Agentic Skills Top 10 (AST10) | 2026, v1.0 (incubator) | page-change, checked daily |
 | `owasp-nhi` | OWASP Non-Human Identities Top 10 | 2025 | next-edition |
 | `owasp-cicd` | OWASP Top 10 CI/CD Security Risks | first edition | page-change |
 | `owasp-privacy` | OWASP Top 10 Privacy Risks | 2021 | page-change |
@@ -672,6 +712,7 @@ Initial entries, researched on 2026-10-27:
   - `test_sharron_finance.py`: parsing and appending the ledger, the summary block, the three suggestion rules and their fallbacks, summing Claude Code transcripts from fixture files (and ignoring message content), price conversion, unknown platforms, the automatic commit (only the ledger file is committed even with other staged changes; no commit and a one-time notice outside a git work tree; a failed commit leaves the row for the next run).
   - `test_sharron_memory_guard.py`: not a git repo; untracked file excluded once; already ignored; tracked file blocked; the `info/exclude` path inside a worktree; `precommit` catching staged and outgoing files; an existing `MEMORY.md` without the marker.
   - `test_sharron_trace.py`: appending, redacting secrets, pruning by count and age.
+  - `test_sharron_detect_stack.py`: tags from fixture workspaces (Python backend, TypeScript and React frontend, Helm chart, Terraform module, Bash scripts, mixed repos); a frontend-tagged skill is never selected for a backend workspace; the `max_skills_per_brief` ranking.
   - `test_sharron_config.py`: merging defaults with `config.toml` and the environment variable; the source of each value; unknown keys warned; invalid tiers, platforms and amounts rejected with the allowed values.
   - `test_sharron_refcheck.py` (with an injected fetcher, no network): which sources are due; `next-edition` and `page-change` probes; network errors reported, not raised; `apply` rejects pages outside `official_domains`, changes to forbidden fields and added or removed sources; the changelog entry; the commit contains only `security-references.toml`.
 
@@ -683,6 +724,7 @@ Initial entries, researched on 2026-10-27:
 
 - About 20 task cases across the playbooks, each with a prompt and a rubric: factual accuracy, citation accuracy, completeness, source quality, tool efficiency, the right decision level, a Traditional Chinese reply, cost within the budget suggestion.
 - About 10 should-not-trigger prompts, to keep ordinary requests from activating sharron.
+- Skill-recommendation cases: a Python backend task gets no frontend, UI or three.js skills; a Helm chart task gets the Helm and Kubernetes skills; a Bash script task gets the shell skills.
 - Run with the skill-creator eval workflow on every configured platform and model mapping, including the single-model `work` platform, before each release of the skill. Runs cost quota, so they are manual, not part of `make test`.
 
 **Error analysis loop:** after every 20 tasks, or when the user asks, sharron reads the traces of failed, partial and corrected tasks, groups the failures, proposes fixes to the skill or new eval cases, and writes the proposal to `MEMORY.md` for the user to accept. The skill itself is only changed by the user (or at the user's request).
@@ -724,6 +766,7 @@ Initial entries, researched on 2026-10-27:
 | `platform` | `auto` | `auto`, `claude-code`, `codex`, `copilot`, `cursor`, `work`, `hybrid` | Which platform's model mapping applies. `work` and `hybrid` must be set explicitly; the `SHARRON_PLATFORM` environment variable overrides this key |
 | `auto_install` | `true` | `true`, `false` | Install missing registry skills automatically |
 | `max_parallel_subagents` | `3` | 1–10 | How many subagents may run at once |
+| `max_skills_per_brief` | `4` | 1–10 | At most this many service-list skills per brief; the most specific win |
 | `platforms.<platform>.models.T1` / `T2` / `T3` | claude-code: `haiku` / `sonnet` / `opus`; `work`, `hybrid`: empty | Model IDs | The model each tier uses on that platform; on `work`, put the same model in all three |
 | `platforms.hybrid.available` | `[]` | List of model IDs | The models you can choose from on `hybrid` |
 | `roles.<role>` | See 4.6 | `T1`, `T2`, `T3` | Default tier per role; rules such as "T3 for R3 and above" can still raise it |

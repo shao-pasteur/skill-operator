@@ -45,6 +45,19 @@ def load(name: str) -> ModuleType:
     return _loaded[name]
 
 
+ROW = {
+    "task_id": "t-20261027-01", "date": "2026-10-27", "platform": "claude-code", "playbook": "research",
+    "domain": "finance", "difficulty": "3", "subagents": "2", "models": "claude-haiku-5-5,claude-opus-5-5",
+    "input_tokens": "1200", "output_tokens": "800", "cache_tokens": "50000", "cost_usd": "0.4200",
+    "outcome": "done", "verified": "3/3", "measurement": "measured",
+}
+
+
+def row(**changes: str) -> dict[str, str]:
+    """A valid ledger task row with the given fields changed; a new dict on every call."""
+    return {**ROW, **changes}
+
+
 def git(cwd: Path, *args: str) -> str:
     """Run git in cwd and return its stripped stdout; a failing command raises CalledProcessError."""
     result = subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True, text=True)
@@ -52,9 +65,12 @@ def git(cwd: Path, *args: str) -> str:
 
 
 def make_skill(root: Path) -> Path:
-    """Create <root>/plugins/workflow/skills/sharron/ with the real config.example.toml and an empty registry."""
+    """Create <root>/plugins/workflow/skills/sharron/ with the real config.example.toml, an empty registry and an empty ledger."""
     skill = root / "plugins/workflow/skills/sharron"
     skill.mkdir(parents=True, exist_ok=True)
     shutil.copy(SKILL_SRC / "config.example.toml", skill / "config.example.toml")
     (skill / "registry.toml").write_text("schema_version = 1\n", encoding="utf-8")
+    ledger = load("ledger")
+    (skill / "ledger").mkdir(exist_ok=True)
+    (skill / "ledger/costs.md").write_text(ledger.render_ledger(ledger.Ledger([], [])), encoding="utf-8")
     return skill

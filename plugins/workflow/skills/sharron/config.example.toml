@@ -1,0 +1,56 @@
+# Default settings for the sharron skill. To change one, put just that key in config.toml next to this file (gitignored); every other key keeps the default below.
+platform = "auto"                 # auto | claude-code | codex | copilot | cursor | work | hybrid
+auto_install = true               # install missing service-list skills automatically
+max_parallel_subagents = 3
+max_skills_per_brief = 4          # at most this many service-list skills per brief
+
+[platforms.claude-code.models]
+T1 = "haiku"
+T2 = "sonnet"
+T3 = "opus"
+
+[platforms.work.models]           # one model: put the same name in every tier
+T1 = ""
+T2 = ""
+T3 = ""
+
+[platforms.hybrid]
+available = []                    # the models you can choose from; fill in later
+
+[platforms.hybrid.models]
+T1 = ""
+T2 = ""
+T3 = ""
+
+[roles]                           # tier per role
+sharron = "T3"
+planner = "T2"
+researcher = "T2"
+verifier = "T1"
+reviewer = "T2"
+security = "T2"
+analyst = "T2"
+writer = "T2"
+engineer = "T2"
+diagnostician = "T3"
+operator = "T1"
+tutor = "T2"
+finance = "T1"
+
+[prices]                          # equivalent USD per million tokens, per model id
+# "<model id>" = { input = 0.0, output = 0.0, cache_write = 0.0, cache_read = 0.0 }
+
+[risk]
+currency = "TWD"
+small_amount = 500
+large_amount = 3000
+
+[budget]                          # equivalent USD per task by difficulty, until the ledger has data
+default_per_task = { "1" = 0.2, "2" = 0.5, "3" = 1.5, "4" = 4.0, "5" = 10.0 }
+overrun_factor = 1.5
+
+[standing_orders]
+always = []
+never = []
+
+# [installed.<skill>] tables are written by sharron after automatic installs.

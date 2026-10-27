@@ -8,6 +8,11 @@
       "name": "finance",
       "source": "./plugins/finance",
       "description": "Taiwan stock tracking, technical analysis and financial report digests"
+    },
+    {
+      "name": "workflow",
+      "source": "./plugins/workflow",
+      "description": "Ways of working: planning, delegation, verification, decision levels, budgets and memory"
     }
   ]
 }

@@ -18,6 +18,9 @@ categories:
   - id: productivity
     title: Personal productivity
     description: Scheduling and automating daily routines
+  - id: workflow
+    title: Workflow
+    description: "Ways of working: planning, delegation, verification, decision levels, budgets and memory"
   - id: meta
     title: Skill management
     description: Tools for creating and checking new skills in this repo

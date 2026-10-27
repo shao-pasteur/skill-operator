@@ -49,6 +49,12 @@ After each update, the "Re-upload needed" section of the release notes lists the
 | Skill | Description | Web apps |
 |---|---|---|
 | `tw-stock-daily-tracker` | Tracks Taiwan stocks on trading days before the open, during the session (every… | — |
+
+### Workflow (`workflow`)
+
+| Skill | Description | Web apps |
+|---|---|---|
+| `sharron` | Works the Sharron way: plans before acting, delegates to subagents with clear b… | — |
 <!-- catalog:end -->
 
 ## Development

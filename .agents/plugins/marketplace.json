@@ -15,6 +15,18 @@
         "authentication": "ON_INSTALL"
       },
       "category": "Investing and finance"
+    },
+    {
+      "name": "workflow",
+      "source": {
+        "source": "local",
+        "path": "./plugins/workflow"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Workflow"
     }
   ]
 }

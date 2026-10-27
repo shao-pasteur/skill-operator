@@ -1,0 +1,9 @@
+{
+  "name": "workflow",
+  "description": "Ways of working: planning, delegation, verification, decision levels, budgets and memory",
+  "author": {
+    "name": "Yuan"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/shao-pasteur/skill-operator"
+}

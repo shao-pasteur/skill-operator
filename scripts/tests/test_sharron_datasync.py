@@ -142,3 +142,52 @@ def test_cli_prints_the_result_and_rejects_bad_input(tmp_path, capsys):
     assert '"reason": "not-a-clone"' in capsys.readouterr().out
     assert ds.main(["sync", "config.toml", "--message", MSG, "--skill-dir", str(skill)]) == 1
     assert capsys.readouterr().err.startswith("datasync.py: ")
+
+
+def test_an_error_while_merging_the_ledger_leaves_no_rebase_behind(tmp_path, monkeypatch):
+    a_root, a = make_clone(tmp_path, "a")
+    _, b = make_clone(tmp_path, "b")
+    add_row(b, "t-20261027-01")
+    assert ds.sync(b, LEDGER, MSG).pushed
+    add_row(a, "t-20261027-02")
+    real = ds.write_atomic
+
+    def broken(path, text):
+        if path.name == "costs.md":
+            raise OSError("disk full")
+        real(path, text)
+
+    monkeypatch.setattr(ds, "write_atomic", broken)
+    with pytest.raises(OSError):
+        ds.sync(a, LEDGER, MSG)
+    assert not (a_root / ".git/rebase-merge").exists()
+    assert git(a_root, "branch", "--show-current") == "main"
+    assert git(a_root, "status", "--porcelain") == ""
+
+
+def test_detached_head_is_not_committed_into(tmp_path):
+    clone, skill = make_clone(tmp_path)
+    git(clone, "checkout", "-q", "--detach")
+    add_row(skill, "t-20261027-01")
+    before = git(clone, "rev-parse", "HEAD")
+    result = ds.sync(skill, LEDGER, MSG)
+    assert (result.committed, result.pushed, result.reason) == (False, False, "commit-failed")
+    assert "detached" in result.detail
+    assert git(clone, "rev-parse", "HEAD") == before and git(clone, "status", "--porcelain")
+
+
+@pytest.mark.parametrize("marker,word", [("MERGE_HEAD", "merge"), ("BISECT_LOG", "bisect"), ("rebase-merge", "rebase")])
+def test_an_operation_in_progress_blocks_the_commit(tmp_path, marker, word):
+    clone, skill = make_clone(tmp_path)
+    add_row(skill, "t-20261027-01")
+    target = clone / ".git" / marker
+    if marker == "rebase-merge":
+        target.mkdir()
+    else:
+        target.write_text(git(clone, "rev-parse", "HEAD") + "\n")
+    before = git(clone, "rev-parse", "HEAD")
+    result = ds.sync(skill, LEDGER, MSG)
+    assert (result.committed, result.pushed, result.reason) == (False, False, "commit-failed")
+    assert word in result.detail
+    assert git(clone, "rev-parse", "HEAD") == before
+    assert "costs.md" in git(clone, "status", "--porcelain")

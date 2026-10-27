@@ -48,6 +48,14 @@ NOT_A_CLONE_NOTICE = (
 )
 NETWORK_TIMEOUT = 120  # seconds for fetch and push, so an unreachable remote cannot hang a task
 MAX_REBASE_STEPS = 100
+IN_PROGRESS = (  # a file under the git directory, and what its presence means
+    ("rebase-merge", "a rebase is in progress"),
+    ("rebase-apply", "a rebase or am is in progress"),
+    ("MERGE_HEAD", "a merge is in progress"),
+    ("CHERRY_PICK_HEAD", "a cherry-pick is in progress"),
+    ("REVERT_HEAD", "a revert is in progress"),
+    ("BISECT_LOG", "a bisect is in progress"),
+)
 
 
 @dataclass(frozen=True)
@@ -129,7 +137,10 @@ def _git(skill_dir: Path, *args: str, timeout: float | None = None, env: dict[st
     command = ["git", "-C", str(skill_dir), *args]
     full_env = {**os.environ, "GIT_TERMINAL_PROMPT": "0", **(env or {})}
     try:
-        return subprocess.run(command, capture_output=True, text=True, check=False, timeout=timeout, env=full_env)
+        return subprocess.run(
+            command, capture_output=True, text=True, encoding="utf-8", errors="replace",
+            check=False, timeout=timeout, env=full_env,
+        )
     except (OSError, subprocess.TimeoutExpired) as error:
         return subprocess.CompletedProcess(command, 127, "", str(error))
 
@@ -200,17 +211,32 @@ def _rebase(skill_dir: Path, upstream: str) -> SyncResult | None:
     prefix = _git(skill_dir, "rev-parse", "--show-prefix").stdout.strip()
     ledger_path = prefix + LEDGER_FILE
     step = _git(skill_dir, "rebase", upstream, env=env)
-    for _ in range(MAX_REBASE_STEPS):
-        if step.returncode == 0:
-            return None
-        conflicts = _conflicted(skill_dir)
-        if conflicts != [ledger_path] or not _resolve_ledger(skill_dir, ledger_path):
-            detail = ", ".join(conflicts) if conflicts else _last_line(step)
-            _git(skill_dir, "rebase", "--abort")
-            return SyncResult(True, False, "rebase-conflict", detail)
-        step = _git(skill_dir, "rebase", "--continue", env=env)
+    try:
+        for _ in range(MAX_REBASE_STEPS):
+            if step.returncode == 0:
+                return None
+            conflicts = _conflicted(skill_dir)
+            if conflicts != [ledger_path] or not _resolve_ledger(skill_dir, ledger_path):
+                detail = ", ".join(conflicts) if conflicts else _last_line(step)
+                _git(skill_dir, "rebase", "--abort")
+                return SyncResult(True, False, "rebase-conflict", detail)
+            step = _git(skill_dir, "rebase", "--continue", env=env)
+    except BaseException:  # never leave the user's clone in the middle of a rebase
+        _git(skill_dir, "rebase", "--abort")
+        raise
     _git(skill_dir, "rebase", "--abort")
     return SyncResult(True, False, "rebase-conflict", "the rebase did not finish")
+
+
+def _operation_in_progress(skill_dir: Path) -> str | None:
+    """Name the git operation that owns HEAD right now (so sync must not commit into it), or None."""
+    for name, description in IN_PROGRESS:
+        printed = _git(skill_dir, "rev-parse", "--git-path", name).stdout.strip()
+        if printed and (skill_dir / printed).exists():
+            return description
+    if _git(skill_dir, "symbolic-ref", "--quiet", "HEAD").returncode:
+        return "HEAD is detached"
+    return None
 
 
 def sync(skill_dir: Path, rel_path: str, message: str) -> SyncResult:
@@ -219,6 +245,9 @@ def sync(skill_dir: Path, rel_path: str, message: str) -> SyncResult:
     if _git(skill_dir, "rev-parse", "--is-inside-work-tree").returncode:
         return SyncResult(False, False, "not-a-clone", None, notice_once(skill_dir, "not-a-clone", NOT_A_CLONE_NOTICE))
 
+    busy = _operation_in_progress(skill_dir)
+    if busy:  # committing now would land inside the user's operation; the row stays for the next sync
+        return SyncResult(False, False, "commit-failed", busy)
     committed, failure = _commit(skill_dir, rel_path, message)
     if failure:
         return SyncResult(False, False, "commit-failed", failure)

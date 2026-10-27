@@ -50,7 +50,9 @@ plugins/workflow/skills/sharron/
   config.example.toml                            # default settings (committed)
   config.toml                                    # your settings (gitignored, created on first change)
   registry.toml                                  # service list and skill sources (committed)
+  security-references.toml                       # security frameworks and their editions (committed, updated automatically)
   ledger/costs.md                                # cost ledger (committed automatically by sharron)
+  state/refcheck.json                            # when each security source was last checked (gitignored)
   references/
     playbooks.md                                 # task types and their steps
     delegation.md                                # brief and report format, roles, isolation levels
@@ -60,14 +62,17 @@ plugins/workflow/skills/sharron/
     registry.md                                  # service list and automatic installation
     memory.md                                    # MEMORY.md format and git safety
     platforms.md                                 # platform detection, subagent tools, model mapping
+    security-review.md                           # what the security role checks for each kind of artifact
   scripts/
     finance.py                                   # record usage, commit the ledger, suggest budgets (standard library only)
     memory_guard.py                              # locate MEMORY.md and keep it out of git
+    refcheck.py                                  # probe security sources for new editions, apply verified updates
 plugins/research/skills/research-method/SKILL.md
 plugins/research/skills/verify-evidence/SKILL.md
 scripts/tests/test_sharron_finance.py
 scripts/tests/test_sharron_memory_guard.py
-.gitignore                                       # add MEMORY.md and the sharron config.toml
+scripts/tests/test_sharron_refcheck.py
+.gitignore                                       # add MEMORY.md, the sharron config.toml and state/
 AGENTS.md                                        # mention the ledger and config.toml
 README.md                                        # how to install workflow from the local clone
 ```
@@ -83,6 +88,8 @@ Paths are relative to the skill folder unless noted.
 | `config.example.toml` | committed | Default settings |
 | `config.toml` | never (gitignored) | Your settings: platform, model mapping, prices, role tiers, risk thresholds, budgets, standing orders, `auto_install`, installed skills. When missing, the example's defaults apply |
 | `registry.toml` | committed | Which skills each role, playbook and domain uses, and where they come from |
+| `security-references.toml` | committed; updates committed automatically by sharron, never pushed | Security frameworks, their current editions and items (4.16) |
+| `state/refcheck.json` | never (gitignored) | When each security source was last checked |
 | `ledger/costs.md` | committed automatically by sharron, never pushed | Regression data for budgets, with no task descriptions |
 | `<workspace root>/MEMORY.md` (outside the skill) | never | Preferences, lessons, task records, checkpoints |
 
@@ -100,6 +107,7 @@ The skill reads and writes only its own folder, except:
 | `<workspace root>/MEMORY.md` | Requested location for memory |
 | Claude Code session logs under `~/.claude/projects/` | Approved by the user for measuring usage; only model names, token counts and timestamps are read, never message content |
 | Install instructions in the repos listed in `registry.toml`, and the platform's install commands | Requested automatic installation |
+| The official pages of the sources in `security-references.toml` | Requested automatic updates of the security reference list |
 
 ## 4. The `sharron` skill
 
@@ -138,7 +146,7 @@ Based on [pstack](https://github.com/cursor/plugins/tree/main/pstack) (MIT), sum
 
 Each step goes into the platform's todo list; a skipped step gets a one-line reason.
 
-0. **Resume.** Run `memory_guard.py check`, read `MEMORY.md`, list tasks that are paused or waiting for the user and ask whether to continue them first.
+0. **Resume.** Run `memory_guard.py check`, read `MEMORY.md`, list tasks that are paused or waiting for the user and ask whether to continue them first. Start the security reference check in the background (4.16); it never delays the task.
 1. **Understand.** Intent, playbook (4.5), domain (for example finance, travel, learning, coding; used by the service list) and difficulty 1–5 (4.9).
 2. **Open the task in `MEMORY.md`.** Goal, done-when, constraints, start time (needed by the finance script).
 3. **Challenge the premise.** Is this needed? Is there a simpler way?
@@ -148,7 +156,7 @@ Each step goes into the platform's todo list; a skipped step gets a one-line rea
 7. **Verify.** A separate verifier checks the 2–4 most important claims; check every done-when condition.
 8. **Critique.** List the assumptions, the weakest evidence, the strongest counter-argument and what would change the conclusion; fix what you can and disclose the rest.
 9. **Decision gate** (4.7).
-10. **Reply.** Conclusion first; claims labeled 已查證 / 推論 / 猜測; source links; a short summary of L2 decisions; any automatic installs; no narration of internal steps unless asked.
+10. **Reply.** Conclusion first; claims labeled 已查證 / 推論 / 猜測; source links; a short summary of L2 decisions; any automatic installs or security reference updates; no narration of internal steps unless asked.
 11. **Close.** Update `MEMORY.md` (result, evidence pointers, lessons), run `finance.py record` (which also commits the ledger row), and turn any lesson the user has now given twice into a preference.
 
 At any point, on a usage warning or when the task has to pause, write a checkpoint (4.10) and stop non-urgent work.
@@ -190,7 +198,8 @@ Delegate when the work needs heavy reading or searching, can run in parallel, ne
 | planner | Breaks tasks down; itineraries, study plans | T2 |
 | researcher | Searches, collects and compares, with sources | T2 |
 | verifier | Reads sources back to confirm claims | T1 |
-| reviewer | Independent review of outputs and risks | T2; T3 for R3 and above |
+| reviewer | Independent review of outputs and risks: is it correct and complete | T2; T3 for R3 and above |
+| security | Independent security review (4.15): is it safe | T2; T3 when credentials, network access, permissions or R3 and above are involved |
 | analyst | Data, calculations, comparing options | T2; T3 when complex |
 | writer | Documents, notes, message drafts | T2 |
 | engineer | Code and automation scripts; deployment only on request | T2; T3 when hard |
@@ -207,7 +216,7 @@ Not carried over from the original Sharron design: the watcher (needs a schedule
 |---|---|---|---|
 | L0 | R0 actions: reading, searching, calculating | sharron applying the rules | Nothing |
 | L1 | Details inside a brief | The subagent | Its report |
-| L2 | R1–R2 actions; decomposing, delegating, tier changes, spending within the suggestion, installing registry skills, committing the ledger | sharron | A short summary at the end of the reply |
+| L2 | R1–R2 actions; decomposing, delegating, tier changes, spending within the suggestion, installing registry skills, committing the ledger, updating the security reference list | sharron | A short summary at the end of the reply |
 | L3 | R3 actions; budget overrun; more than 5 subagents or parallel T3 | sharron after an independent review | A one-line confirmation request; act only after the user agrees |
 | L4 | R4 actions; life-direction choices; ambiguity with a large impact; sharron and the reviewer disagree on something important; untracking a tracked `MEMORY.md` | The user | A decision card; nothing happens until an explicit answer |
 | Forbidden | Matches a `never` standing order | Nobody | A refusal |
@@ -405,6 +414,7 @@ planner = "T2"
 researcher = "T2"
 verifier = "T1"
 reviewer = "T2"
+security = "T2"
 analyst = "T2"
 writer = "T2"
 engineer = "T2"
@@ -434,13 +444,105 @@ never = []
 
 Platform sections for Codex, Copilot CLI and Cursor are added once verified.
 
-### 4.15 Scripts and tests
+### 4.15 Security review
+
+**When the `security` role runs** (independent isolation: it sees only the artifact):
+
+1. Code, scripts and configuration from the engineer, before they are delivered or run.
+2. Operator actions at R3 or above, or any that send personal data or credentials.
+3. Content about to be published or shared.
+4. Skills, plugins and MCP servers right after an automatic install.
+
+In addition, the critique step (4.4 step 8) includes a short self-check of sharron's own operation against the agentic risks, without an extra subagent.
+
+**Checklist** (`references/security-review.md`; the frameworks' current editions and items come from `security-references.toml`, 4.16):
+
+| Artifact | Frameworks applied |
+|---|---|
+| Code and configuration | OWASP Top 10 and CWE Top 25; plus the API Security Top 10 for APIs, the CI/CD Top 10 for pipelines and the Non-Human Identities Top 10 when credentials are involved; dependencies checked for CVEs |
+| Operator actions | Privacy Top 10, Non-Human Identities Top 10, Agentic ASI02, ASI03, ASI09 |
+| Published or shared content | Privacy Top 10, LLM02, LLM07, NHI2, CWE-200 |
+| Installed skills, plugins, MCP servers | MCP Top 10, Agentic ASI04 and ASI05, LLM03, OWASP A03, CICD-SEC-3, CVEs in bundled dependencies |
+| sharron's own operation (self-check) | Agentic Top 10, especially ASI01 goal hijack, ASI06 memory poisoning (`MEMORY.md`), ASI08 cascading failures |
+
+CAPEC, MITRE ATT&CK and MITRE ATLAS are used to reason about how a finding could be exploited, not as checklists.
+
+**Findings:** each has a severity (critical / high / medium / low), the framework IDs it maps to (for example `A05`, `CWE-78`, `ASI06`), a location, evidence and a fix. Vulnerable dependencies carry their CVE ID and are prioritized by CISA KEV (known exploited) first, then EPSS, then CVSS v4.0. The verdict is pass, fix needed or block.
+
+**Handling:**
+
+- Code and outputs: critical and high findings are fixed before delivery — a fresh engineer fixes them and the security role reviews again; what cannot be fixed goes to the user (L4).
+- Actions: findings can only raise the risk level.
+- Installed skills and plugins: report only, never block or ask, per the user's automatic-install decision. The reply includes a short scan summary, for example what each hook or MCP server runs and what it can access.
+
+### 4.16 Security reference list and background updates
+
+**`security-references.toml`** (skill folder, committed) has one entry per source:
+
+```toml
+[[sources]]
+id = "owasp-top10"
+name = "OWASP Top 10"
+kind = "risk-list"                 # risk-list | weakness-list | vulnerability-data | attack-patterns
+edition = "2025"
+status = "final"                   # final | beta
+url = "https://owasp.org/Top10/2025/"
+official_domains = ["owasp.org"]
+applies_to = ["code"]              # code | api | ci-cd | credentials | action | publish | install | agent
+items = ["A01 Broken Access Control", "A02 Security Misconfiguration"]   # all ten in the real file
+check_every_days = 7
+probe = { type = "next-edition", url = "https://owasp.org/Top10/{edition}/" }
+
+[[changelog]]
+date = "2026-10-27"
+source = "owasp-top10"
+change = "initial: 2025"
+verified_by = "research during design"
+```
+
+Initial entries, researched on 2026-10-27:
+
+| id | Source | Edition | Probe |
+|---|---|---|---|
+| `owasp-top10` | OWASP Top 10 | 2025 | next-edition |
+| `cwe-top25` | CWE Top 25 Most Dangerous Software Weaknesses | 2025 | next-edition |
+| `owasp-api` | OWASP API Security Top 10 | 2023 | next-edition |
+| `owasp-llm` | OWASP Top 10 for LLM Applications | 2025 | next-edition |
+| `owasp-agentic` | OWASP Top 10 for Agentic Applications | 2026 | next-edition |
+| `owasp-mcp` | OWASP MCP Top 10 | 2025 (beta) | page-change, checked daily |
+| `owasp-nhi` | OWASP Non-Human Identities Top 10 | 2025 | next-edition |
+| `owasp-cicd` | OWASP Top 10 CI/CD Security Risks | first edition | page-change |
+| `owasp-privacy` | OWASP Top 10 Privacy Risks | 2021 | page-change |
+| `cvss` | CVSS | v4.0 | page-change |
+| `cve`, `nvd`, `osv`, `github-advisories`, `cisa-kev`, `epss` | Vulnerability data | live | none (queried at review time) |
+| `cwe`, `capec`, `mitre-attack`, `mitre-atlas` | Weakness and attack-pattern catalogues | live | none (looked up when needed) |
+
+**Background check on every activation:**
+
+1. Step 0 starts `refcheck.py check` in the background (Claude Code: a background shell command; on platforms without background work it runs at step 11). It uses no model.
+2. A source is probed only when its last check is older than its `check_every_days` (default 7; 1 for beta sources). Check times live in `state/refcheck.json` (gitignored), so routine checks never create commits.
+3. Probe types: `next-edition` (does the page for the next edition exist?), `page-change` (has the text fingerprint of the official page changed?), `none` (live data, queried at review time instead).
+4. When a probe reports a change, a background `security` subagent (T1) reads the official page and proposes the new edition, status, URL and items; a `verifier` confirms them against the page with `verify-evidence`; `refcheck.py apply` writes the verified update.
+5. The reply mentions it in one line, for example 「資安參考清單已更新：OWASP MCP Top 10 Beta → 正式版」. A failed check is mentioned once and retried next time.
+6. The subagents' usage is recorded in the ledger as a `maintenance` row.
+
+**Guardrails against poisoning** (the list steers the security role, so it is a target):
+
+- Pages are read only from each source's `official_domains`.
+- `apply` changes only `edition`, `status`, `url`, `items` and `probe`. It never adds or removes sources or changes `applies_to`; when a new framework appears, sharron suggests it in the reply and only the user adds it, as with `registry.toml`.
+- Items are plain names, treated as data, and written only after the verifier confirms them.
+- Every change appends a `[[changelog]]` entry (date, source, from → to, verified by) and is committed automatically like the ledger: only this file, never pushed, never bypassing hooks; in a cache copy it stays local with a one-time notice.
+- Decision level L2.
+
+### 4.17 Scripts and tests
 
 - `scripts/finance.py`: `suggest`, `record` (append, then commit the ledger) and `usage` (spend since a given time); standard library only (`tomllib`), reads `config.toml` or the example, exits non-zero with a clear message on bad input.
 - `scripts/memory_guard.py`: `check` and `precommit`; prints its status as JSON.
+- `scripts/refcheck.py`: `check` (probe the sources that are due, print changes as JSON, update `state/refcheck.json`) and `apply` (validate and write a verified update, append the changelog entry, commit); standard library only (`urllib` with timeouts).
 - Tests live in this repo's `scripts/tests/` (as for `tw-stock-daily-tracker`):
   - `test_sharron_finance.py`: parsing and appending the ledger, the summary block, the three suggestion rules and their fallbacks, summing Claude Code transcripts from fixture files (and ignoring message content), price conversion, unknown platforms, the automatic commit (only the ledger file is committed even with other staged changes; no commit and a one-time notice outside a git work tree; a failed commit leaves the row for the next run).
   - `test_sharron_memory_guard.py`: not a git repo; untracked file excluded once; already ignored; tracked file blocked; the `info/exclude` path inside a worktree; `precommit` catching staged and outgoing files; an existing `MEMORY.md` without the marker.
+  - `test_sharron_refcheck.py` (with an injected fetcher, no network): which sources are due; `next-edition` and `page-change` probes; network errors reported, not raised; `apply` rejects pages outside `official_domains`, changes to forbidden fields and added or removed sources; the changelog entry; the commit contains only `security-references.toml`.
 
 ## 5. The research skills
 
@@ -468,7 +570,7 @@ Both are plain Markdown with no scripts, so they are packaged for web apps too. 
 ## 6. Repo changes
 
 - `categories.yaml`: add `workflow` (title "Workflow", description "Ways of working: planning, delegation, verification, decision levels, budgets and memory").
-- `.gitignore`: add `MEMORY.md` and `plugins/workflow/skills/sharron/config.toml`.
+- `.gitignore`: add `MEMORY.md`, `plugins/workflow/skills/sharron/config.toml` and `plugins/workflow/skills/sharron/state/`.
 - `AGENTS.md`: `registry.toml` and `config.example.toml` are edited by hand; `ledger/costs.md` is appended and committed by sharron's finance script and must not be edited by hand; `config.toml` is local only.
 - `README.md`: a note that the `workflow` plugin should be installed from the local clone on the main machine so the ledger stays in the repo.
 
@@ -484,6 +586,8 @@ Both are plain Markdown with no scripts, so they are packaged for web apps too. 
   6. A service-list skill missing on the platform: it is installed automatically and reported.
   7. A usage warning (simulated by telling sharron the platform warned): a checkpoint is written, and the next task offers to resume.
   8. After seeding the ledger with five matching rows: the budget suggestion uses the 80th percentile.
+  9. Ask sharron for a script that calls an API with a hard-coded token: the security role flags it (NHI2, CWE-798) and the delivered script reads the token from the environment instead.
+  10. In a scratch clone, set `owasp-top10` back to edition 2021 and clear its check time: the next activation detects 2025 in the background, verifies it, updates the list, commits only `security-references.toml` and mentions it in the reply.
 
 ## 8. To verify during implementation
 
@@ -495,3 +599,5 @@ Both are plain Markdown with no scripts, so they are packaged for web apps too. 
 | 4 | Current per-model prices for the template | Fill in from the official pricing pages; the user can edit them |
 | 5 | The description stays under 1024 characters and triggers only on "sharron" | Refine the wording with test prompts |
 | 6 | Which platforms load a local-path plugin in place rather than copying it (Claude Code and Copilot CLI do per their docs; Codex copies) | Document per platform in `platforms.md`; copies only lose the ledger and settings, not functionality |
+| 7 | Background work on platforms other than Claude Code | Run the reference check at step 11 instead |
+| 8 | The exact next-edition URL pattern for each source, and the official Agentic Top 10 page (names were cross-checked in secondary sources only) | Fall back to `page-change` probes for that source |

@@ -6,7 +6,8 @@ Usage (from the skill folder):
     sh scripts/run.sh memory_guard.py precommit [--cwd DIR]   look for MEMORY.md in the staged changes or in unpushed commits
 
 Both print one JSON object. `check` exits 1 when git already tracks MEMORY.md (status "tracked": nothing is
-written); `precommit` exits 1 when MEMORY.md is staged or in an unpushed commit (status "blocked").
+written) or when a .gitignore rule re-includes it (status "not-ignored": nothing is written);
+`precommit` exits 1 when MEMORY.md is staged or in an unpushed commit (status "blocked").
 MEMORY.md lives in the workspace root: the top of the git work tree, or the current folder outside git.
 """
 
@@ -22,10 +23,16 @@ from pathlib import Path  # noqa: E402
 
 MARKER = "<!-- sharron memory — never commit this file -->"
 FILE_NAME = "MEMORY.md"
+# Case-insensitive pathspec: on a case-insensitive filesystem a tracked memory.md is the same file.
+ANY_CASE = f":(icase){FILE_NAME}"
 SECTIONS = "## 偏好與教訓\n\n## 任務紀錄\n"
 TRACKED_NOTICE = (
     "MEMORY.md is tracked by git, so sharron will not write to it. "
     "To untrack it and keep the file, run: git rm --cached MEMORY.md"
+)
+NOT_IGNORED_NOTICE = (
+    "git still shows MEMORY.md after it was added to {exclude}, because a .gitignore rule re-includes it, "
+    "so sharron will not write to it. Add /MEMORY.md to the .gitignore file that re-includes it, then try again."
 )
 
 
@@ -87,13 +94,17 @@ def check(cwd: Path) -> dict:
         "notice": None,
     }
     if result["git"]:
-        if _git(root, "ls-files", "--error-unmatch", "--", FILE_NAME).returncode == 0:
+        if _git(root, "ls-files", "--error-unmatch", "--", ANY_CASE).returncode == 0:
             result["status"] = "tracked"
             result["notice"] = TRACKED_NOTICE
             return result
         if _git(root, "check-ignore", "-q", "--", FILE_NAME).returncode != 0:
             exclude = _exclude_path(root)
             _add_exclusion(exclude)
+            if _git(root, "check-ignore", "-q", "--", FILE_NAME).returncode != 0:
+                result["status"] = "not-ignored"
+                result["notice"] = NOT_IGNORED_NOTICE.format(exclude=exclude)
+                return result
             result["status"] = "excluded"
             result["notice"] = f"Added {FILE_NAME} to {exclude} so git ignores it (local only)."
     result["created"], result["appended_sections"] = _write_skeleton(memory)
@@ -104,8 +115,8 @@ def precommit(cwd: Path) -> dict:
     root = workspace_root(cwd)
     if not _in_repo(root):
         return {"status": "no-git", "staged": False, "outgoing": []}
-    staged = bool(_git(root, "diff", "--cached", "--name-only", "--diff-filter=d", "--", FILE_NAME).stdout.strip())
-    log = _git(root, "log", "--format=%H", "--diff-filter=d", "HEAD", "--not", "--remotes", "--", FILE_NAME)
+    staged = bool(_git(root, "diff", "--cached", "--name-only", "--diff-filter=d", "--", ANY_CASE).stdout.strip())
+    log = _git(root, "log", "--format=%H", "--diff-filter=d", "HEAD", "--not", "--remotes", "--", ANY_CASE)
     outgoing = log.stdout.split() if log.returncode == 0 else []  # no commits yet: nothing can be outgoing
     return {"status": "blocked" if staged or outgoing else "ok", "staged": staged, "outgoing": outgoing}
 
@@ -124,9 +135,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if not args.cwd.is_dir():
+        print(f"memory_guard.py: --cwd is not a folder: {args.cwd}", file=sys.stderr)
+        return 1
     result = check(args.cwd) if args.command == "check" else precommit(args.cwd)
     print(json.dumps(result, ensure_ascii=False))
-    return 1 if result["status"] in ("tracked", "blocked") else 0
+    return 1 if result["status"] in ("tracked", "not-ignored", "blocked") else 0
 
 
 if __name__ == "__main__":

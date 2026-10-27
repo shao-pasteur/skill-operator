@@ -103,3 +103,32 @@ def test_precommit_allows_the_untracking_commit(tmp_path):
     assert mg.precommit(root)["status"] == "ok"
     git(root, "commit", "-qm", "untrack memory")
     assert mg.precommit(root)["status"] == "ok"
+
+
+def test_gitignore_that_reincludes_memory_is_not_ignored_and_untouched(tmp_path, capsys):
+    root = repo(tmp_path)
+    (root / ".gitignore").write_text("*\n!*/\n!*.md\n")
+    result = mg.check(root)
+    assert result["status"] == "not-ignored" and "/MEMORY.md" in result["notice"] and ".gitignore" in result["notice"]
+    assert (result["created"], result["appended_sections"]) == (False, False)
+    assert not (root / "MEMORY.md").exists()
+    assert mg.main(["check", "--cwd", str(root)]) == 1
+    assert '"status": "not-ignored"' in capsys.readouterr().out
+
+
+def test_tracked_memory_in_another_case_counts_as_tracked(tmp_path):
+    root = repo(tmp_path)
+    git(root, "config", "core.ignorecase", "true")
+    (root / "memory.md").write_text("mine\n")
+    git(root, "add", "memory.md")
+    assert mg.precommit(root)["staged"] is True
+    git(root, "commit", "-qm", "track memory")
+    result = mg.check(root)
+    assert result["status"] == "tracked" and (root / "memory.md").read_text() == "mine\n"
+    assert mg.precommit(root)["status"] == "blocked"
+
+
+def test_missing_cwd_prints_one_line_on_stderr(tmp_path, capsys):
+    assert mg.main(["check", "--cwd", str(tmp_path / "nope")]) == 1
+    captured = capsys.readouterr()
+    assert captured.out == "" and len(captured.err.strip().splitlines()) == 1

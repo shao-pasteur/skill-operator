@@ -44,6 +44,13 @@ After each update, the "Re-upload needed" section of the release notes lists the
 ## Skill catalog
 
 <!-- catalog:start -->
+### Research and knowledge management (`research`)
+
+| Skill | Description | Web apps |
+|---|---|---|
+| `research-method` | A method for web research that needs sources: split the question, favor primary… | [Download](https://github.com/shao-pasteur/skill-operator/releases/download/latest/research-method.zip) |
+| `verify-evidence` | Checks whether claims are supported by the sources they cite, one claim at a ti… | [Download](https://github.com/shao-pasteur/skill-operator/releases/download/latest/verify-evidence.zip) |
+
 ### Investing and finance (`finance`)
 
 | Skill | Description | Web apps |

@@ -5,6 +5,11 @@
   },
   "plugins": [
     {
+      "name": "research",
+      "source": "./plugins/research",
+      "description": "Looking things up, summarizing and organizing Obsidian notes"
+    },
+    {
       "name": "finance",
       "source": "./plugins/finance",
       "description": "Taiwan stock tracking, technical analysis and financial report digests"

@@ -5,6 +5,18 @@
   },
   "plugins": [
     {
+      "name": "research",
+      "source": {
+        "source": "local",
+        "path": "./plugins/research"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Research and knowledge management"
+    },
+    {
       "name": "finance",
       "source": {
         "source": "local",

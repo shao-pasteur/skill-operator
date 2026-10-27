@@ -1,0 +1,9 @@
+{
+  "name": "research",
+  "description": "Looking things up, summarizing and organizing Obsidian notes",
+  "author": {
+    "name": "Yuan"
+  },
+  "license": "MIT",
+  "skills": "./skills/"
+}

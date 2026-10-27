@@ -62,3 +62,12 @@ def repo(tmp_path: Path) -> RepoBuilder:
     builder.write_categories()
     builder.write_readme()
     return builder
+
+
+@pytest.fixture
+def isolated_git(tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep the user's global git settings (signing, hooks, templates) out of a test that runs git."""
+    config = tmp_path_factory.mktemp("gitconfig") / "gitconfig"
+    config.write_text("[user]\n\tname = t\n\temail = t@example.com\n[init]\n\tdefaultBranch = main\n", encoding="utf-8")
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", str(config))
+    monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")

@@ -469,8 +469,25 @@ Default entries (their `install` commands and pinned refs are filled in and veri
 | `static-analysis`, `differential-review`, `insecure-defaults`, `sharp-edges`, `supply-chain-risk-auditor`, `fp-check`, `open-sourcing`, `agentic-actions-auditor` | `trailofbits/skills` (CC-BY-SA-4.0) | security | * | active |
 | `rust-review` | `trailofbits/skills` | security | tags: rust | active |
 | Cloudflare skills | `cloudflare/skills` (Apache-2.0) | engineer | tags: cloudflare | active |
+| `modern-python` | `trailofbits/skills` | engineer | tags: python | active |
+| `python-type-safety`, `python-error-handling` | `wshobson/agents` (MIT), plugin `python-development` | engineer | tags: python | active |
+| `python-testing-patterns` | `wshobson/agents` | engineer | tags: python, testing | active |
+| `async-python-patterns` | `wshobson/agents` | engineer | tags: python, async | active |
+| `golang-code-style`, `golang-error-handling`, `golang-context`, `golang-lint` | `samber/cc-skills-golang` (MIT) | engineer | tags: go | active |
+| `golang-testing` | `samber/cc-skills-golang` | engineer | tags: go, testing | active |
+| `golang-concurrency`, `golang-database`, `golang-grpc`, `golang-cli`, `golang-observability`, `golang-performance`, `golang-project-layout` | `samber/cc-skills-golang` | engineer | tags: go plus `concurrency`, `database`, `grpc`, `cli`, `observability`, `performance` or `new-project` respectively | active |
+| `golang-security` | `samber/cc-skills-golang` | security | tags: go | active |
+| `k8s-manifest-generator` | `wshobson/agents`, plugin `kubernetes-operations` | engineer | tags: kubernetes | active |
+| `k8s-security-policies` | `wshobson/agents` | engineer, security | tags: kubernetes | active |
+| `helm-chart-scaffolding` | `wshobson/agents` | engineer | tags: helm | active |
+| `terraform-style-guide` | `hashicorp/agent-skills` (MPL-2.0), plugin `terraform` | engineer | tags: terraform | active |
+| `terraform-test` | `hashicorp/agent-skills` | engineer | tags: terraform, testing | active |
+| `refactor-module`, `terraform-search-import` | `hashicorp/agent-skills` | engineer | tags: terraform plus `refactoring` or `import` respectively | active |
+| `bash-defensive-patterns` | `wshobson/agents`, plugin `shell-scripting` | engineer | tags: bash | active |
+| `shellcheck-configuration` | `wshobson/agents` | engineer | tags: bash, lint | active |
+| `bats-testing-patterns` | `wshobson/agents` | engineer | tags: bash, testing | active |
 
-`tw-stock-daily-tracker` is deliberately not in the registry.
+`tw-stock-daily-tracker` is deliberately not in the registry. One source per topic, so skills never give conflicting advice: `cxuu/golang-skills` and wshobson's `go-concurrency-patterns`, `python-code-style` and `uv-package-manager` were left out because they overlap the chosen ones. Optional skills reviewed on 2026-10-28 (other Python and Go topics, library-specific Go skills, `gitops-workflow`, `terraform-stacks`, `terraform-policy`, the Terraform provider skills, TypeScript and Rust skills, `modern-cpp`, general backend architecture) can be added later.
 
 Default tools (`[[tools]]`, run by the security role after automatic installs, report only):
 
@@ -485,6 +502,7 @@ Default tools (`[[tools]]`, run by the security role after automatic installs, r
 **Matching coding skills precisely:** a skill with `tags` is selected only when **every** one of its tags is among the task's tags, so a frontend skill (`frontend`, `ui-design`) can never be suggested for a backend task, and a Helm skill only when the task touches Helm.
 
 - Task tags come from `scripts/detect_stack.py` (deterministic, no model): manifests and files in the workspace (`pyproject.toml` → `python`; `package.json` → `javascript`, plus `typescript` with a `tsconfig.json`; `Cargo.toml` → `rust`; `go.mod` → `go`; `*.tf` → `terraform`; `Chart.yaml` → `helm` and `kubernetes`; manifests with `apiVersion` and `kind` → `kubernetes`; `*.sh` or a bash shebang → `bash`; `Dockerfile` → `docker`; React or Vue dependencies → `frontend`; `wrangler.toml` → `cloudflare`), then the request and the intake answers (the coding add-on question) add layers such as `backend`, `frontend`, `infra` or `cli`. The vocabulary lives in `references/tags.md`.
+- Besides the stack tags, sharron gives each coding unit activity tags from its goal — `testing`, `async`, `concurrency`, `database`, `grpc`, `cli`, `observability`, `performance`, `new-project`, `refactoring`, `import`, `lint` — so `python-testing-patterns` reaches only the unit that writes tests.
 - Skills without `tags` (for example `tdd`) apply to every coding task.
 - When more skills match than `max_skills_per_brief` (default 4), the most specific win (more matching tags), then the lower `min_tier`.
 - The brief lists each skill with the tags that matched it (for example `python-testing-patterns — matched: python`), so the choice can be checked.

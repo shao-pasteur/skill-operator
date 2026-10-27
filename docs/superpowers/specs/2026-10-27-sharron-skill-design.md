@@ -17,7 +17,7 @@ Turn Sharron's way of working into portable skills in this repo:
 - A research request gets a reply in Traditional Chinese (Taiwan usage) whose key claims were checked by a separate verifier and are labeled 已查證 / 推論 / 猜測.
 - An irreversible action (for example sending an email) stops at a decision card and is not performed without an explicit answer.
 - Every non-trivial task leaves an entry in `<workspace root>/MEMORY.md`, and that file never shows up in `git status`, a commit or a push.
-- Every finished task adds one row to the cost ledger, which is committed automatically, and new tasks get a budget suggestion from it.
+- Every finished task adds one row to the cost ledger, which is committed and pushed automatically, and new tasks get a budget suggestion from it.
 - The skill reads and writes only its own folder, apart from the deliberate exceptions in 3.2.
 - A skill named in the service list but missing on the platform is installed automatically and reported in the reply.
 - `make check` and `make test` pass.
@@ -39,7 +39,6 @@ Turn Sharron's way of working into portable skills in this repo:
 | Hook-based policy enforcement | The skill relies on the agent following the rules plus the platform's own permission prompts |
 | Pinning or hashing installed skills (sharron's `registry.lock`) | Installs record source and version only |
 | Automatic tier downgrades based on history | |
-| Pushing ledger commits | sharron commits the ledger but never pushes; the commits go out with your normal pushes |
 
 ## 3. Deliverables and layout
 
@@ -50,8 +49,8 @@ plugins/workflow/skills/sharron/
   config.example.toml                            # default settings (committed)
   config.toml                                    # your settings (gitignored, created on first change)
   registry.toml                                  # service list and skill sources (committed)
-  security-references.toml                       # security frameworks and their editions (committed, updated automatically)
-  ledger/costs.md                                # cost ledger (committed automatically by sharron)
+  security-references.toml                       # security frameworks and their editions (updated, committed and pushed automatically)
+  ledger/costs.md                                # cost ledger (committed and pushed automatically by sharron)
   state/refcheck.json                            # when each security source was last checked (gitignored)
   references/
     playbooks.md                                 # task types and their steps
@@ -88,9 +87,9 @@ Paths are relative to the skill folder unless noted.
 | `config.example.toml` | committed | Default settings |
 | `config.toml` | never (gitignored) | Your settings: platform, model mapping, prices, role tiers, risk thresholds, budgets, standing orders, `auto_install`, installed skills. When missing, the example's defaults apply |
 | `registry.toml` | committed | Which skills each role, playbook and domain uses, and where they come from |
-| `security-references.toml` | committed; updates committed automatically by sharron, never pushed | Security frameworks, their current editions and items (4.16) |
+| `security-references.toml` | committed; updates committed and pushed automatically by sharron | Security frameworks, their current editions and items (4.16) |
 | `state/refcheck.json` | never (gitignored) | When each security source was last checked |
-| `ledger/costs.md` | committed automatically by sharron, never pushed | Regression data for budgets, with no task descriptions |
+| `ledger/costs.md` | committed and pushed automatically by sharron | Regression data for budgets, with no task descriptions |
 | `<workspace root>/MEMORY.md` (outside the skill) | never | Preferences, lessons, task records, checkpoints |
 
 **Where writes land.** sharron writes to the copy of the skill the platform loaded:
@@ -216,7 +215,7 @@ Not carried over from the original Sharron design: the watcher (needs a schedule
 |---|---|---|---|
 | L0 | R0 actions: reading, searching, calculating | sharron applying the rules | Nothing |
 | L1 | Details inside a brief | The subagent | Its report |
-| L2 | R1–R2 actions; decomposing, delegating, tier changes, spending within the suggestion, installing registry skills, committing the ledger, updating the security reference list | sharron | A short summary at the end of the reply |
+| L2 | R1–R2 actions; decomposing, delegating, tier changes, spending within the suggestion, installing registry skills, committing and pushing the ledger and the security reference list | sharron | A short summary at the end of the reply |
 | L3 | R3 actions; budget overrun; more than 5 subagents or parallel T3 | sharron after an independent review | A one-line confirmation request; act only after the user agrees |
 | L4 | R4 actions; life-direction choices; ambiguity with a large impact; sharron and the reviewer disagree on something important; untracking a tracked `MEMORY.md` | The user | A decision card; nothing happens until an explicit answer |
 | Forbidden | Matches a `never` standing order | Nobody | A refusal |
@@ -225,7 +224,7 @@ Not carried over from the original Sharron design: the watcher (needs a schedule
 - A decision card has: background, 2–4 options, sharron's recommendation, risks and costs with reversibility, deadline and what happens after it, evidence.
 - There are no timeouts: an unanswered L3 or L4 simply waits.
 - L3 asks for a one-line confirmation because a conversation cannot run the original "notify, then a 10-minute veto window".
-- Installing registry skills and committing the ledger are L2 by the user's decisions (2026-10-27).
+- Installing registry skills and committing and pushing the ledger and the security reference list are L2 by the user's decisions (2026-10-27).
 
 ### 4.8 Risk levels
 
@@ -275,12 +274,16 @@ Step 0 of every later task surfaces paused and waiting tasks first, so nothing g
 - A table with one row per finished task: `date`, `platform`, `playbook`, `domain`, `difficulty`, `subagents`, `models`, `input_tokens`, `output_tokens`, `cache_tokens`, `cost_usd`, `outcome`, `measurement`. No task descriptions.
 - Written atomically under a file lock.
 
-**Automatic commit** (after each `record`, decision level L2):
+**Automatic commit and push** (after each `record`, decision level L2; the same procedure, "data sync", is used for `security-references.toml` in 4.16):
 
 - Only when the skill folder is inside a git work tree (loaded in place from the clone). In a cache copy, the row stays local and `finance.py` says once that it will not reach the repo.
-- Commits only the ledger file, even when other changes are staged: `git -C <skill folder> commit -m "chore(sharron): record task cost" -- ledger/costs.md`. It lands on whatever branch the clone has checked out.
-- Never pushes, and never bypasses hooks (`--no-verify`). If the commit fails (for example the repo's pre-commit check fails because of unrelated work in progress), the row stays uncommitted, the reply says so, and the next `record` commits it together with its own row.
-- The reply mentions the commit: 「帳本已自動 commit」.
+- Commits only the data file, even when other changes are staged: `git -C <skill folder> commit -m "chore(sharron): record task cost [skip ci]" -- ledger/costs.md`. `[skip ci]` keeps data-only pushes from running CI and the release workflow.
+- Never bypasses hooks (`--no-verify`). If the commit fails (for example the repo's pre-commit check fails because of unrelated work in progress), the row stays uncommitted, the reply says so, and the next run commits it together with its own row.
+- Pushes automatically, with these limits so nothing else gets published by accident:
+  - Only when the clone is on its default branch (`main`) and every outgoing commit is a sharron data commit that touches only `ledger/costs.md` or `security-references.toml`. Otherwise the commit stays local and the reply says it will go out with the user's next push.
+  - Before pushing, fetch and rebase onto the remote. The ledger is append-only, so a conflict there (another machine added rows) is resolved by keeping both sets of rows; any other conflict aborts the rebase, skips the push and is reported.
+  - Never force-pushes. `memory_guard.py precommit` runs before every push.
+- The reply mentions it: 「帳本已自動 commit 並 push」, or why the push was skipped.
 
 **Budget suggestion** (`finance.py suggest`, measured rows only)
 
@@ -531,7 +534,7 @@ Initial entries, researched on 2026-10-27:
 - Pages are read only from each source's `official_domains`.
 - `apply` changes only `edition`, `status`, `url`, `items` and `probe`. It never adds or removes sources or changes `applies_to`; when a new framework appears, sharron suggests it in the reply and only the user adds it, as with `registry.toml`.
 - Items are plain names, treated as data, and written only after the verifier confirms them.
-- Every change appends a `[[changelog]]` entry (date, source, from → to, verified by) and is committed automatically like the ledger: only this file, never pushed, never bypassing hooks; in a cache copy it stays local with a one-time notice.
+- Every change appends a `[[changelog]]` entry (date, source, from → to, verified by) and is committed and pushed automatically with the same data-sync procedure as the ledger (4.11): only this file, `[skip ci]`, default branch only, never bypassing hooks or force-pushing; a conflict in this file aborts and is reported; in a cache copy it stays local with a one-time notice.
 - Decision level L2.
 
 ### 4.17 Scripts and tests

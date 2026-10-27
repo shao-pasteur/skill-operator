@@ -74,3 +74,33 @@ def make_skill(root: Path) -> Path:
     (skill / "ledger").mkdir(exist_ok=True)
     (skill / "ledger/costs.md").write_text(ledger.render_ledger(ledger.Ledger([], [])), encoding="utf-8")
     return skill
+
+
+def make_clone(tmp_path: Path, name: str = "a") -> tuple[Path, Path]:
+    """Clone the bare tmp_path/remote.git into tmp_path/<name>; the first call also creates and fills it.
+
+    The first call seeds the remote's main branch with README.md and the skill from make_skill().
+    Returns (clone root, skill dir). Every clone has user settings and an upstream branch.
+    """
+    remote = tmp_path / "remote.git"
+    clone = tmp_path / name
+    if not remote.exists():
+        git(tmp_path, "init", "-q", "--bare", "-b", "main", str(remote))
+        git(tmp_path, "clone", "-q", str(remote), str(clone))
+        (clone / "README.md").write_text("test\n", encoding="utf-8")
+        skill = make_skill(clone)
+        git(clone, "add", "-A")
+        git(clone, "commit", "-qm", "initial")
+        git(clone, "push", "-q", "-u", "origin", "main")
+        return clone, skill
+    git(tmp_path, "clone", "-q", str(remote), str(clone))
+    return clone, clone / "plugins/workflow/skills/sharron"
+
+
+def add_row(skill: Path, task_id: str) -> None:
+    """Append a valid task row with this task_id to the skill's ledger, through the ledger module."""
+    ledger = load("ledger")
+    path = skill / "ledger/costs.md"
+    parsed = ledger.parse_ledger(path.read_text(encoding="utf-8"))
+    parsed.tasks.append(row(task_id=task_id))
+    path.write_text(ledger.render_ledger(parsed), encoding="utf-8")

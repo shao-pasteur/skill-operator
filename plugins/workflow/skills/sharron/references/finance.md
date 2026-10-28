@@ -14,7 +14,7 @@ Contents:
 
 ## Measuring usage
 
-Pass `--platform` on every call: when the `platform` setting is `auto`, the script cannot detect it and exits 1.
+Pass `--platform` to `suggest`, `usage` and `record` (`correct` takes none): when the `platform` setting is `auto`, the script cannot detect it and exits 1.
 
 **Claude Code.** The script reads the session transcript and the subagent transcripts, from the task's start time onward. It reads only `type`, `timestamp`, `requestId`, `message.id`, `message.model` and `message.usage`, never message content. The session comes from `CLAUDE_CODE_SESSION_ID` and the folder from `CLAUDE_CONFIG_DIR` (default `~/.claude`); `--session-id` overrides the first. The paths and the rules for counting are in [`platforms.md`](platforms.md#measuring-usage); they are not repeated here.
 
@@ -101,7 +101,7 @@ sh <skill>/scripts/run.sh datasync.py sync <ledger/costs.md|security-references.
 | `security-references.toml` | `chore(sharron): update security references [skip ci]` |
 | `registry.toml` | `chore(sharron): update registry [skip ci]` |
 
-The script prints `{"committed", "pushed", "reason", "detail", "notice"}`. A `reason` is not an error: the data stays committed, or in the working tree, and the next sync tries again. The decision level is L2.
+The script prints `{"committed", "pushed", "reason", "detail", "notice"}`. A `reason` is not an error: the data stays committed, or in the working tree, and a later sync tries again (see [Repeating a sync that did not finish](#repeating-a-sync-that-did-not-finish)). The decision level is L2.
 
 Safeguards, so nothing else is published by accident:
 
@@ -112,27 +112,38 @@ Safeguards, so nothing else is published by accident:
 - Runs `memory_guard.py precommit` before every push and refuses to push when `MEMORY.md` is staged or in an outgoing commit (see [`memory.md`](memory.md#git-safety)).
 - Never force-pushes.
 
+### Repeating a sync that did not finish
+
+- **The ledger** needs no extra step: the next `record` or `correct` commits an older uncommitted row together with its own, and its sync pushes any older outgoing ledger commit.
+- **`security-references.toml` and `registry.toml`** are repeated by a stateless check at step 11, after `finance.py record`, with nothing stored in `MEMORY.md`. It runs on the sharron skill clone and is skipped when `git -C <skill> rev-parse --is-inside-work-tree` fails (a cache copy, reason `not-a-clone`). For each of the two files:
+  1. The file differs from HEAD: `git -C <skill> diff --quiet HEAD -- <file>` exits 1.
+  2. Or an outgoing commit touches it: `git -C <skill> log --format=%h @{upstream}..HEAD -- <file>` prints a line. If there is no upstream the command fails; then there is nothing outgoing to find.
+  3. If either is true, run `sh <skill>/scripts/run.sh datasync.py sync <file> --message "<that file's message from the table above>"`.
+- `sync` with nothing to commit still goes on to the push: when the file matches HEAD it skips the commit, then fetches and pushes the outgoing commits under the usual safeguards (default branch, upstream set, every outgoing commit a data commit). So an earlier commit that was left unpushed is retried. When nothing is outgoing it returns `committed` false, `pushed` false and no `reason`.
+- One `sync` pushes every outgoing data commit, so the second file's check then finds nothing to do.
+- Say a reply line only when the call committed or pushed something. A call that stops with the same reason and changed nothing is silent.
+
 ## Reply lines
 
-Say one line, in Traditional Chinese, in the reply (step 10). Pick it from the sync result. For `security-references.toml` write 「資安參考清單」, and for `registry.toml` write 「登錄表」, in place of 「帳本」.
+Say one line, in Traditional Chinese, in the reply (step 10). Pick it from the sync result. The lines below are for the ledger. For `security-references.toml` write 「資安參考清單」, and for `registry.toml` write 「登錄表」, in place of 「帳本」. Five lines promise a retry, and the ledger's retry (the next `record`) differs from the other files' retry (the step-11 check above), so the last column gives their wording.
 
-| Result | Line |
-|---|---|
-| `pushed` is true | 「帳本已自動 commit 並 push」 |
-| `reason` is null and `pushed` is false | Nothing to commit or push. Say nothing. |
-| `not-a-clone` | 「這份 sharron 不是 git 複本，帳本只留在這裡，不會進到 repo；想保留的話，請從本機的 clone 安裝。」 Say it only when `notice` is not null; the script gives it once. |
-| `commit-failed` | 「帳本已寫入檔案，但 commit 沒成功（<detail>）；下次執行時會連同新的一列一起 commit。」 When `detail` names a git operation in progress (a rebase, a merge, a detached HEAD), say so in Chinese and add that the row is committed once the operation ends. |
-| `not-on-default-branch` | 「帳本已 commit，但目前不在預設分支，沒有自動 push；會隨你下一次 push 一起送出。」 |
-| `no-upstream` | 「帳本已 commit，但這個分支沒有設定上游，沒有自動 push；設好上游（例如 git push -u）後，下次就會自動送出。」 |
-| `fetch-failed` | 「帳本已 commit，但連不上遠端（<detail>），沒有 push；網路恢復後下次會再試。」 |
-| `other-outgoing-commits` | 「帳本已 commit，但本機還有其他尚未 push 的 commit，為了不把別的內容一起推出去，沒有自動 push；你自己 push 時會一併送出。」 |
-| `remote-ahead-dirty-tree` | 「帳本已 commit，但遠端有新的 commit 要先合併，而你的工作目錄還有未提交的修改，沒有 push；整理好修改後，下次會再試。」 |
-| `rebase-conflict` | 「帳本已 commit，但和遠端合併時有衝突（<detail>），已取消合併、沒有 push；請你處理完衝突後再 push。」 |
-| `memory-guard` | 「帳本已 commit，但 MEMORY.md 在暫存區或待推送的 commit 裡，已擋下 push；請先把它移出去（見 memory.md），再 push。」 |
-| `push-failed` | 「帳本已 commit，但 push 沒成功（<detail>）；下次會再試。」 |
+| Result | Ledger line | Retry wording for `registry.toml` and `security-references.toml` |
+|---|---|---|
+| `pushed` is true | 「帳本已自動 commit 並 push」 | Same, with the file name replaced. |
+| `reason` is null and `pushed` is false | Nothing to commit or push. Say nothing. | Same. |
+| `not-a-clone` | 「這份 sharron 不是 git 複本，帳本只留在這裡，不會進到 repo；想保留的話，請從本機的 clone 安裝。」 Say it only when `notice` is not null; the script gives it once. | Same, with the file name replaced. |
+| `commit-failed` | 「帳本已寫入檔案，但 commit 沒成功（<detail>）；下次執行時會連同新的一列一起 commit。」 When `detail` names a git operation in progress (a rebase, a merge, a detached HEAD), say so in Chinese and add that the row is committed once the operation ends. | 「<檔案>已寫入，但 commit 沒成功（<detail>）；之後有任務收尾時會再試。」 |
+| `not-on-default-branch` | 「帳本已 commit，但目前不在預設分支，沒有自動 push；會隨你下一次 push 一起送出。」 | Same. |
+| `no-upstream` | 「帳本已 commit，但這個分支沒有設定上游，沒有自動 push；設好上游（例如 git push -u）後，下次就會自動送出。」 | 「…設好上游（例如 git push -u）後，之後有任務收尾時就會自動送出。」 |
+| `fetch-failed` | 「帳本已 commit，但連不上遠端（<detail>），沒有 push；網路恢復後下次會再試。」 | 「…網路恢復後，之後有任務收尾時會再試。」 |
+| `other-outgoing-commits` | 「帳本已 commit，但本機還有其他尚未 push 的 commit，為了不把別的內容一起推出去，沒有自動 push；你自己 push 時會一併送出。」 | Same. |
+| `remote-ahead-dirty-tree` | 「帳本已 commit，但遠端有新的 commit 要先合併，而你的工作目錄還有未提交的修改，沒有 push；整理好修改後，下次會再試。」 | 「…整理好修改後，之後有任務收尾時會再試。」 |
+| `rebase-conflict` | 「帳本已 commit，但和遠端合併時有衝突（<detail>），已取消合併、沒有 push；請你處理完衝突後再 push。」 | Same. |
+| `memory-guard` | 「帳本已 commit，但 MEMORY.md 在暫存區或待推送的 commit 裡，已擋下 push；請先把它移出去（見 memory.md），再 push。」 | Same. |
+| `push-failed` | 「帳本已 commit，但 push 沒成功（<detail>）；下次會再試。」 | 「…（<detail>）；之後有任務收尾時會再試。」 |
 
 Other lines:
 
 - `measurement` is `unknown`, or `unpriced_models` is not empty: 「這次的花費無法量測（<原因>），帳本記為 unknown，不會影響預算建議。」 Name a model that needs a price in `[prices]`.
 - A script error on stderr (for example a task id that is already recorded): show the line as it is and say the row was not written.
-- A sync that stops with any reason except `not-a-clone` is repeated later. For `security-references.toml` the rule is in [`security-review.md`](security-review.md#background-reference-updates); the ledger needs nothing, because the next `record` commits the older row with its own.
+- A sync that stops with any reason except `not-a-clone` is repeated later: by the next `record` for the ledger, and by the step-11 check for the other two files (see above).

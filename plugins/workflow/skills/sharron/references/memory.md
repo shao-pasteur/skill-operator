@@ -76,20 +76,39 @@ sh <skill>/scripts/run.sh memory_guard.py precommit [--cwd <folder>]
 | `tracked` | 1 | git already tracks `MEMORY.md`. Nothing was written. | Do not write to the file. Ask the user with an L4 decision card (below). Until they answer, memory stays in the conversation. |
 | `not-ignored` | 1 | The script added `/MEMORY.md` to `info/exclude`, but git still shows the file, because a `.gitignore` rule re-includes it. Nothing was written. | Do not write to the file. Tell the user which rule does it, ask with an L4 decision card (below), and keep memory in the conversation until it is fixed. |
 
-**`tracked`.** The fix is `git rm --cached MEMORY.md`, which stops git tracking the file and keeps the local copy. It changes what the project's history holds, so it is L4: the user decides. Use a decision card (format in [`decisions-and-risk.md`](decisions-and-risk.md#decision-card)):
+**`tracked`.** The fix is `git rm --cached MEMORY.md`, which stops git tracking the file and keeps the local copy. It changes what the project's history holds, so it is L4: the user decides. Use a decision card with all six parts (format in [`decisions-and-risk.md`](decisions-and-risk.md#decision-card)):
 
-- Background: `MEMORY.md` is already tracked, so sharron will not write to it.
-- Options: A. sharron runs `git rm --cached MEMORY.md` (the local file stays; the removal is staged for the user to commit). B. Leave it tracked, and memory stays in the conversation.
-- Recommendation: A.
-- Risks and costs: A stages a deletion that the user must commit, and earlier versions stay in the history; it can be undone before committing with `git restore --staged MEMORY.md`. B has no risk but no memory between tasks.
+```
+決策卡
+- 背景：MEMORY.md 已被 git 追蹤，所以我不會寫入它；在你決定之前，記憶只留在對話裡。
+- 選項：
+  A. 我執行 git rm --cached MEMORY.md（本機檔案保留，移除動作只放進暫存區，由你自己 commit）
+  B. 維持追蹤現狀，記憶繼續只留在對話裡
+- 建議：選 A，因為這樣之後的任務才能把記憶寫進檔案，又不會被 commit。
+- 風險與成本：
+  - A：風險 歷史裡仍留有舊版內容／費用 無／可否反悔：commit 前可用 git restore --staged MEMORY.md 還原
+  - B：風險 無／費用 任務之間沒有檔案記憶／可否反悔：隨時可改選 A
+- 期限：無；你回覆之前任務維持等待，不會自動執行
+- 依據：memory_guard.py check 回報 tracked（已查證）
+```
 
 After A, run `check` again. It then returns `excluded`. sharron never commits the removal itself.
 
-**`not-ignored`.** Find the rule with `git check-ignore -v MEMORY.md` run in the workspace root. It prints `<file>:<line>:<pattern>`, for example `.gitignore:2:!MEMORY.md`, and the file is the `.gitignore` that re-includes `MEMORY.md`. The fix is a `/MEMORY.md` line placed after that rule in the same file, which is a change to a project file, so it is L4 by the same reasoning as `tracked`. Name the file, the line and the pattern in the card.
+**`not-ignored`.** Find the rule with `git check-ignore -v MEMORY.md` run in the workspace root. It prints `<file>:<line>:<pattern>`, for example `.gitignore:2:!MEMORY.md`, and the file is the `.gitignore` that re-includes `MEMORY.md`. Only an ignore file that applies to the workspace root can re-include the root `MEMORY.md` (a nested `.gitignore` anchors to its own folder), and the root `.gitignore` takes precedence over the global excludes file. So the fix is a `/MEMORY.md` line in the `.gitignore` at the workspace root, placed after the re-including rule when that rule is in the same file. It is a change to a project file, so it is L4 by the same reasoning as `tracked`. Name the file, the line and the pattern in the card, which has the same six parts as the `tracked` card.
 
-- Background: a `.gitignore` rule (`<file>:<line>`, `<pattern>`) re-includes `MEMORY.md`, so git would show it as new and sharron will not write to it.
-- Options: A. sharron adds `/MEMORY.md` after that rule in `<file>` (the user commits the change). B. The user fixes the rule themselves. Memory stays in the conversation in both cases until `check` returns `ok`.
-- Recommendation: A.
+```
+決策卡
+- 背景：.gitignore 的規則 <檔案>:<行號>（<規則>）把 MEMORY.md 又放回追蹤範圍，所以我不會寫入它；修好之前，記憶只留在對話裡。
+- 選項：
+  A. 我在工作區根目錄的 .gitignore 裡、那條規則之後加一行 /MEMORY.md（由你自己 commit）
+  B. 你自己調整那條規則
+- 建議：選 A，因為只多一行，不動其他規則。
+- 風險與成本：
+  - A：風險 改到專案共用的 .gitignore／費用 無／可否反悔：commit 前刪掉那一行即可
+  - B：風險 無／費用 需要你動手／可否反悔：可
+- 期限：無；你回覆之前任務維持等待，不會自動執行
+- 依據：git check-ignore -v MEMORY.md 的輸出（已查證）
+```
 
 **`precommit`** runs before any commit or push that sharron makes in the workspace, and `datasync.py` runs it before every push of a data file.
 

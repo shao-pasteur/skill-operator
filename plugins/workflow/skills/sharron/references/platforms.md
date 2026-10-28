@@ -75,7 +75,7 @@ sharron starts `refcheck.py check` in the background at activation (step 0). Whe
 | Claude Code | `CLAUDE_CODE_PROJECT_DIR_NAME`, set together with `CLAUDE_CONFIG_DIR` at launch, replaces the derived folder name under `projects/`. | documented |
 | Codex, Copilot CLI, Cursor | No transcript format was verified. Rows are written with cost `unknown` and the platform recorded. | unverified |
 
-If a subagent's id turns out not to match a transcript file name, maintenance rows are recorded with unknown cost (`--platform` set and no `--agents`).
+If a subagent's id turns out not to match a transcript file name, maintenance rows are recorded with unknown cost (`--agents unknown --models <tiers>`).
 
 Prices are in `config.example.toml` under `[prices]` and are edited there or overridden in `config.toml`.
 

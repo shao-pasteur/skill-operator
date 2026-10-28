@@ -17,7 +17,7 @@ Contents:
 - [Manual commands](#manual-commands)
 - [Troubleshooting](#troubleshooting)
 
-In this guide `<skill>` is the folder `plugins/workflow/skills/sharron` and `<repo>` is your clone of this repository.
+In this guide `<skill>` is the folder `plugins/workflow/skills/sharron` inside the repository, https://github.com/shao-pasteur/skill-operator.
 
 ## Install
 
@@ -29,13 +29,29 @@ claude plugin install workflow@skill-operator
 claude plugin install research@skill-operator
 ```
 
-`research` holds `research-method` and `verify-evidence`, which sharron gives to its researchers and verifiers. The commands above are for Claude Code. Codex and Copilot CLI use the same shape (`codex plugin marketplace add …` then `codex plugin add workflow@skill-operator`, and `copilot plugin marketplace add …` then `copilot plugin install workflow@skill-operator`); see [`references/platforms.md`](references/platforms.md#installing-skills) for the checked facts and their marks. Cursor has no command-line install: use Customize, find the plugin and choose Install.
+`research` holds `research-method` and `verify-evidence`, which sharron gives to its researchers and verifiers. The commands above are for Claude Code. Codex and Copilot CLI use the same shape (`codex plugin marketplace add …` then `codex plugin add workflow@skill-operator`, and `copilot plugin marketplace add …` then `copilot plugin install workflow@skill-operator`); see [`references/platforms.md`](references/platforms.md#installing-skills) for the checked facts and their marks. Cursor has no command-line install: use Customize, find the plugin and choose Install. Whether Cursor can add this repository as a marketplace for a single user is not verified yet (see [`references/platforms.md`](references/platforms.md#installing-skills)).
 
-On every other machine or platform, install the plugin from GitHub with the table in the repository [README](../../../../README.md#install). Those installs are copies: they work in full, but they lose only two things, the ledger and your settings, because the copy is replaced when the plugin updates and is not a git clone. sharron notices this and tells you once (`not-a-clone`). See [Where writes land](references/platforms.md#where-writes-land).
+On every other machine or platform, install the plugins from GitHub (the repository is `https://github.com/shao-pasteur/skill-operator`). The same two steps work in each CLI:
 
-sharron's scripts need Python 3.11 or newer and git. You do not have to pick the interpreter: `scripts/run.sh` looks for `python3.14` down to `python3.11`, then `python3`, then `uv`, and says what to install when none fits.
+```bash
+claude plugin marketplace add shao-pasteur/skill-operator
+claude plugin install workflow@skill-operator
+claude plugin install research@skill-operator
 
-Registry skills that sharron installs for you (the service list) come from `registry.toml`. Claude Code cannot pin a marketplace to a commit SHA, so a pinned skill from another repository is copied into your personal skills folder at exactly the pinned commit. Cursor never gets automatic installs: sharron tells you the steps instead. Details: [`references/registry.md`](references/registry.md#installing-a-missing-skill).
+codex plugin marketplace add shao-pasteur/skill-operator
+codex plugin add workflow@skill-operator
+codex plugin add research@skill-operator
+
+copilot plugin marketplace add shao-pasteur/skill-operator
+copilot plugin install workflow@skill-operator
+copilot plugin install research@skill-operator
+```
+
+Those installs are copies: they work in full, but they lose only two things, the ledger and your settings, because the copy is replaced when the plugin updates and is not a git clone. sharron notices this and tells you once (`not-a-clone`). See [Where writes land](references/platforms.md#where-writes-land).
+
+sharron's scripts need Python 3.11 or newer and git. You do not have to pick the interpreter: `scripts/run.sh` tries `python3.14`, `python3.13`, `python3.12`, `python3.11`, `python3` and `python` in that order, takes the first that is 3.11 or newer, then falls back to `uv`, and says what to install when none fits.
+
+Registry skills that sharron installs for you (the service list) come from `registry.toml`. Claude Code cannot pin a marketplace to a commit SHA, so a pinned skill from another repository is copied into your personal skills folder at exactly the pinned commit. On Cursor, skills from this repository (`ref = "self"`) are never installed automatically: sharron tells you the steps instead. A pinned skill from another repository is installed with its `cursor` skill-folder command when the entry has one. Details: [`references/registry.md`](references/registry.md#installing-a-missing-skill).
 
 ## First run
 
@@ -94,7 +110,7 @@ Read 完成條件 (when she will call it done), 授權 (what she may do without 
 Two separate scales are in play, so do not mix them up:
 
 - **R0 to R4** rates an action by how reversible it is, who is affected, money, privacy and commitment. The highest dimension wins, and when unsure sharron uses R3.
-- **L0 to L4** says who decides. R0 reading is L0; an R1 or R2 action is L2 (she decides and summarizes it at the end of the reply); R3 needs your L3 confirmation; R4 needs an L4 decision card.
+- **L0 to L4** says who decides. R0 actions (reading, searching, calculating) are L0; an R1 or R2 action is L2 (she decides and summarizes it at the end of the reply); R3 needs your L3 confirmation; R4 needs an L4 decision card.
 
 Details and the full table: [`references/decisions-and-risk.md`](references/decisions-and-risk.md).
 
@@ -104,7 +120,7 @@ Details and the full table: [`references/decisions-and-risk.md`](references/deci
 需要你確認：<要做的事，含對象與金額／數量>（原因：<一句話>）。要執行嗎？（回「好」或說明要改的地方）
 ```
 
-Reply 「好」 to go ahead, or say what to change. Only a yes lets her act. L3 covers R3 actions, a budget overrun, more than 5 subagents or parallel T3 subagents, a difficulty 4 to 5 plan, loosening a safeguard (deleting a standing order, turning off auto install) and running the evals.
+Reply 「好」 to go ahead, or say what to change. Only a yes lets her act. L3 covers R3 actions, a budget overrun, more than 5 subagents or parallel T3 subagents, a difficulty 4 to 5 plan, loosening a safeguard (deleting a standing order, turning off auto install), external actions when the Rule of Two cannot be kept (untrusted input, private data and external action never all in one unit), and running the evals.
 
 **L4 is a decision card** (決策卡), for R4 actions, life-direction choices, large-impact ambiguity, an important disagreement between sharron and the reviewer, and untracking `MEMORY.md`. It has a background, the options, a recommendation with the reason, the risk and cost of each option and whether it can be undone, a deadline and the basis. Answer by naming an option (「選 A」), or say what you want instead. Nothing happens until you answer.
 
@@ -237,7 +253,7 @@ Notes on the less obvious ones:
 **Ledger rows are not committed.** The reply says why. Run `git status` in your clone and match the reason:
 
 - A **cache copy** (`not-a-clone`): the plugin was installed from GitHub or copied into a plugin cache, so the row only exists in that copy and is lost on update. Install from your local clone ([Install](#install)) if you want the ledger in the repo.
-- **`commit-failed`**: the commit did not go through. Either the repository's pre-commit check failed, or a rebase, merge, cherry-pick, revert or bisect is in progress, or HEAD is detached. The row is already written to `ledger/costs.md` and the next `finance.py record` commits it together with its own row. sharron never bypasses the check (`--no-verify`). The pre-commit hook rebuilds the generated manifests and the README catalog, so it can fail while other changes in the clone are in progress and the regenerated files are not staged: run `make build`, then commit or stash that other work, and the next ledger commit goes through.
+- **`commit-failed`**: the commit did not go through. Either the repository's pre-commit check failed, or a rebase, merge, cherry-pick, revert or bisect is in progress, or HEAD is detached. The row is already written to `ledger/costs.md` and the next `finance.py record` commits it together with its own row. sharron never bypasses the check (`--no-verify`). The pre-commit hook rebuilds the generated manifests and the README catalog, and it exits 1 with a `git add <generated files>` line when the regenerated manifests or README differ from what is staged. That happens while other work in the clone is in progress. Fix it by committing or stashing that other work, or by running `make build` and committing the generated files together with it; then the next ledger commit goes through.
 - A path with a home directory in a role file: do not put absolute home paths (`/Users/<you>/…`) in `roles/*.local.md` or anywhere else in the skill folder. `make check` and the pre-commit hook scan the skill folder for them, and the failure blocks the ledger commit.
 
 **A push was skipped.** The row or file is committed locally and pushed later. `reason` tells you why; the reply line says it in Chinese. sharron pushes only from `main`, with an upstream set, and only when every outgoing commit is a sharron data commit touching nothing but `ledger/costs.md`, `security-references.toml` or `registry.toml`. She never force-pushes.
@@ -268,6 +284,8 @@ The reply lines and the full retry rules: [`references/finance.md`](references/f
 See [`references/memory.md`](references/memory.md#git-safety).
 
 **A reference update failed.** The reply says something like 「資安參考清單檢查失敗（<來源>：<原因>），下次會再試」. A source whose probe failed is simply left alone: its check time is not moved, so the next `refcheck.py check` tries it again. sharron mentions each failing source once per task. If the page really changed but sharron could not verify the update, the change stays pending and is retried on the next activation. If you want to see it now, run `refcheck.py check --force`. Pending changes and proposals: [`references/security-review.md`](references/security-review.md#background-reference-updates).
+
+**`refcheck.py check` exits 1 with one stderr line.** The whole of `security-references.toml` is validated every time it is read, so a hand edit that breaks the layout (a bad `id`, an unknown field, a `url` outside `official_domains`) stops the check and `apply` until it is fixed. Read the line, correct the file in the layout described at its top, and run `refcheck.py check` again.
 
 **sharron says `registry.toml` or `security-references.toml` has an uncommitted change.** Either it is your own edit, or an earlier commit of sharron's failed. sharron will not commit a change she did not make in the current task, and she will not write that file (no registry edit, no reference update) while the diff exists, because the commit that follows would carry your diff too. A pending reference change stays pending. Review it with `git diff -- plugins/workflow/skills/sharron/registry.toml`, then commit it yourself, or discard it, and ask again.
 

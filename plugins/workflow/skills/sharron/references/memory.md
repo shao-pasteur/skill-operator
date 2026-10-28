@@ -12,7 +12,7 @@ Contents:
 
 `<skill>` is the sharron skill folder. Run every script as `sh <skill>/scripts/run.sh <script>.py …` and never `cd` into the skill folder.
 
-**Location.** The workspace root: the top of the git work tree when the current folder is inside a repository, otherwise the current folder. It is outside the skill folder; it is the one file sharron writes there.
+**Location.** The workspace root: the top of the git work tree when the current folder is inside a repository, otherwise the current folder. It is outside the skill folder; it is the one sharron state file there.
 
 ## Format
 

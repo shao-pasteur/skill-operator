@@ -1,3 +1,6 @@
+import json
+import subprocess
+from collections import Counter
 from pathlib import Path
 
 from skillops.catalog import load_catalog
@@ -132,3 +135,34 @@ def test_skill_md_is_short_and_triggers_only_on_sharron():
     assert "/workflow:sharron" in fm["description"] and "Do not use" in fm["description"]
     for script in ["memory_guard.py", "refcheck.py", "detect_stack.py", "finance.py", "trace.py", "config.py", "datasync.py"]:
         assert f"run.sh {script}" in body, script
+
+
+def test_eval_sets_have_the_planned_size():
+    evals = json.loads((SKILL_SRC / "evals/evals.json").read_text(encoding="utf-8"))
+    assert evals["skill_name"] == "sharron" and len(evals["evals"]) >= 23
+    assert all(e["prompt"] and e["expectations"] for e in evals["evals"])
+    trigger = json.loads((SKILL_SRC / "evals/trigger-eval.json").read_text(encoding="utf-8"))
+    assert sum(q["should_trigger"] for q in trigger) >= 10 and sum(not q["should_trigger"] for q in trigger) >= 10
+
+
+def test_eval_cases_follow_the_planned_distribution_and_point_at_real_files():
+    cases = json.loads((SKILL_SRC / "evals/evals.json").read_text(encoding="utf-8"))["evals"]
+    assert [c["id"] for c in cases] == list(range(1, len(cases) + 1))
+    assert len({c["name"] for c in cases}) == len(cases)
+    tasks = Counter(c["playbook"] for c in cases if c["group"] == "task")
+    assert tasks == {"simple-answer": 1, "research": 4, "planning": 2, "action": 3, "decision-support": 2,
+                     "learning": 2, "coding": 3, "settings-help": 3}
+    assert all(c["playbook"] in load("config").PLAYBOOKS for c in cases)
+    assert sum(c["group"] == "skill-recommendation" for c in cases) == 3
+    for case in cases:
+        for rel in case["files"]:
+            assert (SKILL_SRC / rel).is_file(), rel
+
+
+def test_eval_fixtures_have_the_stack_tags_the_recommendation_cases_expect():
+    detect_stack = load("detect_stack")
+    expected = {"python-backend": ["python"], "helm-chart": ["helm", "kubernetes"], "bash-tool": ["bash"]}
+    for name, tags in expected.items():
+        assert sorted(detect_stack.detect_tags(SKILL_SRC / "evals/files" / name)) == tags, name
+    result = subprocess.run(["bash", "-n", str(SKILL_SRC / "evals/files/bash-tool/backup.sh")], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr

@@ -1,0 +1,130 @@
+[
+  {
+    "query": "sharron，幫我查一下台灣的勞退自提 6% 到底可以抵多少稅，要有來源",
+    "should_trigger": true
+  },
+  {
+    "query": "Sharron, plan a three-day trip to Kyoto for two people with a budget of 1,500 USD",
+    "should_trigger": true
+  },
+  {
+    "query": "SHARRON: review this pull request for security problems before I merge it",
+    "should_trigger": true
+  },
+  {
+    "query": "/workflow:sharron 幫我整理這週的待辦，並排出優先順序",
+    "should_trigger": true
+  },
+  {
+    "query": "sharron",
+    "should_trigger": true
+  },
+  {
+    "query": "Hey sharron, can you help me compare PostgreSQL and MySQL for a small analytics workload? Give me sources.",
+    "should_trigger": true
+  },
+  {
+    "query": "用 Sharron 的方式幫我處理這件事：我要把舊的 Flask 專案升級到最新版，先規劃再動手",
+    "should_trigger": true
+  },
+  {
+    "query": "sharron 顯示設定",
+    "should_trigger": true
+  },
+  {
+    "query": "sharron 把 reviewer 改成 T3",
+    "should_trigger": true
+  },
+  {
+    "query": "Please handle this the Sharron way: write a Python script that backs up my notes folder every night and tell me what could go wrong",
+    "should_trigger": true
+  },
+  {
+    "query": "SHARRON，我想學 Rust 的所有權，從最基本的開始教我，一次一個觀念",
+    "should_trigger": true
+  },
+  {
+    "query": "sharron 預算狀況怎麼樣？最近花了多少？",
+    "should_trigger": true
+  },
+  {
+    "query": "Sharron — before you touch anything, outline how you'd migrate our CI from Jenkins to GitHub Actions, then ask me to confirm",
+    "should_trigger": true
+  },
+  {
+    "query": "請 sharron 幫我比較三家雲端備份服務，我最在意價格和加密，之後你再給建議，讓我自己決定",
+    "should_trigger": true
+  },
+  {
+    "query": "/workflow:sharron help",
+    "should_trigger": true
+  },
+  {
+    "query": "sharron，有哪些暫停的任務還沒做完？",
+    "should_trigger": true
+  },
+  {
+    "query": "幫我寫信給 Sharron，告訴她下個月底我不續約了",
+    "should_trigger": false
+  },
+  {
+    "query": "Email Sharron the quarterly report and cc the finance team",
+    "should_trigger": false
+  },
+  {
+    "query": "Sharon, can you plan a three-day trip to Kyoto for two people?",
+    "should_trigger": false
+  },
+  {
+    "query": "Sharron said the meeting moved to Thursday. Can you add that to my notes?",
+    "should_trigger": false
+  },
+  {
+    "query": "幫我查一下台灣的勞退自提 6% 到底可以抵多少稅，要有來源",
+    "should_trigger": false
+  },
+  {
+    "query": "Plan a three-day trip to Kyoto for two people with a budget of 1,500 USD",
+    "should_trigger": false
+  },
+  {
+    "query": "Review this pull request for security problems before I merge it",
+    "should_trigger": false
+  },
+  {
+    "query": "Write a Python script that backs up my notes folder every night",
+    "should_trigger": false
+  },
+  {
+    "query": "我想學 Rust 的所有權，從最基本的開始教我，一次一個觀念",
+    "should_trigger": false
+  },
+  {
+    "query": "Compare PostgreSQL and MySQL for a small analytics workload, with sources",
+    "should_trigger": false
+  },
+  {
+    "query": "把這份會議紀錄翻成英文，Sharron 會在下午三點看",
+    "should_trigger": false
+  },
+  {
+    "query": "Show me my settings and change the default model to a cheaper one",
+    "should_trigger": false
+  },
+  {
+    "query": "Research the history of the Sharron family name and where it comes from",
+    "should_trigger": false
+  },
+  {
+    "query": "幫我把這個 Flask 專案升級到最新版，先列出會壞掉的地方",
+    "should_trigger": false
+  },
+  {
+    "query": "Shannon asked me to send her the budget spreadsheet; draft a short reply",
+    "should_trigger": false
+  },
+  {
+    "query": "What does a shell script need to be safe to run from cron? Give me a checklist",
+    "should_trigger": false
+  }
+]

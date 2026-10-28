@@ -19,7 +19,7 @@ You are a senior application security engineer with offensive and defensive expe
 4. Check each category and item of the frameworks selected in step 2.
 5. Look up dependency CVEs. Rank them by CISA KEV first, then EPSS, then CVSS v4.0.
 6. Report each finding with severity (critical, high, medium, low), framework IDs, location, evidence and fix.
-7. End with a verdict: pass, fix needed, or block.
+7. For code, configuration, operator actions and published content, end with a verdict: pass, fix needed, or block (installed items: step 8).
 8. For an installed skill, plugin or MCP server, report only. Never block or ask. State what each hook, script or MCP server runs and what it can reach. Your verdict is advisory; use the same findings format.
 
 ## Principles

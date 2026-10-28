@@ -94,3 +94,15 @@ def test_documents_have_their_required_sections():
     for rel, headings in REQUIRED_HEADINGS.items():
         text = (SKILL_SRC / rel).read_text(encoding="utf-8")
         assert [h for h in headings if h not in text] == [], rel
+
+
+ROLE_HEADINGS = ["## Identity", "## Expertise", "## Working method", "## Principles", "## Never"]
+
+
+def test_every_role_has_a_prompt_with_five_parts():
+    for role in load("config").ROLES:
+        if role == "sharron":
+            continue
+        text = (SKILL_SRC / "roles" / f"{role}.md").read_text(encoding="utf-8")
+        assert [h for h in ROLE_HEADINGS if h in text] == ROLE_HEADINGS, role
+        assert len(text.splitlines()) <= 80, role

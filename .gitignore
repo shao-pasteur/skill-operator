@@ -7,7 +7,7 @@ __pycache__/
 .superpowers/
 .env
 .env.*
-MEMORY.md
+/MEMORY.md
 plugins/workflow/skills/sharron/config.toml
 plugins/workflow/skills/sharron/state/
 plugins/workflow/skills/sharron/roles/*.local.md

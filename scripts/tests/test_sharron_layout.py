@@ -101,6 +101,9 @@ REQUIRED_HEADINGS.update({
     "references/memory.md": ["## Format", "## Rules", "## Git safety", "## Task ids"],
     "references/security-review.md": ["## When the security role runs", "## Checklist", "## Findings", "## Handling",
                                       "## Background reference updates"],
+    "GUIDE.md": ["## Install", "## First run", "## Calling sharron", "## The intake and the task card",
+                 "## Confirmations and decision cards", "## Memory", "## Talking to sharron about settings",
+                 "## Settings and files you can edit", "## Manual commands", "## Troubleshooting"],
 })
 
 

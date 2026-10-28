@@ -23,6 +23,8 @@ Install several categories at once:
 for c in dev writing finance; do claude plugin install "$c@skill-operator"; done
 ```
 
+**The `workflow` plugin (sharron).** On the machine where you work most, install `workflow` from your local clone instead of from GitHub, so sharron's cost ledger and settings stay in the repository: `claude plugin marketplace add <path to your clone>`, then `claude plugin install workflow@skill-operator` (add `research@skill-operator` too). An install from GitHub is a copy that loses the ledger and the settings on update. See the [sharron guide](plugins/workflow/skills/sharron/GUIDE.md).
+
 **Claude Code auto-update** is off by default. After installing, run `/plugin` in Claude Code, open Marketplaces, pick `skill-operator` and choose **Enable auto-update**. Without it, run `claude plugin marketplace update skill-operator` to fetch updates.
 
 ## Web apps (claude.ai, ChatGPT, Gemini)

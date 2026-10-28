@@ -39,6 +39,18 @@ Fix every error from `make check`. Warnings may stay when there is a reason.
 - Read personal values from environment variables or `~/.config/<skill-name>/`, and say in `SKILL.md` which settings are needed and what to tell the user when they are missing
 - Use placeholders in examples, such as `/Users/<you>/...`
 
+## sharron data files
+
+The `sharron` skill (`plugins/workflow/skills/sharron/`) keeps a few data files next to its `SKILL.md`. Who edits them:
+
+- `registry.toml` and `config.example.toml`: edited by hand. sharron edits `registry.toml` only when the user asks.
+- `security-references.toml`: add sources by hand; `scripts/refcheck.py` updates editions (`edition`, `status`, `url`, `items`, `probe`) after a verifier confirms them.
+- `ledger/costs.md`: appended and committed by `scripts/finance.py`. Never edit it by hand, and never change past rows.
+- `config.toml`, `state/` and `roles/*.local.md`: local only. They are gitignored and never committed.
+- `MEMORY.md` at a workspace root is also local only and never committed.
+
+Data commits use `chore(sharron): … [skip ci]` and touch only `ledger/costs.md`, `security-references.toml` or `registry.toml`. Do not rewrite or squash them. See `plugins/workflow/skills/sharron/GUIDE.md`.
+
 ## Common commands
 
 | Command | What it does |

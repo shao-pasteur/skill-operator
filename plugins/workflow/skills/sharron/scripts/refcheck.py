@@ -17,8 +17,10 @@ never changes the list. A detected change stays `pending` in that file, and is r
 It validates the update, writes the list, appends a changelog entry, clears the pending change and then
 runs the data sync (datasync.py), which commits and pushes only security-references.toml.
 
-The list steers the security role, so a page outside a source's `official_domains` is never read or
-accepted, the sources and `applies_to` are never changed by `apply`, and items are plain one-line names.
+The list steers the security role, so the fetcher refuses a redirect that leaves a source's
+`official_domains` or https before it reads the body, evidence must come from those domains, the sources
+and `applies_to` are never changed by `apply`, and items are plain one-line names. An update is fully
+validated before anything is written.
 Bad input prints one line on stderr and exits 1.
 """
 
@@ -28,6 +30,7 @@ if sys.version_info < (3, 11):
     sys.exit(f"sharron scripts need Python 3.11 or newer (found {sys.version_info.major}.{sys.version_info.minor})")
 
 import argparse  # noqa: E402
+import functools  # noqa: E402
 import hashlib  # noqa: E402
 import http.client  # noqa: E402
 import json  # noqa: E402
@@ -55,6 +58,7 @@ KINDS = ("risk-list", "weakness-list", "vulnerability-data", "attack-patterns")
 STATUSES = ("final", "beta")
 APPLIES_TO = ("code", "api", "ci-cd", "credentials", "action", "publish", "install", "agent")
 PROBE_TYPES = ("next-edition", "page-change", "none")
+UPDATE_KEYS = ("source", "changes", "evidence_url", "verified_by")
 UPDATABLE = ("edition", "status", "url", "items", "probe")  # the only fields `apply` may change
 SOURCE_KEYS = (
     "id", "name", "kind", "edition", "status", "url", "official_domains", "applies_to",
@@ -64,6 +68,9 @@ CHANGELOG_KEYS = ("date", "source", "change", "verified_by")
 MAX_ITEMS = 50
 MAX_ITEM_LENGTH = 200
 MAX_TEXT_LENGTH = 300
+MAX_URL_LENGTH = 2048
+MAX_CHANGE_LENGTH = 1000
+MAX_VERIFIED_BY_LENGTH = 200
 FETCH_TIMEOUT = 10  # seconds
 MAX_PAGE_BYTES = 4_000_000
 USER_AGENT = "sharron-refcheck"
@@ -117,11 +124,27 @@ class Page:
 # ---------------------------------------------------------------- fetching
 
 
-def fetch_url(url: str) -> Page:
-    """GET url. An HTTP error returns its status as a Page; a network error raises FetchError."""
+class _OfficialRedirects(urllib.request.HTTPRedirectHandler):
+    """Refuse a redirect hop that is not https on one of the official domains, before its body is read."""
+
+    def __init__(self, domains: list[str]) -> None:
+        self.domains = domains
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not _host_is_official(newurl, self.domains):
+            raise FetchError(f"{req.full_url} redirected to {newurl}, which is not https on the official_domains")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def fetch_url(url: str, official_domains: list[str] | None = None) -> Page:
+    """GET url. An HTTP error returns its status as a Page; a network error raises FetchError.
+
+    With official_domains, a redirect that leaves them or leaves https raises FetchError at the hop.
+    """
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    opener = urllib.request.build_opener(_OfficialRedirects(official_domains)) if official_domains else urllib.request.build_opener()
     try:
-        with urllib.request.urlopen(request, timeout=FETCH_TIMEOUT) as response:
+        with opener.open(request, timeout=FETCH_TIMEOUT) as response:
             body = response.read(MAX_PAGE_BYTES)
             charset = response.headers.get_content_charset() or "utf-8"
             return Page(response.status, response.geturl(), body.decode(charset, errors="replace"))
@@ -137,12 +160,16 @@ _SKIPPED_TAGS = ("script", "style", "title")  # <title> too: some sites stream i
 
 
 class _TextExtractor(HTMLParser):
-    """Collect the text outside <script>, <style> and <title>."""
+    """Collect the text outside <script>, <style> and <title>.
+
+    An element that is never closed does not hide the rest of the document: its text is counted at the end.
+    """
 
     def __init__(self) -> None:
         super().__init__()
         self.parts: list[str] = []
         self._skipping = 0
+        self._skipped: list[str] = []
 
     def handle_starttag(self, tag, attrs):
         if tag in _SKIPPED_TAGS:
@@ -151,10 +178,20 @@ class _TextExtractor(HTMLParser):
     def handle_endtag(self, tag):
         if tag in _SKIPPED_TAGS and self._skipping:
             self._skipping -= 1
+            if not self._skipping:
+                self._skipped.clear()
 
     def handle_data(self, data):
-        if not self._skipping:
-            self.parts.append(data)
+        (self._skipped if self._skipping else self.parts).append(data)
+
+    def close(self):
+        super().close()
+        if self._skipping:  # unclosed: count what followed the opening tag
+            if self.cdata_elem and self.rawdata:  # older parsers keep the rest of an unclosed script or style here
+                self._skipped.append(self.rawdata)
+            self.parts.extend(self._skipped)
+            self._skipping = 0
+            self._skipped.clear()
 
 
 def fingerprint(html_text: str) -> str:
@@ -195,6 +232,8 @@ def _host_is_official(url: str, domains: list[str]) -> bool:
 def _check_url(url: object, domains: list[str], what: str) -> str:
     if not isinstance(url, str) or any(ch.isspace() or unicodedata.category(ch) in ("Cc", "Cf") for ch in url):
         raise RefError(f"{what} must be a URL without spaces or control characters")
+    if len(url) > MAX_URL_LENGTH:
+        raise RefError(f"{what} must be at most {MAX_URL_LENGTH} characters")
     if not _host_is_official(url, domains):
         raise RefError(f"{what} {url!r} must be https on one of the official_domains ({', '.join(domains)})")
     return url
@@ -261,8 +300,8 @@ def _validate_changelog_entry(entry: object, index: int) -> None:
         raise RefError(f"changelog[{index}] must have exactly: {', '.join(CHANGELOG_KEYS)}")
     if not isinstance(entry["date"], str) or not _DATE_RE.fullmatch(entry["date"]):
         raise RefError(f"changelog[{index}].date must be YYYY-MM-DD text")
-    for key in ("source", "change", "verified_by"):
-        _plain_text(entry[key], f"changelog[{index}].{key}")
+    for key, limit in (("source", MAX_TEXT_LENGTH), ("change", MAX_CHANGE_LENGTH), ("verified_by", MAX_VERIFIED_BY_LENGTH)):
+        _plain_text(entry[key], f"changelog[{index}].{key}", limit)
 
 
 def validate_references(data: object) -> dict:
@@ -356,14 +395,25 @@ def _state_path(skill_dir: Path) -> Path:
 
 
 def load_state(skill_dir: Path) -> dict:
-    """state/refcheck.json as {id: {"checked_at", "fingerprint", "pending"}}; missing or damaged means empty."""
+    """state/refcheck.json as {id: {"checked_at", "fingerprint", "pending"}}; a missing file is empty.
+
+    A file that exists but is damaged raises RefError rather than reading as empty, which would lose the
+    pending changes without a word; nothing overwrites it.
+    """
+    path = _state_path(skill_dir)
     try:
-        state = json.loads(_state_path(skill_dir).read_text(encoding="utf-8"))
-    except (OSError, ValueError):
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
         return {}
-    if not isinstance(state, dict):
-        return {}
-    return {key: value for key, value in state.items() if isinstance(value, dict)}
+    except (OSError, UnicodeDecodeError) as error:
+        raise RefError(f"{STATE_FILE} cannot be read ({error}); fix or delete it") from error
+    try:
+        state = json.loads(text)
+    except ValueError as error:
+        raise RefError(f"{STATE_FILE} is damaged ({error}); fix or delete it") from error
+    if not isinstance(state, dict) or not all(isinstance(value, dict) for value in state.values()):
+        raise RefError(f"{STATE_FILE} is damaged (it must map source ids to objects); fix or delete it")
+    return state
 
 
 def _save_state(skill_dir: Path, state: dict) -> None:
@@ -436,14 +486,17 @@ def check(skill_dir: Path, *, now: datetime, fetch: Callable[[str], Page] = fetc
     data = load_references(skill_dir / REFERENCES_FILE)
     with datasync.file_lock(skill_dir, LOCK_NAME):
         state = load_state(skill_dir)
+    snapshot = state
     checked, errors, results = [], [], {}
     for source in due_sources(data, state, now, force):  # the network work runs outside the lock
         entry = dict(state.get(source["id"], {}))
+        # the default fetcher also refuses redirects off the source's domains; an injected one sets its own policy
+        fetcher = functools.partial(fetch_url, official_domains=source["official_domains"]) if fetch is fetch_url else fetch
         try:
             if source["probe"]["type"] == "next-edition":
-                pending = _probe_next_edition(source, fetch, now)
+                pending = _probe_next_edition(source, fetcher, now)
             else:
-                pending = _probe_page_change(source, entry, fetch, now)
+                pending = _probe_page_change(source, entry, fetcher, now)
         except FetchError as error:
             errors.append({"source": source["id"], "error": str(error)})
             continue
@@ -452,9 +505,13 @@ def check(skill_dir: Path, *, now: datetime, fetch: Callable[[str], Page] = fetc
         entry.setdefault("fingerprint", None)
         results[source["id"]] = entry
     with datasync.file_lock(skill_dir, LOCK_NAME):
-        state = load_state(skill_dir)  # another run may have written meanwhile; merge only what this run probed
-        state.update(results)
-        if results:
+        state = load_state(skill_dir)
+        # Compare and swap per source: another run (or apply, or dismiss) may have changed an entry while this
+        # run was probing it. This run's result was computed from the snapshot, so it is stored only when the
+        # entry is still what the snapshot saw; otherwise the newer state wins.
+        stored = {sid: entry for sid, entry in results.items() if state.get(sid) == snapshot.get(sid)}
+        if stored:
+            state.update(stored)
             _save_state(skill_dir, state)
     changes = [{"source": s["id"], **state[s["id"]]["pending"]} for s in data["sources"] if state.get(s["id"], {}).get("pending")]
     return {"checked": checked, "changes": changes, "errors": errors}
@@ -503,13 +560,15 @@ def _validated_changes(update: object, data: dict) -> tuple[dict, dict, str]:
     """Check an update against the list and return (source, changes, verified_by)."""
     if not isinstance(update, dict) or not isinstance(update.get("changes"), dict):
         raise RefError("an update is an object with source, changes, evidence_url and verified_by")
+    if set(update) - set(UPDATE_KEYS):
+        raise RefError(f"an update has only these keys: {', '.join(UPDATE_KEYS)} (unknown: {', '.join(sorted(set(update) - set(UPDATE_KEYS)))})")
     source = _find_source(data, update.get("source"))
     changes = update["changes"]
     if not changes or not set(changes) <= set(UPDATABLE):
         raise RefError(f"an update may only change {', '.join(UPDATABLE)} (got {', '.join(sorted(changes)) or 'nothing'})")
     domains = source["official_domains"]
     _check_url(update.get("evidence_url"), domains, "evidence_url")
-    verified_by = _plain_text(update.get("verified_by"), "verified_by", 200)
+    verified_by = _plain_text(update.get("verified_by"), "verified_by", MAX_VERIFIED_BY_LENGTH)
     try:
         _validate_source({**source, **changes}, 0)
     except RefError as error:
@@ -532,10 +591,14 @@ def apply_update(skill_dir: Path, update: dict, *, now: datetime) -> dict:
         for field in UPDATABLE:
             if field in changes:
                 source[field] = changes[field]
-        change = "; ".join(parts)
+        change = _plain_text("; ".join(parts), "the changelog text of this update", MAX_CHANGE_LENGTH)
         data["changelog"].append({"date": now.date().isoformat(), "source": source["id"], "change": change, "verified_by": verified_by})
+        try:
+            validate_references(data)  # the same validator as load_references, on the whole new list, before anything is written
+        except RefError as error:
+            raise RefError(f"the updated list would be invalid: {error}") from error
+        state = load_state(skill_dir)  # a damaged state file stops the update before the list is written
         datasync.write_atomic(path, render_references(data))
-        state = load_state(skill_dir)
         _resolve_pending(state, source["id"], now)
         _save_state(skill_dir, state)
     result = datasync.sync(skill_dir, REFERENCES_FILE, COMMIT_MESSAGE)  # after the lock, so a slow push does not hold it

@@ -296,3 +296,159 @@ def test_fetch_url_returns_http_errors_and_raises_on_network_errors():
         server.server_close()
     with pytest.raises(refcheck.FetchError):
         refcheck.fetch_url(url)  # the port is closed now
+
+
+# ---------------------------------------------------------------- fix round 1
+
+
+def test_a_run_never_overwrites_a_change_dismissed_while_it_probed(tmp_path):
+    skill = refs_skill(tmp_path)
+    refcheck.check(skill, now=NOW, fetch=fake_fetch(page("<p>v1</p>")), force=True)
+
+    def slow_run_a(url):  # while run A is probing, run B detects v2 and the change is dismissed
+        if url == MCP_URL:
+            refcheck.check(skill, now=NOW + timedelta(days=2), fetch=fake_fetch(page("<p>v2</p>")))
+            refcheck.dismiss(skill, "owasp-mcp", now=NOW + timedelta(days=2, minutes=1))
+        return refcheck.Page(200, url, "<p>v2</p>") if url == MCP_URL else refcheck.Page(404, url, "")
+
+    result = refcheck.check(skill, now=NOW + timedelta(days=2, seconds=5), fetch=slow_run_a)
+    assert result["changes"] == []
+    state = refcheck.load_state(skill)["owasp-mcp"]
+    assert state["pending"] is None and state["fingerprint"] == refcheck.fingerprint("<p>v2</p>")
+
+
+def test_a_run_never_erases_a_change_another_run_detected(tmp_path):
+    skill = refs_skill(tmp_path)
+    refcheck.check(skill, now=NOW, fetch=fake_fetch(page("<p>v1</p>")), force=True)
+
+    def stale_run_a(url):  # run A sees the old page while run B detects v2 and stores it as pending
+        if url == MCP_URL:
+            refcheck.check(skill, now=NOW + timedelta(days=2), fetch=fake_fetch(page("<p>v2</p>")))
+        return refcheck.Page(200, url, "<p>v1</p>") if url == MCP_URL else refcheck.Page(404, url, "")
+
+    result = refcheck.check(skill, now=NOW + timedelta(days=2, seconds=5), fetch=stale_run_a)
+    assert [(c["source"], c["fingerprint"]) for c in result["changes"]] == [("owasp-mcp", refcheck.fingerprint("<p>v2</p>"))]
+    assert refcheck.load_state(skill)["owasp-mcp"]["pending"]["fingerprint"] == refcheck.fingerprint("<p>v2</p>")
+
+
+def test_a_page_change_source_redirected_off_domain_is_an_error(tmp_path):
+    skill = refs_skill(tmp_path)
+    elsewhere = {MCP_URL: refcheck.Page(200, "https://evil.example/owasp", "<p>x</p>")}
+    result = refcheck.check(skill, now=NOW, fetch=fake_fetch(elsewhere), force=True)
+    assert [e["source"] for e in result["errors"]] == ["owasp-mcp"] and "official_domains" in result["errors"][0]["error"]
+    assert "owasp-mcp" not in refcheck.load_state(skill)
+
+
+def test_a_next_edition_redirected_to_a_second_official_domain_is_found(tmp_path):
+    data = json.loads(json.dumps(REFS))
+    data["sources"][0]["official_domains"] = ["owasp.org", "owasp.github.io"]
+    skill = make_skill(tmp_path)
+    (skill / "security-references.toml").write_text(refcheck.render_references(data), encoding="utf-8")
+    new = "https://owasp.org/Top10/2026/"
+    moved = {new: refcheck.Page(200, "https://owasp.github.io/Top10/2026/", "Top 10 2026")}
+    result = refcheck.check(skill, now=NOW, fetch=fake_fetch({**page("x"), **moved}), force=True)
+    [change] = [c for c in result["changes"] if c["source"] == "owasp-top10"]
+    assert change["candidate"] == "2026"
+
+
+@pytest.mark.parametrize("target,accepted", [
+    ("https://owasp.org/x", True),
+    ("https://top10.owasp.org/2026", True),
+    ("https://owasp.github.io/x", False),
+    ("https://owasp.org.evil.example/x", False),
+    ("http://owasp.org/x", False),
+])
+def test_the_redirect_handler_allows_only_https_on_the_official_domains(target, accepted):
+    import urllib.request
+
+    handler = refcheck._OfficialRedirects(["owasp.org"])
+    request = urllib.request.Request("https://owasp.org/start")
+    if accepted:
+        assert handler.redirect_request(request, None, 302, "Found", {}, target).full_url == target
+    else:
+        with pytest.raises(refcheck.FetchError, match="official_domains"):
+            handler.redirect_request(request, None, 302, "Found", {}, target)
+
+
+def test_fetch_url_refuses_a_redirect_before_following_it():
+    import http.server
+    import threading
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path == "/start":
+                self.send_response(302)
+                self.send_header("Location", f"http://127.0.0.1:{self.server.server_port}/end")
+                self.end_headers()
+            else:
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b"landed")
+
+        def log_message(self, *args):
+            pass
+
+    server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    url = f"http://127.0.0.1:{server.server_port}/start"
+    try:
+        assert refcheck.fetch_url(url).text == "landed"  # no policy: the redirect is followed
+        with pytest.raises(refcheck.FetchError, match="not https"):
+            refcheck.fetch_url(url, official_domains=["127.0.0.1"])
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_apply_validates_the_whole_new_list_before_writing(tmp_path):
+    skill = refs_skill(tmp_path)
+    before = (skill / "security-references.toml").read_text()
+    too_long = {**UPDATE, "changes": {"url": "https://owasp.org/" + "a" * 2100}}
+    with pytest.raises(refcheck.RefError, match="at most 2048"):
+        refcheck.apply_update(skill, too_long, now=NOW)
+    with pytest.raises(refcheck.RefError, match="verified_by"):
+        refcheck.apply_update(skill, {**UPDATE, "verified_by": "v" * 201}, now=NOW)
+    with pytest.raises(refcheck.RefError, match="changelog text"):
+        refcheck.apply_update(skill, {**UPDATE, "changes": {"probe": {"type": "none"}, "items": ["i"] * 3,
+                                                           "url": "https://owasp.org/" + "b" * 1990}}, now=NOW)
+    assert (skill / "security-references.toml").read_text() == before
+
+
+def test_load_references_rejects_an_oversized_changelog_entry(tmp_path):
+    data = json.loads(json.dumps(REFS))
+    data["changelog"][0]["change"] = "c" * 1001
+    path = tmp_path / "refs.toml"
+    path.write_text(refcheck.render_references(data), encoding="utf-8")
+    with pytest.raises(refcheck.RefError, match="changelog"):
+        refcheck.load_references(path)
+
+
+def test_an_update_with_an_unknown_top_level_key_is_rejected(tmp_path):
+    skill = refs_skill(tmp_path)
+    with pytest.raises(refcheck.RefError, match="unknown: note"):
+        refcheck.apply_update(skill, {**UPDATE, "note": "hi"}, now=NOW)
+
+
+def test_a_damaged_state_file_is_reported_and_left_alone(tmp_path, capsys):
+    skill = refs_skill(tmp_path)
+    (skill / "state").mkdir()
+    state = skill / "state/refcheck.json"
+    state.write_text('{"owasp-mcp": {"pending": ', encoding="utf-8")
+    with pytest.raises(refcheck.RefError, match="damaged"):
+        refcheck.check(skill, now=NOW, fetch=fake_fetch(page("x")), force=True)
+    assert refcheck.main(["--skill-dir", str(skill), "check"]) == 1
+    assert capsys.readouterr().err.startswith("refcheck.py: ") and state.read_text() == '{"owasp-mcp": {"pending": '
+    before = (skill / "security-references.toml").read_text()
+    with pytest.raises(refcheck.RefError, match="damaged"):
+        refcheck.apply_update(skill, UPDATE, now=NOW)  # stops before the list is written
+    assert (skill / "security-references.toml").read_text() == before
+    state.write_text('["not", "an", "object"]', encoding="utf-8")
+    with pytest.raises(refcheck.RefError, match="damaged"):
+        refcheck.dismiss(skill, "owasp-mcp", now=NOW)
+
+
+@pytest.mark.parametrize("opener", ["<title>Oops", "<script>var x = 1;", "<style>p {"])
+def test_an_unclosed_skipped_element_does_not_hide_the_rest_of_the_page(opener):
+    intro = "<p>Intro</p>"
+    assert refcheck.fingerprint(f"{intro}{opener}<p>Body one</p>") != refcheck.fingerprint(f"{intro}{opener}<p>Body two</p>")
+    assert refcheck.fingerprint(f"{intro}{opener}<p>Body one</p>") != refcheck.fingerprint(intro)

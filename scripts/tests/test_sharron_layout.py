@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from skillops.catalog import load_catalog
+from skillops.frontmatter import parse_frontmatter
 from sharron_support import SKILL_SRC, load
 
 REPO = Path(__file__).resolve().parents[2]
@@ -119,3 +120,12 @@ def test_every_role_has_a_prompt_with_five_parts():
         text = (SKILL_SRC / "roles" / f"{role}.md").read_text(encoding="utf-8")
         assert [h for h in ROLE_HEADINGS if h in text] == ROLE_HEADINGS, role
         assert len(text.splitlines()) <= 80, role
+
+
+def test_skill_md_is_short_and_triggers_only_on_sharron():
+    text = (SKILL_SRC / "SKILL.md").read_text(encoding="utf-8")
+    fm, body = parse_frontmatter(text)
+    assert len(text.splitlines()) <= 200
+    assert "/workflow:sharron" in fm["description"] and "Do not use" in fm["description"]
+    for script in ["memory_guard.py", "refcheck.py", "detect_stack.py", "finance.py", "trace.py", "config.py", "datasync.py"]:
+        assert f"run.sh {script}" in body, script

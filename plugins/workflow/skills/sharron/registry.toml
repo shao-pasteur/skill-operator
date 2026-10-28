@@ -1,0 +1,65 @@
+# Service list: the skills and command-line tools that sharron may give to its subagents.
+# Only you add or change entries here; listing a skill is your approval to install it (when
+# auto_install is on). scripts/detect_stack.py reads this file and checks it on every load.
+#
+# [[skills]]                  one entry per skill
+#   name      the skill's folder name
+#   repo      GitHub repo that provides it, as owner/name
+#   plugin    plugin that contains it, when the repo is a marketplace (optional)
+#   status    active | disabled
+#   roles     roles that use it, or ["*"]
+#   playbooks playbooks that use it, or ["*"]
+#   domains   domains that use it (kebab-case), or ["*"]
+#   tags      coding skills only: every tag must match the task; [] applies to every task
+#             (the vocabulary is in references/tags.md)
+#   min_tier  T1 | T2 | T3: the lowest model tier the skill is given to
+#   ref       the pinned version: a 40-character commit SHA, or "self" for a skill that ships
+#             in the same marketplace as sharron. It changes only when you change it.
+#
+# [skills.install]            one command per platform, written by you and pinned to ref
+#   claude-code, codex, copilot, cursor, work, hybrid = "<command>"
+#
+# [[tools]]                   command-line tools the security role runs (they are not skills)
+#   name        the tool's name
+#   check       command that prints the installed version
+#   install     pinned install command (may be empty)
+#   run         how the security role invokes it
+#   sends_data  true when the tool uploads data to an outside service
+#
+# Write commands as TOML literal strings ('...'), so backslashes and double quotes stay as typed.
+
+schema_version = 1
+
+[[skills]]
+name = "research-method"
+repo = "shao-pasteur/skill-operator"
+plugin = "research"
+status = "active"
+roles = ["researcher"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T1"
+ref = "self"
+
+[skills.install]
+claude-code = 'claude plugin install research@skill-operator'
+codex = 'codex plugin add research@skill-operator'
+copilot = 'copilot plugin install research@skill-operator'
+
+[[skills]]
+name = "verify-evidence"
+repo = "shao-pasteur/skill-operator"
+plugin = "research"
+status = "active"
+roles = ["verifier"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T1"
+ref = "self"
+
+[skills.install]
+claude-code = 'claude plugin install research@skill-operator'
+codex = 'codex plugin add research@skill-operator'
+copilot = 'copilot plugin install research@skill-operator'

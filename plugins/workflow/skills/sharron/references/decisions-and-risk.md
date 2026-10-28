@@ -23,7 +23,7 @@ Contents:
 Rules:
 
 - The level is the higher of the action's risk level and the decision type's level. The higher level wins.
-- Record each decision's level and the rule behind it. Each decision goes into the task's trace (`echo '<json>' | sh <skill>/scripts/run.sh trace.py append --task-id <id> --kind decision`), and L2 decisions are summarized at the end of the reply.
+- Record each decision's level and the rule behind it, in two places. In the task's `MEMORY.md` entry, add a line `- 決策：L<n> — …（依據：…）`. In the task's trace, run `echo '<json>' | sh <skill>/scripts/run.sh trace.py append --task-id <id> --kind decision`. L2 decisions are also summarized at the end of the reply.
 - An independent review for L3 means a reviewer subagent that did not produce the work (see `delegation.md`). The user's confirmation still decides.
 - There are no timeouts. An unanswered L3 or L4 waits, and the task's status becomes waiting (write a checkpoint, see `budget-and-models.md`).
 - L3 asks for a one-line confirmation because a conversation cannot run a "notify, then a 10-minute veto window".
@@ -35,8 +35,10 @@ Rules:
 One line, then stop and wait:
 
 ```
-需要你確認：<要做的事，含對象與金額／數量>（風險 R3：<一句話原因>）。要執行嗎？（回「好」或說明要改的地方）
+需要你確認：<要做的事，含對象與金額／數量>（原因：<一句話>）。要執行嗎？（回「好」或說明要改的地方）
 ```
+
+The reason names the actual trigger: an R3 action, more than 5 subagents or parallel T3, a difficulty 4–5 plan, loosening a safeguard, an eval run, or a Rule of Two exception. Write `風險 R3：` in front of the reason only when the trigger is an R3 action.
 
 For an overrun:
 
@@ -67,7 +69,7 @@ Used for every L4 decision. Write it in Traditional Chinese. It has six parts: b
 - 風險與成本：
   - A：風險 …／費用 …／可否反悔：…
   - B：風險 …／費用 …／可否反悔：…
-- 期限：… ；過了期限會 …（沒有逾時自動執行，沒回覆就是繼續等）
+- 期限：…（若有）；過了期限仍未回覆，任務維持等待，不會自動執行
 - 依據：…（來源與信心標示：已查證／推論／猜測）
 ```
 

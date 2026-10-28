@@ -25,7 +25,7 @@ Each playbook id is the value passed to `finance.py --playbook` and to `config.P
 | `coding` | Scripts, automation, project work | engineer, reviewer | One engineer works sequentially in the workspace and follows the project's own conventions (its `AGENTS.md`, test command, linters); documentation lookups go through a researcher; a reviewer checks the diff; the engineer deploys only on explicit request. |
 | `settings-help` | Showing or changing settings, usage help, budget status, paused tasks | sharron | See [Settings and help](#settings-and-help). No intake, no `MEMORY.md` entry, no ledger row. |
 | `custom` | Nothing above fits | By design | See [Custom playbooks](#custom-playbooks). |
-| `maintenance` | Background reference updates | By the update procedure | Started by the security reference check, never by a user request. No intake. Its usage is the only source of ledger rows for this playbook, and its task ids start with `m-`. |
+| `maintenance` | Background reference updates | By the update procedure | Started by the security reference check, never by a user request. No intake. A `maintenance` ledger row is written only for background reference updates, from the subagents' usage; its task ids start with `m-`. |
 
 Notes:
 

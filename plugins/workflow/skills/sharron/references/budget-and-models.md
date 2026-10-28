@@ -30,7 +30,7 @@ Choosing:
 
 Role defaults are in `delegation.md` (Roles and tiers). A rule such as "T3 for R3 and above" can raise a role's tier but the config default is the starting point.
 
-**Single-model platforms** (`work`): every tier maps to the same model. Tiers still decide scope and effort. On such a platform the "one tier up" rung of the ladder changes only the fresh subagent, not the model, so say in `previous_attempts` that the model was the same.
+**Single-model platforms** (`work`): every tier maps to the same model. Tiers still decide scope and effort. On such a platform the "one tier up" rung of the ladder cannot change the model. It still runs, as a fresh subagent with a rewritten brief that includes the analysis of the earlier failure in `previous_attempts`.
 
 ## Difficulty and effort
 
@@ -56,7 +56,7 @@ Effort follows from difficulty:
 
 More than 5 subagents needs a confirmation first (L3). At most `max_parallel_subagents` (default 3) run at once.
 
-The budget for the task comes from `sh <skill>/scripts/run.sh finance.py suggest --playbook <id> --difficulty <1-5>`. It prints the amount in equivalent USD with its basis: the 80th percentile of similar past tasks when there are at least 5, a fit across difficulties when there are at least 10 on the playbook, otherwise the config default for the difficulty.
+The budget for the task comes from `sh <skill>/scripts/run.sh finance.py suggest --playbook <id> --difficulty <1-5>`. It prints the amount in equivalent USD with its basis. The script uses only measured ledger rows of successful tasks (outcome `done`, every checked claim confirmed, no correction) on the same platform: the 80th percentile of similar past tasks when there are at least 5, a fit across difficulties when there are at least 10 on the playbook, otherwise the config default for the difficulty.
 
 ## Escalation ladder
 
@@ -68,6 +68,8 @@ When a unit fails (a `failed` or `partial` report, a missed done-when, repeated 
 4. Ask the user (L4): a decision card with what was tried, the diagnosis and the options.
 
 Reaching `max_tool_calls` ends a unit with a partial report, and that counts as a failure here. Never retry with the same subagent.
+
+A `blocked` report is not a failure and is not retried. The unit could not continue for a reason a retry will not remove (it needs an answer, an approval or access). Read `not_done` and `risks`, then either settle it through the decision gate (an approval is an L3 or L4 matter, see `decisions-and-risk.md`) or, when only the user can unblock it, ask the user and pause the task with a checkpoint (see below). Retry only after the blocker is gone, with a fresh subagent and the answer in `decisions`.
 
 ## Overrun check
 
@@ -83,7 +85,7 @@ The script prints the measured cost, the limit (budget times `overrun_factor`, d
 2. Ask whether to continue, as an L3 confirmation (see `decisions-and-risk.md`).
 3. If the user says yes, carry on and note the decision. If not, write a checkpoint and stop.
 
-On other platforms, use whatever usage the platform reports. If it reports none, count the subagents against the effort table instead.
+On other platforms, use whatever usage the platform reports. When usage cannot be measured, the overrun check is skipped: the ledger row for the task is recorded with cost `unknown`, and no overrun is claimed.
 
 Pass `--agents <ids>` to measure only named subagent transcripts, or `--exclude-agents <ids>` to leave some out (for example a maintenance run that overlaps the task).
 

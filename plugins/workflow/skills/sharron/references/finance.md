@@ -106,7 +106,7 @@ The script prints `{"committed", "pushed", "reason", "detail", "notice"}`. A `re
 Safeguards, so nothing else is published by accident:
 
 - Only the three data files are accepted. The message must start with `chore(sharron): ` and contain `[skip ci]`, which keeps data-only pushes from running CI and the release workflow.
-- Commits with a pathspec, so only that one file is committed even when other changes are staged. Never uses `--no-verify`: if the repository's pre-commit check fails, the row stays uncommitted (`commit-failed`) and the next sync commits it together with its own row. It does not commit while HEAD is detached or a rebase, merge, cherry-pick, revert or bisect is in progress.
+- Commits with a pathspec, so only that one file is committed even when other changes are staged. Never uses `--no-verify`: if the repository's pre-commit check fails, the data stays uncommitted (`commit-failed`). For the ledger, the next sync commits it together with its own row; the other two files wait for the user. It does not commit while HEAD is detached or a rebase, merge, cherry-pick, revert or bisect is in progress.
 - Pushes only from the default branch, with an upstream set, and only when every outgoing commit is a sharron data commit that touches nothing but the three data files. A fetch or push that takes more than 2 minutes counts as failed.
 - When the remote is ahead, it rebases onto it (the working tree must be clean). The ledger is append-only, so a conflict in `ledger/costs.md` is resolved by keeping both sets of rows. Any other conflict aborts the rebase, skips the push and is reported.
 - Runs `memory_guard.py precommit` before every push and refuses to push when `MEMORY.md` is staged or in an outgoing commit (see [`memory.md`](memory.md#git-safety)).
@@ -114,25 +114,28 @@ Safeguards, so nothing else is published by accident:
 
 ### Repeating a sync that did not finish
 
+sharron never commits a change to `registry.toml` or `security-references.toml` that it did not make in this task.
+
 - **The ledger** needs no extra step: the next `record` or `correct` commits an older uncommitted row together with its own, and its sync pushes any older outgoing ledger commit.
-- **`security-references.toml` and `registry.toml`** are repeated by a stateless check at step 11, after `finance.py record`, with nothing stored in `MEMORY.md`. It runs on the sharron skill clone and is skipped when `git -C <skill> rev-parse --is-inside-work-tree` fails (a cache copy, reason `not-a-clone`). For each of the two files:
-  1. The file differs from HEAD: `git -C <skill> diff --quiet HEAD -- <file>` exits 1.
-  2. Or an outgoing commit touches it: `git -C <skill> log --format=%h @{upstream}..HEAD -- <file>` prints a line. If there is no upstream the command fails; then there is nothing outgoing to find.
-  3. If either is true, run `sh <skill>/scripts/run.sh datasync.py sync <file> --message "<that file's message from the table above>"`.
-- `sync` with nothing to commit still goes on to the push: when the file matches HEAD it skips the commit, then fetches and pushes the outgoing commits under the usual safeguards (default branch, upstream set, every outgoing commit a data commit). So an earlier commit that was left unpushed is retried. When nothing is outgoing it returns `committed` false, `pushed` false and no `reason`.
+- **`security-references.toml` and `registry.toml`, in the task that changed them.** The change is committed by the `sync` that follows sharron's own `refcheck.py apply`, or a registry edit the user explicitly asked for. If that `sync` does not commit (`commit-failed`, for example during the user's rebase), sharron does not try again. The change waits for the user, and the reply line says so and gives the command (see Reply lines).
+- **Across tasks (a stateless check at step 11),** after `finance.py record`, with nothing stored in `MEMORY.md`. It only retries pushing commits that already exist. It runs on the sharron skill clone and is skipped when `git -C <skill> rev-parse --is-inside-work-tree` fails (a cache copy, reason `not-a-clone`). For each of the two files:
+  1. Is there an uncommitted diff? `git -C <skill> diff --quiet HEAD -- <file>` exits 1. If so, **do not run `sync`**, because it would commit that diff. Leave the file alone and mention it once in the reply: 「registry.toml 有未 commit 的修改，sharron 不會替你 commit」 (「security-references.toml 有未 commit 的修改，…」 for the other file). It is the user's edit, or a change whose commit failed earlier.
+  2. Otherwise, does an outgoing commit touch it? `git -C <skill> log --format=%h @{upstream}..HEAD -- <file>` prints a line. If there is no upstream the command fails; then there is nothing outgoing to find.
+  3. If so, run `sh <skill>/scripts/run.sh datasync.py sync <file> --message "<that file's message from the table above>"`. The file matches HEAD, so `sync` skips the commit, then fetches and pushes the outgoing commits under the usual safeguards (default branch, upstream set, every outgoing commit a data commit). When nothing is outgoing it returns `committed` false, `pushed` false and no `reason`.
 - One `sync` pushes every outgoing data commit, so the second file's check then finds nothing to do.
-- Say a reply line only when the call committed or pushed something. A call that stops with the same reason and changed nothing is silent.
+- Before sharron writes either file (`refcheck.py apply`, or a registry edit), run the diff test of step 1. If the file already has an uncommitted diff, do not write: the commit that follows would carry that diff too. Tell the user, and leave a pending reference change pending.
+- Say a reply line only when a call committed or pushed something. A call that stops with the same reason and changed nothing is silent.
 
 ## Reply lines
 
-Say one line, in Traditional Chinese, in the reply (step 10). Pick it from the sync result. The lines below are for the ledger. For `security-references.toml` write 「資安參考清單」, and for `registry.toml` write 「登錄表」, in place of 「帳本」. Five lines promise a retry, and the ledger's retry (the next `record`) differs from the other files' retry (the step-11 check above), so the last column gives their wording.
+Say one line, in Traditional Chinese, in the reply (step 10). Pick it from the sync result. The lines below are for the ledger. For `security-references.toml` write 「資安參考清單」, and for `registry.toml` write 「登錄表」, in place of 「帳本」. Five lines promise a retry. The ledger's retry (the next `record`) differs from the other files' (a push-only check at step 11, above), so the last column gives their wording.
 
 | Result | Ledger line | Retry wording for `registry.toml` and `security-references.toml` |
 |---|---|---|
 | `pushed` is true | 「帳本已自動 commit 並 push」 | Same, with the file name replaced. |
 | `reason` is null and `pushed` is false | Nothing to commit or push. Say nothing. | Same. |
 | `not-a-clone` | 「這份 sharron 不是 git 複本，帳本只留在這裡，不會進到 repo；想保留的話，請從本機的 clone 安裝。」 Say it only when `notice` is not null; the script gives it once. | Same, with the file name replaced. |
-| `commit-failed` | 「帳本已寫入檔案，但 commit 沒成功（<detail>）；下次執行時會連同新的一列一起 commit。」 When `detail` names a git operation in progress (a rebase, a merge, a detached HEAD), say so in Chinese and add that the row is committed once the operation ends. | 「<檔案>已寫入，但 commit 沒成功（<detail>）；之後有任務收尾時會再試。」 |
+| `commit-failed` | 「帳本已寫入檔案，但 commit 沒成功（<detail>）；下次執行時會連同新的一列一起 commit。」 When `detail` names a git operation in progress (a rebase, a merge, a detached HEAD), say so in Chinese and add that the row is committed once the operation ends. | 「<檔案>已寫入，但 commit 沒成功（<detail>）；sharron 不會自己再 commit。等你處理完（例如結束 rebase）後，請執行：git -C <sharron 資料夾> commit -m "<該檔案的 commit 訊息>" -- <檔案>」 Use the message from the table above. After that commit, a later step-11 check pushes it. |
 | `not-on-default-branch` | 「帳本已 commit，但目前不在預設分支，沒有自動 push；會隨你下一次 push 一起送出。」 | Same. |
 | `no-upstream` | 「帳本已 commit，但這個分支沒有設定上游，沒有自動 push；設好上游（例如 git push -u）後，下次就會自動送出。」 | 「…設好上游（例如 git push -u）後，之後有任務收尾時就會自動送出。」 |
 | `fetch-failed` | 「帳本已 commit，但連不上遠端（<detail>），沒有 push；網路恢復後下次會再試。」 | 「…網路恢復後，之後有任務收尾時會再試。」 |
@@ -146,4 +149,4 @@ Other lines:
 
 - `measurement` is `unknown`, or `unpriced_models` is not empty: 「這次的花費無法量測（<原因>），帳本記為 unknown，不會影響預算建議。」 Name a model that needs a price in `[prices]`.
 - A script error on stderr (for example a task id that is already recorded): show the line as it is and say the row was not written.
-- A sync that stops with any reason except `not-a-clone` is repeated later: by the next `record` for the ledger, and by the step-11 check for the other two files (see above).
+- A sync that stops with any reason except `not-a-clone` is repeated later: by the next `record` for the ledger. For the other two files only the push is repeated, by the step-11 check; an uncommitted change waits for the user (see above).

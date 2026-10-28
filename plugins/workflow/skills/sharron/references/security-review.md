@@ -145,13 +145,16 @@ The decision level is L2. Tell the user in one line in the reply (step 10), buil
 資安參考清單已更新：OWASP MCP Top 10 Beta → 正式版
 ```
 
-**5. Repeat a sync that did not finish.** `apply` clears the pending change before it syncs, so the update is written locally even when the sync result is not committed and pushed (for example `commit-failed` or `not-on-default-branch`; the reasons are in [`finance.md`](finance.md#reply-lines)), and `refcheck.py` will not retry it. Say the matching reply line from `finance.md`, using 「資安參考清單」. At step 11 of a later task, the stateless check in [`finance.md`](finance.md#repeating-a-sync-that-did-not-finish) finds `security-references.toml` differing from HEAD, or an outgoing commit that touches it, and runs the sync again with the same message `apply` used:
+**5. When the sync did not finish.** `apply` clears the pending change before it syncs, so the update is written locally even when the sync result is not committed and pushed (for example `commit-failed` or `not-on-default-branch`; the reasons are in [`finance.md`](finance.md#reply-lines)). Say the matching reply line from `finance.md`, using 「資安參考清單」. Two cases:
+
+- **The commit did not happen** (`commit-failed`). sharron does not commit the change later: it is waiting for the user. The reply line says so and gives the `git commit` command to run afterwards, with the message `apply` used.
+- **The commit happened but was not pushed.** At step 11 of a later task, the stateless check in [`finance.md`](finance.md#repeating-a-sync-that-did-not-finish) finds an outgoing commit that touches `security-references.toml` and, only when the file has no uncommitted diff, runs the sync again with the same message. That `sync` pushes and commits nothing:
 
 ```
 sh <skill>/scripts/run.sh datasync.py sync security-references.toml --message "chore(sharron): update security references [skip ci]"
 ```
 
-Nothing is stored in `MEMORY.md` for this. A skill folder that is not a git clone (`not-a-clone`) is the exception: the update stays local, the script says so once, and the check is skipped.
+Before `apply`, run the same diff test (`git -C <skill> diff --quiet HEAD -- security-references.toml`). If the file already has an uncommitted diff that this task did not make, do not apply: the commit would carry it too. Leave the change pending and tell the user. Nothing is stored in `MEMORY.md` for any of this. A skill folder that is not a git clone (`not-a-clone`) is the exception: the update stays local, the script says so once, and the check is skipped.
 
 **6. Record the cost.** The subagents' usage is recorded as a `maintenance` row, with the ids of those subagents (see [`finance.md`](finance.md#measuring-usage)). No row is written when nothing changed and no subagent ran.
 

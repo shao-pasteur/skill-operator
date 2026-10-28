@@ -133,7 +133,7 @@ platform = "<platform>"
 
 sharron edits `registry.toml` only when the user explicitly asks for it in the conversation. The instruction is the approval. It never adds or changes an entry on its own initiative. When a skill outside the registry would help, it suggests the entry in the reply and stops there.
 
-1. Make the edit the user asked for, and nothing else. Keep the comment block at the top. A pinned entry needs a 40-character `ref` and install commands that contain it.
+1. Check first that `registry.toml` has no uncommitted diff (`git -C <skill> diff --quiet HEAD -- registry.toml`, see [`finance.md`](finance.md#repeating-a-sync-that-did-not-finish)). If it has, the commit that follows would carry that diff too: tell the user and do not edit. Then make the edit the user asked for, and nothing else. Keep the comment block at the top. A pinned entry needs a 40-character `ref` and install commands that contain it.
 2. Check the file: `sh <skill>/scripts/run.sh detect_stack.py select --role sharron --playbook research --domain general --tier T1`. It exits 1 with one line when the registry is invalid. If it does, restore the previous text and show the line.
 3. Show the user the diff.
 4. Sync the file like the ledger (see [`finance.md`](finance.md#data-sync)):
@@ -142,4 +142,4 @@ sharron edits `registry.toml` only when the user explicitly asks for it in the c
    sh <skill>/scripts/run.sh datasync.py sync registry.toml --message "chore(sharron): update registry [skip ci]"
    ```
 
-   Say the result with the matching line from `finance.md` → `## Reply lines`, using 「登錄表」 and the retry wording for the other files. A sync that did not finish is repeated by the step-11 check in [`finance.md`](finance.md#repeating-a-sync-that-did-not-finish).
+   Say the result with the matching line from `finance.md` → `## Reply lines`, using 「登錄表」 and the retry wording for the other files. If the sync did not commit, the change waits for the user, and the reply line gives the command. If it committed but did not push, the push is repeated by the step-11 check in [`finance.md`](finance.md#repeating-a-sync-that-did-not-finish).

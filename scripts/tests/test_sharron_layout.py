@@ -93,6 +93,14 @@ REQUIRED_HEADINGS = {
     "references/decisions-and-risk.md": ["## Decision levels", "## Decision card", "## Risk levels", "## Standing orders"],
     "references/budget-and-models.md": ["## Tiers", "## Difficulty and effort", "## Escalation ladder", "## Checkpoints"],
 }
+REQUIRED_HEADINGS.update({
+    "references/finance.md": ["## Measuring usage", "## Ledger", "## Budget suggestions", "## Data sync", "## Reply lines"],
+    "references/registry.md": ["## Registry format", "## Service list", "## Installing a missing skill", "## Recording an install",
+                               "## Editing the registry"],
+    "references/memory.md": ["## Format", "## Rules", "## Git safety", "## Task ids"],
+    "references/security-review.md": ["## When the security role runs", "## Checklist", "## Findings", "## Handling",
+                                      "## Background reference updates"],
+})
 
 
 def test_documents_have_their_required_sections():

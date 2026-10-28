@@ -35,6 +35,26 @@ def test_shipped_security_references():
         assert (s["probe"]["type"] == "none") == (s["edition"] == "live"), s["id"]
 
 
+def test_registry_has_the_default_entries():
+    reg = load("detect_stack").load_registry(SKILL_SRC / "registry.toml")
+    names = {e.name for e in reg.skills}
+    # Controller ruling: upstream ships static-analysis as a plugin, so its three skills are listed by folder name.
+    assert {"research-method", "verify-evidence", "principle-prove-it-works", "principle-fix-root-causes", "tdd", "teach",
+            "taste-skill", "threejs-fundamentals", "obsidian-markdown", "skill-creator", "security-guidance",
+            "codeql", "semgrep", "sarif-parsing", "rust-review", "modern-python", "python-testing-patterns",
+            "golang-security", "golang-project-layout", "k8s-security-policies", "helm-chart-scaffolding",
+            "terraform-test", "bats-testing-patterns"} <= names
+    assert "tw-stock-daily-tracker" not in names
+    assert "static-analysis" not in names and "insecure-defaults" not in names
+    assert {e.name for e in reg.skills if e.status == "disabled"} == {"obsidian-cli", "defuddle"}
+    assert all(e.domains == ("coding",) for e in reg.skills if e.tags)
+    assert len(names) == len(reg.skills)
+    for e in reg.skills:
+        assert e.ref == "self" or all(e.ref in cmd for cmd in e.install.values()), e.name
+    assert [t.name for t in reg.tools] == ["skill-scanner", "skillspector", "agent-scan"]
+    assert [t.name for t in reg.tools if t.sends_data] == ["agent-scan"]
+
+
 REQUIRED_HEADINGS = {
     "references/platforms.md": ["## Detecting the platform", "## Installing skills", "## Verification log"],
 }

@@ -63,3 +63,1494 @@ ref = "self"
 claude-code = 'claude plugin install research@skill-operator'
 codex = 'codex plugin add research@skill-operator'
 copilot = 'copilot plugin install research@skill-operator'
+
+# ---- cursor/plugins @ 99b609a
+# pstack (cursor/plugins), pinned to the commit recorded by the Claude Code install on 2026-10-28.
+
+[[skills]]
+name = "principle-prove-it-works"
+repo = "cursor/plugins"
+plugin = "pstack"
+status = "active"
+roles = ["sharron", "verifier", "reviewer"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T1"
+ref = "99b609a72323b70204eab407c622f436e858e112"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/principle-prove-it-works && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/pstack/skills/principle-prove-it-works" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/principle-prove-it-works" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/principle-prove-it-works && mkdir -p "$HOME/.agents/skills" && cp -R "$d/pstack/skills/principle-prove-it-works" "$HOME/.agents/skills/principle-prove-it-works" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/principle-prove-it-works && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/pstack/skills/principle-prove-it-works" "$HOME/.copilot/skills/principle-prove-it-works" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/principle-prove-it-works && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/pstack/skills/principle-prove-it-works" "$HOME/.cursor/skills/principle-prove-it-works" && rm -rf "$d"'
+
+[[skills]]
+name = "principle-never-block-on-the-human"
+repo = "cursor/plugins"
+plugin = "pstack"
+status = "active"
+roles = ["sharron"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T1"
+ref = "99b609a72323b70204eab407c622f436e858e112"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/principle-never-block-on-the-human && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/pstack/skills/principle-never-block-on-the-human" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/principle-never-block-on-the-human" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/principle-never-block-on-the-human && mkdir -p "$HOME/.agents/skills" && cp -R "$d/pstack/skills/principle-never-block-on-the-human" "$HOME/.agents/skills/principle-never-block-on-the-human" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/principle-never-block-on-the-human && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/pstack/skills/principle-never-block-on-the-human" "$HOME/.copilot/skills/principle-never-block-on-the-human" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/principle-never-block-on-the-human && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/pstack/skills/principle-never-block-on-the-human" "$HOME/.cursor/skills/principle-never-block-on-the-human" && rm -rf "$d"'
+
+[[skills]]
+name = "principle-guard-the-context-window"
+repo = "cursor/plugins"
+plugin = "pstack"
+status = "active"
+roles = ["sharron"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T1"
+ref = "99b609a72323b70204eab407c622f436e858e112"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/principle-guard-the-context-window && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/pstack/skills/principle-guard-the-context-window" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/principle-guard-the-context-window" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/principle-guard-the-context-window && mkdir -p "$HOME/.agents/skills" && cp -R "$d/pstack/skills/principle-guard-the-context-window" "$HOME/.agents/skills/principle-guard-the-context-window" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/principle-guard-the-context-window && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/pstack/skills/principle-guard-the-context-window" "$HOME/.copilot/skills/principle-guard-the-context-window" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/principle-guard-the-context-window && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/pstack/skills/principle-guard-the-context-window" "$HOME/.cursor/skills/principle-guard-the-context-window" && rm -rf "$d"'
+
+# Not installable by single-folder copy: SKILL.md links to sibling skill folders with "../", which a single-folder copy would
+# leave dangling, so this entry has no install commands (spec section 8, item 10).
+[[skills]]
+name = "principle-attack-the-premise"
+repo = "cursor/plugins"
+plugin = "pstack"
+status = "active"
+roles = ["sharron", "diagnostician"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T2"
+ref = "99b609a72323b70204eab407c622f436e858e112"
+
+[[skills]]
+name = "principle-fix-root-causes"
+repo = "cursor/plugins"
+plugin = "pstack"
+status = "active"
+roles = ["diagnostician"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T2"
+ref = "99b609a72323b70204eab407c622f436e858e112"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/principle-fix-root-causes && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/pstack/skills/principle-fix-root-causes" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/principle-fix-root-causes" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/principle-fix-root-causes && mkdir -p "$HOME/.agents/skills" && cp -R "$d/pstack/skills/principle-fix-root-causes" "$HOME/.agents/skills/principle-fix-root-causes" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/principle-fix-root-causes && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/pstack/skills/principle-fix-root-causes" "$HOME/.copilot/skills/principle-fix-root-causes" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/principle-fix-root-causes && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/pstack/skills/principle-fix-root-causes" "$HOME/.cursor/skills/principle-fix-root-causes" && rm -rf "$d"'
+
+[[skills]]
+name = "unslop"
+repo = "cursor/plugins"
+plugin = "pstack"
+status = "active"
+roles = ["writer"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T2"
+ref = "99b609a72323b70204eab407c622f436e858e112"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/unslop && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/pstack/skills/unslop" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/unslop" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/unslop && mkdir -p "$HOME/.agents/skills" && cp -R "$d/pstack/skills/unslop" "$HOME/.agents/skills/unslop" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/unslop && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/pstack/skills/unslop" "$HOME/.copilot/skills/unslop" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/unslop && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/pstack/skills/unslop" "$HOME/.cursor/skills/unslop" && rm -rf "$d"'
+
+[[skills]]
+name = "technical-writing"
+repo = "cursor/plugins"
+plugin = "pstack"
+status = "active"
+roles = ["writer"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T2"
+ref = "99b609a72323b70204eab407c622f436e858e112"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/technical-writing && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/pstack/skills/technical-writing" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/technical-writing" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/technical-writing && mkdir -p "$HOME/.agents/skills" && cp -R "$d/pstack/skills/technical-writing" "$HOME/.agents/skills/technical-writing" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/technical-writing && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/pstack/skills/technical-writing" "$HOME/.copilot/skills/technical-writing" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/technical-writing && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/pstack/skills/technical-writing" "$HOME/.cursor/skills/technical-writing" && rm -rf "$d"'
+
+[[skills]]
+name = "teach"
+repo = "cursor/plugins"
+plugin = "pstack"
+status = "active"
+roles = ["tutor"]
+playbooks = ["*"]
+domains = ["learning"]
+tags = []
+min_tier = "T2"
+ref = "99b609a72323b70204eab407c622f436e858e112"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/teach && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/pstack/skills/teach" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/teach" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/teach && mkdir -p "$HOME/.agents/skills" && cp -R "$d/pstack/skills/teach" "$HOME/.agents/skills/teach" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/teach && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/pstack/skills/teach" "$HOME/.copilot/skills/teach" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/teach && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/pstack/skills/teach" "$HOME/.cursor/skills/teach" && rm -rf "$d"'
+
+[[skills]]
+name = "tdd"
+repo = "cursor/plugins"
+plugin = "pstack"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = []
+min_tier = "T2"
+ref = "99b609a72323b70204eab407c622f436e858e112"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/tdd && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/pstack/skills/tdd" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/tdd" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/tdd && mkdir -p "$HOME/.agents/skills" && cp -R "$d/pstack/skills/tdd" "$HOME/.agents/skills/tdd" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/tdd && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/pstack/skills/tdd" "$HOME/.copilot/skills/tdd" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cursor/plugins.git "$d" && git -C "$d" checkout -q 99b609a72323b70204eab407c622f436e858e112 -- pstack/skills/tdd && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/pstack/skills/tdd" "$HOME/.cursor/skills/tdd" && rm -rf "$d"'
+
+# ---- Leonxlnx/taste-skill @ 12af471
+
+[[skills]]
+name = "taste-skill"
+repo = "Leonxlnx/taste-skill"
+plugin = "taste-skill"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["frontend", "ui-design"]
+min_tier = "T2"
+ref = "12af471f627f866411b4bd785b19646d3672784c"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/Leonxlnx/taste-skill.git "$d" && git -C "$d" checkout -q 12af471f627f866411b4bd785b19646d3672784c -- skills/taste-skill && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/taste-skill" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/taste-skill" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/Leonxlnx/taste-skill.git "$d" && git -C "$d" checkout -q 12af471f627f866411b4bd785b19646d3672784c -- skills/taste-skill && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/taste-skill" "$HOME/.agents/skills/taste-skill" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/Leonxlnx/taste-skill.git "$d" && git -C "$d" checkout -q 12af471f627f866411b4bd785b19646d3672784c -- skills/taste-skill && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/taste-skill" "$HOME/.copilot/skills/taste-skill" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/Leonxlnx/taste-skill.git "$d" && git -C "$d" checkout -q 12af471f627f866411b4bd785b19646d3672784c -- skills/taste-skill && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/taste-skill" "$HOME/.cursor/skills/taste-skill" && rm -rf "$d"'
+
+# ---- CloudAI-X/threejs-skills @ 0e18186
+# CloudAI-X/threejs-skills has no marketplace file, so the entries carry no plugin.
+
+[[skills]]
+name = "threejs-fundamentals"
+repo = "CloudAI-X/threejs-skills"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["frontend", "threejs"]
+min_tier = "T2"
+ref = "0e181866f095b5f06d005133876e926515390d95"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-fundamentals && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/threejs-fundamentals" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/threejs-fundamentals" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-fundamentals && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/threejs-fundamentals" "$HOME/.agents/skills/threejs-fundamentals" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-fundamentals && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/threejs-fundamentals" "$HOME/.copilot/skills/threejs-fundamentals" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-fundamentals && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/threejs-fundamentals" "$HOME/.cursor/skills/threejs-fundamentals" && rm -rf "$d"'
+
+[[skills]]
+name = "threejs-shaders"
+repo = "CloudAI-X/threejs-skills"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["frontend", "threejs"]
+min_tier = "T2"
+ref = "0e181866f095b5f06d005133876e926515390d95"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-shaders && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/threejs-shaders" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/threejs-shaders" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-shaders && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/threejs-shaders" "$HOME/.agents/skills/threejs-shaders" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-shaders && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/threejs-shaders" "$HOME/.copilot/skills/threejs-shaders" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-shaders && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/threejs-shaders" "$HOME/.cursor/skills/threejs-shaders" && rm -rf "$d"'
+
+[[skills]]
+name = "threejs-geometry"
+repo = "CloudAI-X/threejs-skills"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["frontend", "threejs"]
+min_tier = "T2"
+ref = "0e181866f095b5f06d005133876e926515390d95"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-geometry && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/threejs-geometry" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/threejs-geometry" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-geometry && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/threejs-geometry" "$HOME/.agents/skills/threejs-geometry" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-geometry && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/threejs-geometry" "$HOME/.copilot/skills/threejs-geometry" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-geometry && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/threejs-geometry" "$HOME/.cursor/skills/threejs-geometry" && rm -rf "$d"'
+
+[[skills]]
+name = "threejs-postprocessing"
+repo = "CloudAI-X/threejs-skills"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["frontend", "threejs"]
+min_tier = "T2"
+ref = "0e181866f095b5f06d005133876e926515390d95"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-postprocessing && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/threejs-postprocessing" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/threejs-postprocessing" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-postprocessing && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/threejs-postprocessing" "$HOME/.agents/skills/threejs-postprocessing" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-postprocessing && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/threejs-postprocessing" "$HOME/.copilot/skills/threejs-postprocessing" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-postprocessing && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/threejs-postprocessing" "$HOME/.cursor/skills/threejs-postprocessing" && rm -rf "$d"'
+
+[[skills]]
+name = "threejs-animation"
+repo = "CloudAI-X/threejs-skills"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["frontend", "threejs"]
+min_tier = "T2"
+ref = "0e181866f095b5f06d005133876e926515390d95"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-animation && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/threejs-animation" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/threejs-animation" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-animation && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/threejs-animation" "$HOME/.agents/skills/threejs-animation" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-animation && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/threejs-animation" "$HOME/.copilot/skills/threejs-animation" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-animation && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/threejs-animation" "$HOME/.cursor/skills/threejs-animation" && rm -rf "$d"'
+
+[[skills]]
+name = "threejs-performance"
+repo = "CloudAI-X/threejs-skills"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["frontend", "threejs"]
+min_tier = "T2"
+ref = "0e181866f095b5f06d005133876e926515390d95"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-performance && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/threejs-performance" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/threejs-performance" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-performance && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/threejs-performance" "$HOME/.agents/skills/threejs-performance" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-performance && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/threejs-performance" "$HOME/.copilot/skills/threejs-performance" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-performance && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/threejs-performance" "$HOME/.cursor/skills/threejs-performance" && rm -rf "$d"'
+
+[[skills]]
+name = "threejs-react-three-fiber"
+repo = "CloudAI-X/threejs-skills"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["frontend", "threejs"]
+min_tier = "T2"
+ref = "0e181866f095b5f06d005133876e926515390d95"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-react-three-fiber && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/threejs-react-three-fiber" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/threejs-react-three-fiber" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-react-three-fiber && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/threejs-react-three-fiber" "$HOME/.agents/skills/threejs-react-three-fiber" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-react-three-fiber && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/threejs-react-three-fiber" "$HOME/.copilot/skills/threejs-react-three-fiber" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/CloudAI-X/threejs-skills.git "$d" && git -C "$d" checkout -q 0e181866f095b5f06d005133876e926515390d95 -- skills/threejs-react-three-fiber && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/threejs-react-three-fiber" "$HOME/.cursor/skills/threejs-react-three-fiber" && rm -rf "$d"'
+
+# ---- kepano/obsidian-skills @ a1dc48e
+
+[[skills]]
+name = "obsidian-markdown"
+repo = "kepano/obsidian-skills"
+plugin = "obsidian"
+status = "active"
+roles = ["writer"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T1"
+ref = "a1dc48e68138490d522c04cbf5822214c6eb1202"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/obsidian-markdown && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/obsidian-markdown" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/obsidian-markdown" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/obsidian-markdown && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/obsidian-markdown" "$HOME/.agents/skills/obsidian-markdown" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/obsidian-markdown && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/obsidian-markdown" "$HOME/.copilot/skills/obsidian-markdown" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/obsidian-markdown && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/obsidian-markdown" "$HOME/.cursor/skills/obsidian-markdown" && rm -rf "$d"'
+
+[[skills]]
+name = "obsidian-bases"
+repo = "kepano/obsidian-skills"
+plugin = "obsidian"
+status = "active"
+roles = ["writer"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T1"
+ref = "a1dc48e68138490d522c04cbf5822214c6eb1202"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/obsidian-bases && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/obsidian-bases" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/obsidian-bases" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/obsidian-bases && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/obsidian-bases" "$HOME/.agents/skills/obsidian-bases" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/obsidian-bases && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/obsidian-bases" "$HOME/.copilot/skills/obsidian-bases" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/obsidian-bases && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/obsidian-bases" "$HOME/.cursor/skills/obsidian-bases" && rm -rf "$d"'
+
+[[skills]]
+name = "json-canvas"
+repo = "kepano/obsidian-skills"
+plugin = "obsidian"
+status = "active"
+roles = ["writer"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T1"
+ref = "a1dc48e68138490d522c04cbf5822214c6eb1202"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/json-canvas && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/json-canvas" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/json-canvas" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/json-canvas && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/json-canvas" "$HOME/.agents/skills/json-canvas" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/json-canvas && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/json-canvas" "$HOME/.copilot/skills/json-canvas" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/json-canvas && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/json-canvas" "$HOME/.cursor/skills/json-canvas" && rm -rf "$d"'
+
+[[skills]]
+name = "obsidian-cli"
+repo = "kepano/obsidian-skills"
+plugin = "obsidian"
+status = "disabled"
+roles = ["operator"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T1"
+ref = "a1dc48e68138490d522c04cbf5822214c6eb1202"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/obsidian-cli && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/obsidian-cli" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/obsidian-cli" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/obsidian-cli && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/obsidian-cli" "$HOME/.agents/skills/obsidian-cli" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/obsidian-cli && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/obsidian-cli" "$HOME/.copilot/skills/obsidian-cli" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/obsidian-cli && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/obsidian-cli" "$HOME/.cursor/skills/obsidian-cli" && rm -rf "$d"'
+
+# Disabled: needs the defuddle command-line tool.
+[[skills]]
+name = "defuddle"
+repo = "kepano/obsidian-skills"
+plugin = "obsidian"
+status = "disabled"
+roles = ["researcher"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T1"
+ref = "a1dc48e68138490d522c04cbf5822214c6eb1202"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/defuddle && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/defuddle" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/defuddle" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/defuddle && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/defuddle" "$HOME/.agents/skills/defuddle" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/defuddle && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/defuddle" "$HOME/.copilot/skills/defuddle" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/kepano/obsidian-skills.git "$d" && git -C "$d" checkout -q a1dc48e68138490d522c04cbf5822214c6eb1202 -- skills/defuddle && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/defuddle" "$HOME/.cursor/skills/defuddle" && rm -rf "$d"'
+
+# ---- anthropics/claude-plugins-official @ 5826794
+
+[[skills]]
+name = "skill-creator"
+repo = "anthropics/claude-plugins-official"
+plugin = "skill-creator"
+status = "active"
+roles = ["sharron"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T2"
+ref = "58267944f92187b7d6a1c822165c96c81c864806"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/anthropics/claude-plugins-official.git "$d" && git -C "$d" checkout -q 58267944f92187b7d6a1c822165c96c81c864806 -- plugins/skill-creator/skills/skill-creator && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/skill-creator/skills/skill-creator" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/skill-creator" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/anthropics/claude-plugins-official.git "$d" && git -C "$d" checkout -q 58267944f92187b7d6a1c822165c96c81c864806 -- plugins/skill-creator/skills/skill-creator && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/skill-creator/skills/skill-creator" "$HOME/.agents/skills/skill-creator" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/anthropics/claude-plugins-official.git "$d" && git -C "$d" checkout -q 58267944f92187b7d6a1c822165c96c81c864806 -- plugins/skill-creator/skills/skill-creator && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/skill-creator/skills/skill-creator" "$HOME/.copilot/skills/skill-creator" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/anthropics/claude-plugins-official.git "$d" && git -C "$d" checkout -q 58267944f92187b7d6a1c822165c96c81c864806 -- plugins/skill-creator/skills/skill-creator && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/skill-creator/skills/skill-creator" "$HOME/.cursor/skills/skill-creator" && rm -rf "$d"'
+
+# Hook plugin: no verified pinned plugin install form exists (Claude Code cannot pin a marketplace to a SHA, and
+# Codex --ref was never run), so this entry has no install commands (spec section 8, item 10). sharron suggests a
+# command in the reply when it is needed. The ref still pins the version to look at.
+[[skills]]
+name = "security-guidance"
+repo = "anthropics/claude-plugins-official"
+plugin = "security-guidance"
+status = "active"
+roles = ["security"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T2"
+ref = "58267944f92187b7d6a1c822165c96c81c864806"
+
+# ---- trailofbits/skills @ bf23bfb
+# Pinned to the default-branch head on 2026-10-28.
+
+[[skills]]
+name = "differential-review"
+repo = "trailofbits/skills"
+plugin = "differential-review"
+status = "active"
+roles = ["security"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T2"
+ref = "bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/differential-review/skills/differential-review && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/differential-review/skills/differential-review" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/differential-review" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/differential-review/skills/differential-review && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/differential-review/skills/differential-review" "$HOME/.agents/skills/differential-review" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/differential-review/skills/differential-review && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/differential-review/skills/differential-review" "$HOME/.copilot/skills/differential-review" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/differential-review/skills/differential-review && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/differential-review/skills/differential-review" "$HOME/.cursor/skills/differential-review" && rm -rf "$d"'
+
+# insecure-defaults has no entry. Upstream commit 82e8e0ad (2026-08-05) turned it into a workflow command
+# (commands/audit.md + workflows/audit.js, which needs the Workflow tool). It is not a skill that sharron can install
+# or load. Add that plugin by hand if you want it.
+
+[[skills]]
+name = "sharp-edges"
+repo = "trailofbits/skills"
+plugin = "sharp-edges"
+status = "active"
+roles = ["security"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T2"
+ref = "bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/sharp-edges/skills/sharp-edges && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/sharp-edges/skills/sharp-edges" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/sharp-edges" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/sharp-edges/skills/sharp-edges && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/sharp-edges/skills/sharp-edges" "$HOME/.agents/skills/sharp-edges" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/sharp-edges/skills/sharp-edges && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/sharp-edges/skills/sharp-edges" "$HOME/.copilot/skills/sharp-edges" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/sharp-edges/skills/sharp-edges && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/sharp-edges/skills/sharp-edges" "$HOME/.cursor/skills/sharp-edges" && rm -rf "$d"'
+
+[[skills]]
+name = "supply-chain-risk-auditor"
+repo = "trailofbits/skills"
+plugin = "supply-chain-risk-auditor"
+status = "active"
+roles = ["security"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T2"
+ref = "bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/supply-chain-risk-auditor/skills/supply-chain-risk-auditor && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/supply-chain-risk-auditor/skills/supply-chain-risk-auditor" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/supply-chain-risk-auditor" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/supply-chain-risk-auditor/skills/supply-chain-risk-auditor && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/supply-chain-risk-auditor/skills/supply-chain-risk-auditor" "$HOME/.agents/skills/supply-chain-risk-auditor" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/supply-chain-risk-auditor/skills/supply-chain-risk-auditor && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/supply-chain-risk-auditor/skills/supply-chain-risk-auditor" "$HOME/.copilot/skills/supply-chain-risk-auditor" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/supply-chain-risk-auditor/skills/supply-chain-risk-auditor && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/supply-chain-risk-auditor/skills/supply-chain-risk-auditor" "$HOME/.cursor/skills/supply-chain-risk-auditor" && rm -rf "$d"'
+
+[[skills]]
+name = "fp-check"
+repo = "trailofbits/skills"
+plugin = "fp-check"
+status = "active"
+roles = ["security"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T2"
+ref = "bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/fp-check/skills/fp-check && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/fp-check/skills/fp-check" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/fp-check" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/fp-check/skills/fp-check && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/fp-check/skills/fp-check" "$HOME/.agents/skills/fp-check" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/fp-check/skills/fp-check && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/fp-check/skills/fp-check" "$HOME/.copilot/skills/fp-check" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/fp-check/skills/fp-check && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/fp-check/skills/fp-check" "$HOME/.cursor/skills/fp-check" && rm -rf "$d"'
+
+[[skills]]
+name = "open-sourcing"
+repo = "trailofbits/skills"
+plugin = "open-sourcing"
+status = "active"
+roles = ["security"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T2"
+ref = "bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/open-sourcing/skills/open-sourcing && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/open-sourcing/skills/open-sourcing" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/open-sourcing" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/open-sourcing/skills/open-sourcing && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/open-sourcing/skills/open-sourcing" "$HOME/.agents/skills/open-sourcing" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/open-sourcing/skills/open-sourcing && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/open-sourcing/skills/open-sourcing" "$HOME/.copilot/skills/open-sourcing" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/open-sourcing/skills/open-sourcing && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/open-sourcing/skills/open-sourcing" "$HOME/.cursor/skills/open-sourcing" && rm -rf "$d"'
+
+[[skills]]
+name = "agentic-actions-auditor"
+repo = "trailofbits/skills"
+plugin = "agentic-actions-auditor"
+status = "active"
+roles = ["security"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T2"
+ref = "bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/agentic-actions-auditor/skills/agentic-actions-auditor && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/agentic-actions-auditor/skills/agentic-actions-auditor" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/agentic-actions-auditor" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/agentic-actions-auditor/skills/agentic-actions-auditor && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/agentic-actions-auditor/skills/agentic-actions-auditor" "$HOME/.agents/skills/agentic-actions-auditor" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/agentic-actions-auditor/skills/agentic-actions-auditor && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/agentic-actions-auditor/skills/agentic-actions-auditor" "$HOME/.copilot/skills/agentic-actions-auditor" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/agentic-actions-auditor/skills/agentic-actions-auditor && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/agentic-actions-auditor/skills/agentic-actions-auditor" "$HOME/.cursor/skills/agentic-actions-auditor" && rm -rf "$d"'
+
+# Upstream ships these three skills as the static-analysis plugin; each is listed by its own folder name.
+
+[[skills]]
+name = "codeql"
+repo = "trailofbits/skills"
+plugin = "static-analysis"
+status = "active"
+roles = ["security"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T2"
+ref = "bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/static-analysis/skills/codeql && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/static-analysis/skills/codeql" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/codeql" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/static-analysis/skills/codeql && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/static-analysis/skills/codeql" "$HOME/.agents/skills/codeql" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/static-analysis/skills/codeql && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/static-analysis/skills/codeql" "$HOME/.copilot/skills/codeql" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/static-analysis/skills/codeql && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/static-analysis/skills/codeql" "$HOME/.cursor/skills/codeql" && rm -rf "$d"'
+
+[[skills]]
+name = "semgrep"
+repo = "trailofbits/skills"
+plugin = "static-analysis"
+status = "active"
+roles = ["security"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T2"
+ref = "bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/static-analysis/skills/semgrep && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/static-analysis/skills/semgrep" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/semgrep" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/static-analysis/skills/semgrep && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/static-analysis/skills/semgrep" "$HOME/.agents/skills/semgrep" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/static-analysis/skills/semgrep && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/static-analysis/skills/semgrep" "$HOME/.copilot/skills/semgrep" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/static-analysis/skills/semgrep && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/static-analysis/skills/semgrep" "$HOME/.cursor/skills/semgrep" && rm -rf "$d"'
+
+[[skills]]
+name = "sarif-parsing"
+repo = "trailofbits/skills"
+plugin = "static-analysis"
+status = "active"
+roles = ["security"]
+playbooks = ["*"]
+domains = ["*"]
+tags = []
+min_tier = "T2"
+ref = "bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/static-analysis/skills/sarif-parsing && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/static-analysis/skills/sarif-parsing" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/sarif-parsing" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/static-analysis/skills/sarif-parsing && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/static-analysis/skills/sarif-parsing" "$HOME/.agents/skills/sarif-parsing" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/static-analysis/skills/sarif-parsing && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/static-analysis/skills/sarif-parsing" "$HOME/.copilot/skills/sarif-parsing" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/static-analysis/skills/sarif-parsing && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/static-analysis/skills/sarif-parsing" "$HOME/.cursor/skills/sarif-parsing" && rm -rf "$d"'
+
+# Not installable by single-folder copy: the skill needs its plugin's prompts/, scripts/ and agents/ folders
+# (it resolves them from the plugin root), so this entry has no install commands (spec section 8, item 10).
+[[skills]]
+name = "rust-review"
+repo = "trailofbits/skills"
+plugin = "rust-review"
+status = "active"
+roles = ["security"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["rust"]
+min_tier = "T2"
+ref = "bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3"
+
+[[skills]]
+name = "modern-python"
+repo = "trailofbits/skills"
+plugin = "modern-python"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["python"]
+min_tier = "T2"
+ref = "bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/modern-python/skills/modern-python && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/modern-python/skills/modern-python" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/modern-python" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/modern-python/skills/modern-python && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/modern-python/skills/modern-python" "$HOME/.agents/skills/modern-python" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/modern-python/skills/modern-python && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/modern-python/skills/modern-python" "$HOME/.copilot/skills/modern-python" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/trailofbits/skills.git "$d" && git -C "$d" checkout -q bf23bfb21f10a2a4b0406086d690dc8cb1b3ccf3 -- plugins/modern-python/skills/modern-python && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/modern-python/skills/modern-python" "$HOME/.cursor/skills/modern-python" && rm -rf "$d"'
+
+# ---- cloudflare/skills @ 49a31e0
+# Pinned to the default-branch head on 2026-10-28.
+# One entry per skill folder found under skills/ at this ref.
+
+[[skills]]
+name = "agents-sdk"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/agents-sdk && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/agents-sdk" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/agents-sdk" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/agents-sdk && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/agents-sdk" "$HOME/.agents/skills/agents-sdk" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/agents-sdk && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/agents-sdk" "$HOME/.copilot/skills/agents-sdk" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/agents-sdk && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/agents-sdk" "$HOME/.cursor/skills/agents-sdk" && rm -rf "$d"'
+
+[[skills]]
+name = "basin"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/basin && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/basin" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/basin" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/basin && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/basin" "$HOME/.agents/skills/basin" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/basin && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/basin" "$HOME/.copilot/skills/basin" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/basin && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/basin" "$HOME/.cursor/skills/basin" && rm -rf "$d"'
+
+[[skills]]
+name = "cf-cli"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/cf-cli && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/cf-cli" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/cf-cli" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/cf-cli && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/cf-cli" "$HOME/.agents/skills/cf-cli" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/cf-cli && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/cf-cli" "$HOME/.copilot/skills/cf-cli" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/cf-cli && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/cf-cli" "$HOME/.cursor/skills/cf-cli" && rm -rf "$d"'
+
+[[skills]]
+name = "cloudflare-email-service"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/cloudflare-email-service && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/cloudflare-email-service" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/cloudflare-email-service" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/cloudflare-email-service && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/cloudflare-email-service" "$HOME/.agents/skills/cloudflare-email-service" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/cloudflare-email-service && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/cloudflare-email-service" "$HOME/.copilot/skills/cloudflare-email-service" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/cloudflare-email-service && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/cloudflare-email-service" "$HOME/.cursor/skills/cloudflare-email-service" && rm -rf "$d"'
+
+[[skills]]
+name = "cloudflare-one-migrations"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/cloudflare-one-migrations && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/cloudflare-one-migrations" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/cloudflare-one-migrations" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/cloudflare-one-migrations && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/cloudflare-one-migrations" "$HOME/.agents/skills/cloudflare-one-migrations" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/cloudflare-one-migrations && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/cloudflare-one-migrations" "$HOME/.copilot/skills/cloudflare-one-migrations" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/cloudflare-one-migrations && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/cloudflare-one-migrations" "$HOME/.cursor/skills/cloudflare-one-migrations" && rm -rf "$d"'
+
+# Not installable by single-folder copy: SKILL.md links to sibling skill folders with "../", which a single-folder copy would
+# leave dangling, so this entry has no install commands (spec section 8, item 10).
+[[skills]]
+name = "cloudflare-one"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+# Not installable by single-folder copy: SKILL.md links to sibling skill folders with "../", which a single-folder copy would
+# leave dangling, so this entry has no install commands (spec section 8, item 10).
+[[skills]]
+name = "cloudflare"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[[skills]]
+name = "durable-objects"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/durable-objects && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/durable-objects" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/durable-objects" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/durable-objects && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/durable-objects" "$HOME/.agents/skills/durable-objects" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/durable-objects && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/durable-objects" "$HOME/.copilot/skills/durable-objects" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/durable-objects && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/durable-objects" "$HOME/.cursor/skills/durable-objects" && rm -rf "$d"'
+
+# Not installable by single-folder copy: SKILL.md links to sibling skill folders with "../", which a single-folder copy would
+# leave dangling, so this entry has no install commands (spec section 8, item 10).
+[[skills]]
+name = "gateway-workers"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[[skills]]
+name = "k2"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/k2 && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/k2" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/k2" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/k2 && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/k2" "$HOME/.agents/skills/k2" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/k2 && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/k2" "$HOME/.copilot/skills/k2" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/k2 && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/k2" "$HOME/.cursor/skills/k2" && rm -rf "$d"'
+
+[[skills]]
+name = "nextjs-on-cloudflare"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/nextjs-on-cloudflare && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/nextjs-on-cloudflare" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/nextjs-on-cloudflare" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/nextjs-on-cloudflare && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/nextjs-on-cloudflare" "$HOME/.agents/skills/nextjs-on-cloudflare" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/nextjs-on-cloudflare && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/nextjs-on-cloudflare" "$HOME/.copilot/skills/nextjs-on-cloudflare" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/nextjs-on-cloudflare && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/nextjs-on-cloudflare" "$HOME/.cursor/skills/nextjs-on-cloudflare" && rm -rf "$d"'
+
+[[skills]]
+name = "sandbox-migrate-to-next"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/sandbox-migrate-to-next && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/sandbox-migrate-to-next" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/sandbox-migrate-to-next" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/sandbox-migrate-to-next && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/sandbox-migrate-to-next" "$HOME/.agents/skills/sandbox-migrate-to-next" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/sandbox-migrate-to-next && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/sandbox-migrate-to-next" "$HOME/.copilot/skills/sandbox-migrate-to-next" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/sandbox-migrate-to-next && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/sandbox-migrate-to-next" "$HOME/.cursor/skills/sandbox-migrate-to-next" && rm -rf "$d"'
+
+[[skills]]
+name = "sandbox-next"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/sandbox-next && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/sandbox-next" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/sandbox-next" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/sandbox-next && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/sandbox-next" "$HOME/.agents/skills/sandbox-next" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/sandbox-next && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/sandbox-next" "$HOME/.copilot/skills/sandbox-next" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/sandbox-next && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/sandbox-next" "$HOME/.cursor/skills/sandbox-next" && rm -rf "$d"'
+
+[[skills]]
+name = "sandbox-stable"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/sandbox-stable && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/sandbox-stable" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/sandbox-stable" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/sandbox-stable && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/sandbox-stable" "$HOME/.agents/skills/sandbox-stable" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/sandbox-stable && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/sandbox-stable" "$HOME/.copilot/skills/sandbox-stable" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/sandbox-stable && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/sandbox-stable" "$HOME/.cursor/skills/sandbox-stable" && rm -rf "$d"'
+
+[[skills]]
+name = "turnstile-spin"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/turnstile-spin && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/turnstile-spin" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/turnstile-spin" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/turnstile-spin && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/turnstile-spin" "$HOME/.agents/skills/turnstile-spin" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/turnstile-spin && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/turnstile-spin" "$HOME/.copilot/skills/turnstile-spin" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/turnstile-spin && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/turnstile-spin" "$HOME/.cursor/skills/turnstile-spin" && rm -rf "$d"'
+
+[[skills]]
+name = "web-perf"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/web-perf && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/web-perf" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/web-perf" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/web-perf && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/web-perf" "$HOME/.agents/skills/web-perf" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/web-perf && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/web-perf" "$HOME/.copilot/skills/web-perf" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/web-perf && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/web-perf" "$HOME/.cursor/skills/web-perf" && rm -rf "$d"'
+
+[[skills]]
+name = "workers-best-practices"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/workers-best-practices && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/workers-best-practices" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/workers-best-practices" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/workers-best-practices && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/workers-best-practices" "$HOME/.agents/skills/workers-best-practices" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/workers-best-practices && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/workers-best-practices" "$HOME/.copilot/skills/workers-best-practices" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/workers-best-practices && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/workers-best-practices" "$HOME/.cursor/skills/workers-best-practices" && rm -rf "$d"'
+
+[[skills]]
+name = "workers-profiling"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/workers-profiling && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/workers-profiling" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/workers-profiling" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/workers-profiling && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/workers-profiling" "$HOME/.agents/skills/workers-profiling" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/workers-profiling && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/workers-profiling" "$HOME/.copilot/skills/workers-profiling" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/workers-profiling && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/workers-profiling" "$HOME/.cursor/skills/workers-profiling" && rm -rf "$d"'
+
+[[skills]]
+name = "wrangler"
+repo = "cloudflare/skills"
+plugin = "cloudflare"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["cloudflare"]
+min_tier = "T2"
+ref = "49a31e0b3229ccdffe4944be9c61bc7481d1d432"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/wrangler && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/wrangler" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/wrangler" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/wrangler && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/wrangler" "$HOME/.agents/skills/wrangler" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/wrangler && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/wrangler" "$HOME/.copilot/skills/wrangler" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/cloudflare/skills.git "$d" && git -C "$d" checkout -q 49a31e0b3229ccdffe4944be9c61bc7481d1d432 -- skills/wrangler && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/wrangler" "$HOME/.cursor/skills/wrangler" && rm -rf "$d"'
+
+# ---- wshobson/agents @ 0874a27
+# Pinned to the default-branch head on 2026-10-28.
+
+[[skills]]
+name = "python-type-safety"
+repo = "wshobson/agents"
+plugin = "python-development"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["python"]
+min_tier = "T2"
+ref = "0874a27b17a22e2b7c2e2bcd725768e0803cad06"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/python-development/skills/python-type-safety && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/python-development/skills/python-type-safety" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/python-type-safety" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/python-development/skills/python-type-safety && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/python-development/skills/python-type-safety" "$HOME/.agents/skills/python-type-safety" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/python-development/skills/python-type-safety && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/python-development/skills/python-type-safety" "$HOME/.copilot/skills/python-type-safety" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/python-development/skills/python-type-safety && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/python-development/skills/python-type-safety" "$HOME/.cursor/skills/python-type-safety" && rm -rf "$d"'
+
+[[skills]]
+name = "python-error-handling"
+repo = "wshobson/agents"
+plugin = "python-development"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["python"]
+min_tier = "T2"
+ref = "0874a27b17a22e2b7c2e2bcd725768e0803cad06"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/python-development/skills/python-error-handling && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/python-development/skills/python-error-handling" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/python-error-handling" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/python-development/skills/python-error-handling && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/python-development/skills/python-error-handling" "$HOME/.agents/skills/python-error-handling" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/python-development/skills/python-error-handling && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/python-development/skills/python-error-handling" "$HOME/.copilot/skills/python-error-handling" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/python-development/skills/python-error-handling && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/python-development/skills/python-error-handling" "$HOME/.cursor/skills/python-error-handling" && rm -rf "$d"'
+
+[[skills]]
+name = "python-testing-patterns"
+repo = "wshobson/agents"
+plugin = "python-development"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["python", "testing"]
+min_tier = "T2"
+ref = "0874a27b17a22e2b7c2e2bcd725768e0803cad06"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/python-development/skills/python-testing-patterns && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/python-development/skills/python-testing-patterns" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/python-testing-patterns" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/python-development/skills/python-testing-patterns && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/python-development/skills/python-testing-patterns" "$HOME/.agents/skills/python-testing-patterns" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/python-development/skills/python-testing-patterns && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/python-development/skills/python-testing-patterns" "$HOME/.copilot/skills/python-testing-patterns" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/python-development/skills/python-testing-patterns && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/python-development/skills/python-testing-patterns" "$HOME/.cursor/skills/python-testing-patterns" && rm -rf "$d"'
+
+[[skills]]
+name = "async-python-patterns"
+repo = "wshobson/agents"
+plugin = "python-development"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["python", "async"]
+min_tier = "T2"
+ref = "0874a27b17a22e2b7c2e2bcd725768e0803cad06"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/python-development/skills/async-python-patterns && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/python-development/skills/async-python-patterns" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/async-python-patterns" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/python-development/skills/async-python-patterns && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/python-development/skills/async-python-patterns" "$HOME/.agents/skills/async-python-patterns" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/python-development/skills/async-python-patterns && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/python-development/skills/async-python-patterns" "$HOME/.copilot/skills/async-python-patterns" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/python-development/skills/async-python-patterns && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/python-development/skills/async-python-patterns" "$HOME/.cursor/skills/async-python-patterns" && rm -rf "$d"'
+
+[[skills]]
+name = "k8s-manifest-generator"
+repo = "wshobson/agents"
+plugin = "kubernetes-operations"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["kubernetes"]
+min_tier = "T2"
+ref = "0874a27b17a22e2b7c2e2bcd725768e0803cad06"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/kubernetes-operations/skills/k8s-manifest-generator && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/kubernetes-operations/skills/k8s-manifest-generator" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/k8s-manifest-generator" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/kubernetes-operations/skills/k8s-manifest-generator && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/kubernetes-operations/skills/k8s-manifest-generator" "$HOME/.agents/skills/k8s-manifest-generator" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/kubernetes-operations/skills/k8s-manifest-generator && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/kubernetes-operations/skills/k8s-manifest-generator" "$HOME/.copilot/skills/k8s-manifest-generator" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/kubernetes-operations/skills/k8s-manifest-generator && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/kubernetes-operations/skills/k8s-manifest-generator" "$HOME/.cursor/skills/k8s-manifest-generator" && rm -rf "$d"'
+
+[[skills]]
+name = "k8s-security-policies"
+repo = "wshobson/agents"
+plugin = "kubernetes-operations"
+status = "active"
+roles = ["engineer", "security"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["kubernetes"]
+min_tier = "T2"
+ref = "0874a27b17a22e2b7c2e2bcd725768e0803cad06"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/kubernetes-operations/skills/k8s-security-policies && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/kubernetes-operations/skills/k8s-security-policies" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/k8s-security-policies" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/kubernetes-operations/skills/k8s-security-policies && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/kubernetes-operations/skills/k8s-security-policies" "$HOME/.agents/skills/k8s-security-policies" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/kubernetes-operations/skills/k8s-security-policies && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/kubernetes-operations/skills/k8s-security-policies" "$HOME/.copilot/skills/k8s-security-policies" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/kubernetes-operations/skills/k8s-security-policies && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/kubernetes-operations/skills/k8s-security-policies" "$HOME/.cursor/skills/k8s-security-policies" && rm -rf "$d"'
+
+[[skills]]
+name = "helm-chart-scaffolding"
+repo = "wshobson/agents"
+plugin = "kubernetes-operations"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["helm"]
+min_tier = "T2"
+ref = "0874a27b17a22e2b7c2e2bcd725768e0803cad06"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/kubernetes-operations/skills/helm-chart-scaffolding && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/kubernetes-operations/skills/helm-chart-scaffolding" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/helm-chart-scaffolding" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/kubernetes-operations/skills/helm-chart-scaffolding && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/kubernetes-operations/skills/helm-chart-scaffolding" "$HOME/.agents/skills/helm-chart-scaffolding" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/kubernetes-operations/skills/helm-chart-scaffolding && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/kubernetes-operations/skills/helm-chart-scaffolding" "$HOME/.copilot/skills/helm-chart-scaffolding" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/kubernetes-operations/skills/helm-chart-scaffolding && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/kubernetes-operations/skills/helm-chart-scaffolding" "$HOME/.cursor/skills/helm-chart-scaffolding" && rm -rf "$d"'
+
+[[skills]]
+name = "bash-defensive-patterns"
+repo = "wshobson/agents"
+plugin = "shell-scripting"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["bash"]
+min_tier = "T2"
+ref = "0874a27b17a22e2b7c2e2bcd725768e0803cad06"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/shell-scripting/skills/bash-defensive-patterns && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/shell-scripting/skills/bash-defensive-patterns" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/bash-defensive-patterns" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/shell-scripting/skills/bash-defensive-patterns && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/shell-scripting/skills/bash-defensive-patterns" "$HOME/.agents/skills/bash-defensive-patterns" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/shell-scripting/skills/bash-defensive-patterns && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/shell-scripting/skills/bash-defensive-patterns" "$HOME/.copilot/skills/bash-defensive-patterns" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/shell-scripting/skills/bash-defensive-patterns && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/shell-scripting/skills/bash-defensive-patterns" "$HOME/.cursor/skills/bash-defensive-patterns" && rm -rf "$d"'
+
+[[skills]]
+name = "shellcheck-configuration"
+repo = "wshobson/agents"
+plugin = "shell-scripting"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["bash", "lint"]
+min_tier = "T2"
+ref = "0874a27b17a22e2b7c2e2bcd725768e0803cad06"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/shell-scripting/skills/shellcheck-configuration && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/shell-scripting/skills/shellcheck-configuration" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/shellcheck-configuration" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/shell-scripting/skills/shellcheck-configuration && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/shell-scripting/skills/shellcheck-configuration" "$HOME/.agents/skills/shellcheck-configuration" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/shell-scripting/skills/shellcheck-configuration && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/shell-scripting/skills/shellcheck-configuration" "$HOME/.copilot/skills/shellcheck-configuration" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/shell-scripting/skills/shellcheck-configuration && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/shell-scripting/skills/shellcheck-configuration" "$HOME/.cursor/skills/shellcheck-configuration" && rm -rf "$d"'
+
+[[skills]]
+name = "bats-testing-patterns"
+repo = "wshobson/agents"
+plugin = "shell-scripting"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["bash", "testing"]
+min_tier = "T2"
+ref = "0874a27b17a22e2b7c2e2bcd725768e0803cad06"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/shell-scripting/skills/bats-testing-patterns && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/shell-scripting/skills/bats-testing-patterns" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/bats-testing-patterns" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/shell-scripting/skills/bats-testing-patterns && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/shell-scripting/skills/bats-testing-patterns" "$HOME/.agents/skills/bats-testing-patterns" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/shell-scripting/skills/bats-testing-patterns && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/shell-scripting/skills/bats-testing-patterns" "$HOME/.copilot/skills/bats-testing-patterns" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/wshobson/agents.git "$d" && git -C "$d" checkout -q 0874a27b17a22e2b7c2e2bcd725768e0803cad06 -- plugins/shell-scripting/skills/bats-testing-patterns && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/shell-scripting/skills/bats-testing-patterns" "$HOME/.cursor/skills/bats-testing-patterns" && rm -rf "$d"'
+
+# ---- samber/cc-skills-golang @ 246b6c4
+# Pinned to the default-branch head on 2026-10-28.
+
+[[skills]]
+name = "golang-code-style"
+repo = "samber/cc-skills-golang"
+plugin = "cc-skills-golang"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["go"]
+min_tier = "T2"
+ref = "246b6c4c1ab3077dee114beb9ade3bb0527dfebc"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-code-style && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/golang-code-style" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/golang-code-style" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-code-style && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/golang-code-style" "$HOME/.agents/skills/golang-code-style" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-code-style && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/golang-code-style" "$HOME/.copilot/skills/golang-code-style" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-code-style && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/golang-code-style" "$HOME/.cursor/skills/golang-code-style" && rm -rf "$d"'
+
+[[skills]]
+name = "golang-error-handling"
+repo = "samber/cc-skills-golang"
+plugin = "cc-skills-golang"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["go"]
+min_tier = "T2"
+ref = "246b6c4c1ab3077dee114beb9ade3bb0527dfebc"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-error-handling && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/golang-error-handling" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/golang-error-handling" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-error-handling && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/golang-error-handling" "$HOME/.agents/skills/golang-error-handling" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-error-handling && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/golang-error-handling" "$HOME/.copilot/skills/golang-error-handling" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-error-handling && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/golang-error-handling" "$HOME/.cursor/skills/golang-error-handling" && rm -rf "$d"'
+
+[[skills]]
+name = "golang-context"
+repo = "samber/cc-skills-golang"
+plugin = "cc-skills-golang"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["go"]
+min_tier = "T2"
+ref = "246b6c4c1ab3077dee114beb9ade3bb0527dfebc"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-context && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/golang-context" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/golang-context" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-context && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/golang-context" "$HOME/.agents/skills/golang-context" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-context && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/golang-context" "$HOME/.copilot/skills/golang-context" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-context && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/golang-context" "$HOME/.cursor/skills/golang-context" && rm -rf "$d"'
+
+[[skills]]
+name = "golang-lint"
+repo = "samber/cc-skills-golang"
+plugin = "cc-skills-golang"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["go"]
+min_tier = "T2"
+ref = "246b6c4c1ab3077dee114beb9ade3bb0527dfebc"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-lint && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/golang-lint" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/golang-lint" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-lint && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/golang-lint" "$HOME/.agents/skills/golang-lint" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-lint && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/golang-lint" "$HOME/.copilot/skills/golang-lint" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-lint && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/golang-lint" "$HOME/.cursor/skills/golang-lint" && rm -rf "$d"'
+
+[[skills]]
+name = "golang-testing"
+repo = "samber/cc-skills-golang"
+plugin = "cc-skills-golang"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["go", "testing"]
+min_tier = "T2"
+ref = "246b6c4c1ab3077dee114beb9ade3bb0527dfebc"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-testing && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/golang-testing" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/golang-testing" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-testing && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/golang-testing" "$HOME/.agents/skills/golang-testing" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-testing && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/golang-testing" "$HOME/.copilot/skills/golang-testing" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-testing && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/golang-testing" "$HOME/.cursor/skills/golang-testing" && rm -rf "$d"'
+
+[[skills]]
+name = "golang-concurrency"
+repo = "samber/cc-skills-golang"
+plugin = "cc-skills-golang"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["go", "concurrency"]
+min_tier = "T2"
+ref = "246b6c4c1ab3077dee114beb9ade3bb0527dfebc"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-concurrency && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/golang-concurrency" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/golang-concurrency" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-concurrency && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/golang-concurrency" "$HOME/.agents/skills/golang-concurrency" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-concurrency && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/golang-concurrency" "$HOME/.copilot/skills/golang-concurrency" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-concurrency && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/golang-concurrency" "$HOME/.cursor/skills/golang-concurrency" && rm -rf "$d"'
+
+[[skills]]
+name = "golang-database"
+repo = "samber/cc-skills-golang"
+plugin = "cc-skills-golang"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["go", "database"]
+min_tier = "T2"
+ref = "246b6c4c1ab3077dee114beb9ade3bb0527dfebc"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-database && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/golang-database" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/golang-database" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-database && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/golang-database" "$HOME/.agents/skills/golang-database" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-database && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/golang-database" "$HOME/.copilot/skills/golang-database" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-database && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/golang-database" "$HOME/.cursor/skills/golang-database" && rm -rf "$d"'
+
+[[skills]]
+name = "golang-grpc"
+repo = "samber/cc-skills-golang"
+plugin = "cc-skills-golang"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["go", "grpc"]
+min_tier = "T2"
+ref = "246b6c4c1ab3077dee114beb9ade3bb0527dfebc"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-grpc && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/golang-grpc" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/golang-grpc" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-grpc && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/golang-grpc" "$HOME/.agents/skills/golang-grpc" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-grpc && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/golang-grpc" "$HOME/.copilot/skills/golang-grpc" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-grpc && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/golang-grpc" "$HOME/.cursor/skills/golang-grpc" && rm -rf "$d"'
+
+[[skills]]
+name = "golang-cli"
+repo = "samber/cc-skills-golang"
+plugin = "cc-skills-golang"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["go", "cli"]
+min_tier = "T2"
+ref = "246b6c4c1ab3077dee114beb9ade3bb0527dfebc"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-cli && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/golang-cli" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/golang-cli" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-cli && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/golang-cli" "$HOME/.agents/skills/golang-cli" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-cli && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/golang-cli" "$HOME/.copilot/skills/golang-cli" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-cli && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/golang-cli" "$HOME/.cursor/skills/golang-cli" && rm -rf "$d"'
+
+[[skills]]
+name = "golang-observability"
+repo = "samber/cc-skills-golang"
+plugin = "cc-skills-golang"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["go", "observability"]
+min_tier = "T2"
+ref = "246b6c4c1ab3077dee114beb9ade3bb0527dfebc"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-observability && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/golang-observability" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/golang-observability" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-observability && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/golang-observability" "$HOME/.agents/skills/golang-observability" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-observability && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/golang-observability" "$HOME/.copilot/skills/golang-observability" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-observability && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/golang-observability" "$HOME/.cursor/skills/golang-observability" && rm -rf "$d"'
+
+[[skills]]
+name = "golang-performance"
+repo = "samber/cc-skills-golang"
+plugin = "cc-skills-golang"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["go", "performance"]
+min_tier = "T2"
+ref = "246b6c4c1ab3077dee114beb9ade3bb0527dfebc"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-performance && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/golang-performance" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/golang-performance" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-performance && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/golang-performance" "$HOME/.agents/skills/golang-performance" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-performance && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/golang-performance" "$HOME/.copilot/skills/golang-performance" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-performance && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/golang-performance" "$HOME/.cursor/skills/golang-performance" && rm -rf "$d"'
+
+[[skills]]
+name = "golang-project-layout"
+repo = "samber/cc-skills-golang"
+plugin = "cc-skills-golang"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["go", "new-project"]
+min_tier = "T2"
+ref = "246b6c4c1ab3077dee114beb9ade3bb0527dfebc"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-project-layout && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/golang-project-layout" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/golang-project-layout" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-project-layout && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/golang-project-layout" "$HOME/.agents/skills/golang-project-layout" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-project-layout && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/golang-project-layout" "$HOME/.copilot/skills/golang-project-layout" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-project-layout && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/golang-project-layout" "$HOME/.cursor/skills/golang-project-layout" && rm -rf "$d"'
+
+[[skills]]
+name = "golang-security"
+repo = "samber/cc-skills-golang"
+plugin = "cc-skills-golang"
+status = "active"
+roles = ["security"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["go"]
+min_tier = "T2"
+ref = "246b6c4c1ab3077dee114beb9ade3bb0527dfebc"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-security && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/skills/golang-security" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/golang-security" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-security && mkdir -p "$HOME/.agents/skills" && cp -R "$d/skills/golang-security" "$HOME/.agents/skills/golang-security" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-security && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/skills/golang-security" "$HOME/.copilot/skills/golang-security" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/samber/cc-skills-golang.git "$d" && git -C "$d" checkout -q 246b6c4c1ab3077dee114beb9ade3bb0527dfebc -- skills/golang-security && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/skills/golang-security" "$HOME/.cursor/skills/golang-security" && rm -rf "$d"'
+
+# ---- hashicorp/agent-skills @ f706481
+# Pinned to the default-branch head on 2026-10-28.
+
+[[skills]]
+name = "terraform-style-guide"
+repo = "hashicorp/agent-skills"
+plugin = "terraform"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["terraform"]
+min_tier = "T2"
+ref = "f706481af9b8fedb66de909f6243ad29601afa0c"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/hashicorp/agent-skills.git "$d" && git -C "$d" checkout -q f706481af9b8fedb66de909f6243ad29601afa0c -- plugins/terraform/skills/terraform-style-guide && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/terraform/skills/terraform-style-guide" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/terraform-style-guide" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/hashicorp/agent-skills.git "$d" && git -C "$d" checkout -q f706481af9b8fedb66de909f6243ad29601afa0c -- plugins/terraform/skills/terraform-style-guide && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/terraform/skills/terraform-style-guide" "$HOME/.agents/skills/terraform-style-guide" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/hashicorp/agent-skills.git "$d" && git -C "$d" checkout -q f706481af9b8fedb66de909f6243ad29601afa0c -- plugins/terraform/skills/terraform-style-guide && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/terraform/skills/terraform-style-guide" "$HOME/.copilot/skills/terraform-style-guide" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/hashicorp/agent-skills.git "$d" && git -C "$d" checkout -q f706481af9b8fedb66de909f6243ad29601afa0c -- plugins/terraform/skills/terraform-style-guide && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/terraform/skills/terraform-style-guide" "$HOME/.cursor/skills/terraform-style-guide" && rm -rf "$d"'
+
+[[skills]]
+name = "terraform-test"
+repo = "hashicorp/agent-skills"
+plugin = "terraform"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["terraform", "testing"]
+min_tier = "T2"
+ref = "f706481af9b8fedb66de909f6243ad29601afa0c"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/hashicorp/agent-skills.git "$d" && git -C "$d" checkout -q f706481af9b8fedb66de909f6243ad29601afa0c -- plugins/terraform/skills/terraform-test && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/terraform/skills/terraform-test" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/terraform-test" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/hashicorp/agent-skills.git "$d" && git -C "$d" checkout -q f706481af9b8fedb66de909f6243ad29601afa0c -- plugins/terraform/skills/terraform-test && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/terraform/skills/terraform-test" "$HOME/.agents/skills/terraform-test" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/hashicorp/agent-skills.git "$d" && git -C "$d" checkout -q f706481af9b8fedb66de909f6243ad29601afa0c -- plugins/terraform/skills/terraform-test && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/terraform/skills/terraform-test" "$HOME/.copilot/skills/terraform-test" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/hashicorp/agent-skills.git "$d" && git -C "$d" checkout -q f706481af9b8fedb66de909f6243ad29601afa0c -- plugins/terraform/skills/terraform-test && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/terraform/skills/terraform-test" "$HOME/.cursor/skills/terraform-test" && rm -rf "$d"'
+
+[[skills]]
+name = "refactor-module"
+repo = "hashicorp/agent-skills"
+plugin = "terraform"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["terraform", "refactoring"]
+min_tier = "T2"
+ref = "f706481af9b8fedb66de909f6243ad29601afa0c"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/hashicorp/agent-skills.git "$d" && git -C "$d" checkout -q f706481af9b8fedb66de909f6243ad29601afa0c -- plugins/terraform/skills/refactor-module && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/terraform/skills/refactor-module" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/refactor-module" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/hashicorp/agent-skills.git "$d" && git -C "$d" checkout -q f706481af9b8fedb66de909f6243ad29601afa0c -- plugins/terraform/skills/refactor-module && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/terraform/skills/refactor-module" "$HOME/.agents/skills/refactor-module" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/hashicorp/agent-skills.git "$d" && git -C "$d" checkout -q f706481af9b8fedb66de909f6243ad29601afa0c -- plugins/terraform/skills/refactor-module && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/terraform/skills/refactor-module" "$HOME/.copilot/skills/refactor-module" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/hashicorp/agent-skills.git "$d" && git -C "$d" checkout -q f706481af9b8fedb66de909f6243ad29601afa0c -- plugins/terraform/skills/refactor-module && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/terraform/skills/refactor-module" "$HOME/.cursor/skills/refactor-module" && rm -rf "$d"'
+
+[[skills]]
+name = "terraform-search-import"
+repo = "hashicorp/agent-skills"
+plugin = "terraform"
+status = "active"
+roles = ["engineer"]
+playbooks = ["*"]
+domains = ["coding"]
+tags = ["terraform", "import"]
+min_tier = "T2"
+ref = "f706481af9b8fedb66de909f6243ad29601afa0c"
+
+[skills.install]
+claude-code = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/hashicorp/agent-skills.git "$d" && git -C "$d" checkout -q f706481af9b8fedb66de909f6243ad29601afa0c -- plugins/terraform/skills/terraform-search-import && mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" && cp -R "$d/plugins/terraform/skills/terraform-search-import" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/terraform-search-import" && rm -rf "$d"'
+codex = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/hashicorp/agent-skills.git "$d" && git -C "$d" checkout -q f706481af9b8fedb66de909f6243ad29601afa0c -- plugins/terraform/skills/terraform-search-import && mkdir -p "$HOME/.agents/skills" && cp -R "$d/plugins/terraform/skills/terraform-search-import" "$HOME/.agents/skills/terraform-search-import" && rm -rf "$d"'
+copilot = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/hashicorp/agent-skills.git "$d" && git -C "$d" checkout -q f706481af9b8fedb66de909f6243ad29601afa0c -- plugins/terraform/skills/terraform-search-import && mkdir -p "$HOME/.copilot/skills" && cp -R "$d/plugins/terraform/skills/terraform-search-import" "$HOME/.copilot/skills/terraform-search-import" && rm -rf "$d"'
+cursor = 'd=$(mktemp -d) && git clone -q --filter=blob:none --no-checkout https://github.com/hashicorp/agent-skills.git "$d" && git -C "$d" checkout -q f706481af9b8fedb66de909f6243ad29601afa0c -- plugins/terraform/skills/terraform-search-import && mkdir -p "$HOME/.cursor/skills" && cp -R "$d/plugins/terraform/skills/terraform-search-import" "$HOME/.cursor/skills/terraform-search-import" && rm -rf "$d"'
+
+# ---- Tools (the security role runs them after automatic installs; report only)
+# Versions are the latest releases on 2026-10-28. The install forms come from each tool's README; they were not run here.
+
+# Cisco skill-scanner: PyPI package cisco-ai-skill-scanner 2.3.2. Static mode is the default (core analyzers only, no LLM).
+[[tools]]
+name = "skill-scanner"
+check = 'skill-scanner --version'
+install = 'uv tool install cisco-ai-skill-scanner==2.3.2'
+run = 'skill-scanner scan <skill folder>'
+sends_data = false
+
+# NVIDIA SkillSpector: not on PyPI, so the install pins the commit of tag v2.13.1. --no-llm keeps the scan static.
+[[tools]]
+name = "skillspector"
+check = 'skillspector --version'
+install = 'uv tool install "git+https://github.com/NVIDIA/SkillSpector.git@f3b25697d76256998ca9d42c198d256258d4c035"'
+run = 'skillspector scan <skill folder> --no-llm --format json'
+sends_data = false
+
+# Snyk agent-scan: PyPI package snyk-agent-scan 0.6.9. It needs SNYK_TOKEN and sends data about the scanned components to
+# Snyk's analysis service, so sends_data is true. The tool has no --version flag, so the check reads uv's tool list.
+[[tools]]
+name = "agent-scan"
+check = "uv tool list | grep '^snyk-agent-scan '"
+install = 'uv tool install snyk-agent-scan==0.6.9'
+run = 'snyk-agent-scan scan <skill folder>'
+sends_data = true

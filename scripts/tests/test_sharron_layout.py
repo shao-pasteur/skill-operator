@@ -40,7 +40,7 @@ def test_registry_has_the_default_entries():
     names = {e.name for e in reg.skills}
     # Controller ruling: upstream ships static-analysis as a plugin, so its three skills are listed by folder name.
     assert {"research-method", "verify-evidence", "principle-prove-it-works", "principle-fix-root-causes", "tdd", "teach",
-            "taste-skill", "threejs-fundamentals", "obsidian-markdown", "skill-creator", "security-guidance",
+            "design-taste-frontend", "threejs-fundamentals", "obsidian-markdown", "skill-creator", "security-guidance",
             "codeql", "semgrep", "sarif-parsing", "rust-review", "modern-python", "python-testing-patterns",
             "golang-security", "golang-project-layout", "k8s-security-policies", "helm-chart-scaffolding",
             "terraform-test", "bats-testing-patterns"} <= names
@@ -52,7 +52,37 @@ def test_registry_has_the_default_entries():
     for e in reg.skills:
         assert e.ref == "self" or all(e.ref in cmd for cmd in e.install.values()), e.name
     assert [t.name for t in reg.tools] == ["skill-scanner", "skillspector", "agent-scan"]
-    assert [t.name for t in reg.tools if t.sends_data] == ["agent-scan"]
+    # Controller ruling: skillspector's SC4 check sends dependency names and versions to api.osv.dev even with --no-llm.
+    assert [t.name for t in reg.tools if t.sends_data] == ["skillspector", "agent-scan"]
+
+
+SKILLS_DIRS = {
+    "claude-code": '"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills"',
+    "codex": '"$HOME/.agents/skills"',
+    "copilot": '"$HOME/.copilot/skills"',
+    "cursor": '"$HOME/.cursor/skills"',
+}
+NOT_INSTALLABLE = {"principle-attack-the-premise", "fp-check", "rust-review", "cloudflare", "cloudflare-one",
+                   "gateway-workers", "security-guidance"}
+
+
+def test_pinned_install_commands_copy_one_folder_into_the_platform_skills_folder():
+    reg = load("detect_stack").load_registry(SKILL_SRC / "registry.toml")
+    pinned = [e for e in reg.skills if e.ref != "self"]
+    assert {e.name for e in pinned if not e.install} == NOT_INSTALLABLE
+    for e in pinned:
+        if not e.install:
+            continue
+        assert set(e.install) == set(SKILLS_DIRS), e.name
+        for platform, command in e.install.items():
+            skills_dir = SKILLS_DIRS[platform]
+            where = f"{e.name} on {platform}"
+            assert command.startswith(f'[ ! -e {skills_dir[:-1]}/{e.name}" ] && d=$(mktemp -d) && {{ '), where
+            assert f"github.com/{e.repo}.git" in command, where
+            assert f"checkout -q {e.ref} -- " in command, where
+            assert f"mkdir -p {skills_dir} && cp -R " in command, where
+            assert command.endswith(f'{skills_dir[:-1]}/{e.name}" ; s=$?; rm -rf "$d"; [ "$s" -eq 0 ]; }}'), where
+            assert command.count(e.ref) == 1, where
 
 
 REQUIRED_HEADINGS = {

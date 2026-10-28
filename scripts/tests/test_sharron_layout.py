@@ -87,6 +87,11 @@ def test_pinned_install_commands_copy_one_folder_into_the_platform_skills_folder
 
 REQUIRED_HEADINGS = {
     "references/platforms.md": ["## Detecting the platform", "## Installing skills", "## Verification log"],
+    "references/playbooks.md": ["## Playbooks", "## Plan-then-execute", "## Settings and help", "## Error analysis"],
+    "references/intake.md": ["## The six dimensions", "## Playbook add-ons", "## Rules", "## Task card"],
+    "references/delegation.md": ["## When to delegate", "## Brief", "## Report", "## Isolation levels", "## Fixed rules", "## Rule of Two"],
+    "references/decisions-and-risk.md": ["## Decision levels", "## Decision card", "## Risk levels", "## Standing orders"],
+    "references/budget-and-models.md": ["## Tiers", "## Difficulty and effort", "## Escalation ladder", "## Checkpoints"],
 }
 
 

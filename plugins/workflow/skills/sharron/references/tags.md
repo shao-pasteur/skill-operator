@@ -44,7 +44,7 @@ A unit's tags are the union of three sources:
 | `Dockerfile` | `docker` |
 | `wrangler.toml`, `wrangler.json`, `wrangler.jsonc` | `cloudflare` |
 
-Run it with `sh scripts/run.sh detect_stack.py tags --workspace <folder>`. It prints `{"tags": [...]}`.
+Run it with `sh <skill>/scripts/run.sh detect_stack.py tags --workspace <folder>`. It prints `{"tags": [...]}`.
 
 ## Layer tags (added from the request)
 
@@ -80,7 +80,7 @@ sharron gives each coding unit the activity tags that its own goal needs, not th
 ## Selecting skills
 
 ```
-sh scripts/run.sh detect_stack.py select --role <role> --playbook <playbook> --domain <domain> --tier <T1|T2|T3> \
+sh <skill>/scripts/run.sh detect_stack.py select --role <role> --playbook <playbook> --domain <domain> --tier <T1|T2|T3> \
     [--tags <layer and activity tags, comma-separated>] [--workspace <folder>]
 ```
 

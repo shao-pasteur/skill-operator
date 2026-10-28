@@ -33,3 +33,14 @@ def test_shipped_security_references():
         expected = 10 if s["kind"] == "risk-list" else 25 if s["id"] == "cwe-top25" else 0
         assert len(s["items"]) == expected, s["id"]
         assert (s["probe"]["type"] == "none") == (s["edition"] == "live"), s["id"]
+
+
+REQUIRED_HEADINGS = {
+    "references/platforms.md": ["## Detecting the platform", "## Installing skills", "## Verification log"],
+}
+
+
+def test_documents_have_their_required_sections():
+    for rel, headings in REQUIRED_HEADINGS.items():
+        text = (SKILL_SRC / rel).read_text(encoding="utf-8")
+        assert [h for h in headings if h not in text] == [], rel

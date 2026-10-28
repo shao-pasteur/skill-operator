@@ -56,7 +56,7 @@ Run it with `sh scripts/run.sh detect_stack.py tags --workspace <folder>`. It pr
 | `cli` | A command-line program |
 | `ui-design` | Visual design of an interface |
 
-The workspace cannot show what the user wants to build, so sharron reads the request and the answer to the coding intake question and adds the layers that apply. A request for a landing page adds `frontend` and `ui-design`; a request for an API adds `backend`; a Helm or Terraform change adds `infra`. A backend task never carries `frontend` or `ui-design`, which is what keeps frontend skills away from it. When the request does not say, add no layer tag rather than guess.
+The workspace cannot show what the user wants to build, so sharron reads the request and the answer to the coding intake question and adds the layers that apply. A request for a landing page adds `frontend` and `ui-design`; a request for an API adds `backend`; a Helm or Terraform change adds `infra`. Sharron never adds `frontend` or `ui-design` to a backend task. Detection can still add `frontend` or `threejs` when a matching dependency sits anywhere in the tree, such as a `web/package.json` in a monorepo, so only skills that need `ui-design` are sure to stay away from backend work. When the request does not say, add no layer tag rather than guess.
 
 ## Activity tags (added from each unit's goal)
 

@@ -166,3 +166,44 @@ def test_eval_fixtures_have_the_stack_tags_the_recommendation_cases_expect():
         assert sorted(detect_stack.detect_tags(SKILL_SRC / "evals/files" / name)) == tags, name
     result = subprocess.run(["bash", "-n", str(SKILL_SRC / "evals/files/bash-tool/backup.sh")], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
+
+
+def test_trigger_queries_are_strings_with_boolean_flags():
+    trigger = json.loads((SKILL_SRC / "evals/trigger-eval.json").read_text(encoding="utf-8"))
+    assert all(isinstance(q["query"], str) and q["query"].strip() for q in trigger)
+    assert all(type(q["should_trigger"]) is bool for q in trigger)
+    assert len({q["query"] for q in trigger}) == len(trigger)
+
+
+def test_scripted_turns_are_replies_and_fixture_page_exists():
+    cases = json.loads((SKILL_SRC / "evals/evals.json").read_text(encoding="utf-8"))["evals"]
+    for case in cases:
+        turns = case.get("turns", [])
+        assert all(isinstance(t, str) and t.strip() for t in turns), case["id"]
+    page = (SKILL_SRC / "evals/files/quote-page/quote.html").read_text(encoding="utf-8")
+    assert "AI ASSISTANT" in page and "@" not in page
+
+
+# (case id, role, tier, --tags, fixture) for the select calls the recommendation cases are built on.
+RECOMMENDATION_SELECTIONS = [
+    (21, "engineer", "T2", "backend", "python-backend"),
+    (21, "engineer", "T2", "backend,testing", "python-backend"),
+    (21, "security", "T3", "backend", "python-backend"),
+    (22, "engineer", "T2", "infra", "helm-chart"),
+    (22, "security", "T3", "infra", "helm-chart"),
+    (23, "engineer", "T2", "cli", "bash-tool"),
+    (23, "engineer", "T2", "cli,lint,testing", "bash-tool"),
+]
+
+
+def test_recommendation_cases_name_every_skill_that_select_returns(capsys):
+    detect_stack = load("detect_stack")
+    cases = {c["id"]: c for c in json.loads((SKILL_SRC / "evals/evals.json").read_text(encoding="utf-8"))["evals"]}
+    for case_id, role, tier, tags, fixture in RECOMMENDATION_SELECTIONS:
+        argv = ["--skill-dir", str(SKILL_SRC), "select", "--role", role, "--playbook", "coding", "--domain", "coding",
+                "--tier", tier, "--tags", tags, "--workspace", str(SKILL_SRC / "evals/files" / fixture)]
+        assert detect_stack.main(argv) == 0
+        selected = [s["name"] for s in json.loads(capsys.readouterr().out)["skills"]]
+        assert selected, (case_id, role, tags)
+        text = " ".join(cases[case_id]["expectations"])
+        assert [name for name in selected if name not in text] == [], (case_id, role, tags)

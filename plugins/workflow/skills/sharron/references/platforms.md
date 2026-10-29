@@ -117,6 +117,8 @@ cp -R <temp dir>/src/<path to skill folder> <skills dir>/<skill>
 rm -rf <temp dir>
 ```
 
+The commands in `registry.toml` do this in one line: they fetch only the one folder (a blobless clone, then `checkout <sha> -- <path>`), refuse when the destination already exists, and pass `-c maintenance.auto=false` to git, because the blob fetch otherwise starts a detached `git maintenance` that writes into the clone while it is being removed. They create the temporary folder as `mktemp -d "${TMPDIR:-/tmp}/sharron.XXXXXX"`, because macOS `mktemp -d` without a template ignores `TMPDIR`.
+
 | Platform | `<skills dir>` (personal skills folder) | Mark |
 |---|---|---|
 | Claude Code | `~/.claude/skills` | documented |
@@ -181,3 +183,6 @@ Official sources read on 2026-10-28. "Run" means executed on this machine with `
 | 23 | Model prices | Filled in `config.example.toml` | https://platform.claude.com/docs/en/about-claude/pricing (Sonnet 5.5 cache read is 0.10 there; the `claude-api` skill's cached table says 0.20, and the page was used) | 2026-10-28 |
 | 24 | Copilot model ids | `claude-haiku-5.5`, `claude-sonnet-5.5`, `claude-opus-5.5` | cli-command-reference page above | 2026-10-28 |
 | 25 | Agent id returned by the Agent tool equals the `agent-<id>` file name | Documented; not exercised from a subagent run here | https://code.claude.com/docs/en/sub-agents | 2026-10-28 |
+| 26 | Pinned skill-folder install commands, first template, run for real: entry `principle-prove-it-works` (`cursor/plugins` at `99b609a`), all four commands | Each exited 0 and put `SKILL.md` in its skills folder, but two flaws showed. macOS `mktemp -d` ignored `TMPDIR`, so the clone sat in the per-user system temp folder. In 3 of 4 runs `rm -rf "$d"` printed "Directory not empty" and left the clone behind, because the blob fetch during `checkout` starts `git maintenance run --auto --detach` (seen with `GIT_TRACE=1`), which wrote into `.git` during the removal. Template fixed in `registry.toml` (row 27) | Run: each command under `/bin/sh` with `HOME`, `CLAUDE_CONFIG_DIR` and `TMPDIR` set to throwaway folders (deleted afterwards); git 2.54 on macOS | 2026-10-29 |
+| 27 | Fixed template (`mktemp -d "${TMPDIR:-/tmp}/sharron.XXXXXX"`, `git -c maintenance.auto=false` on clone and checkout), same entry, all four commands run for real | All four exited 0 and installed one `SKILL.md` each in `<config dir>/skills`, `~/.agents/skills`, `~/.copilot/skills` and `~/.cursor/skills`. The temporary clone was created inside `TMPDIR` and removed; `TMPDIR` was empty afterwards; no `git maintenance` was started | Run as in row 26 | 2026-10-29 |
+| 28 | Existing destination: the same four commands run a second time | Each exited 1 at once, created no temporary folder and left the installed files byte-identical (checked with `shasum`) | Run as in row 26 | 2026-10-29 |

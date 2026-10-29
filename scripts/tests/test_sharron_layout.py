@@ -81,9 +81,12 @@ def test_pinned_install_commands_copy_one_folder_into_the_platform_skills_folder
         for platform, command in e.install.items():
             skills_dir = SKILLS_DIRS[platform]
             where = f"{e.name} on {platform}"
-            assert command.startswith(f'[ ! -e {skills_dir[:-1]}/{e.name}" ] && d=$(mktemp -d) && {{ '), where
+            assert command.startswith(
+                f'[ ! -e {skills_dir[:-1]}/{e.name}" ] && d=$(mktemp -d "${{TMPDIR:-/tmp}}/sharron.XXXXXX") && {{ '
+                "git -c maintenance.auto=false clone "
+            ), where
             assert f"github.com/{e.repo}.git" in command, where
-            assert f"checkout -q {e.ref} -- " in command, where
+            assert f'git -c maintenance.auto=false -C "$d" checkout -q {e.ref} -- ' in command, where
             assert f"mkdir -p {skills_dir} && cp -R " in command, where
             assert command.endswith(f'{skills_dir[:-1]}/{e.name}" ; s=$?; rm -rf "$d"; [ "$s" -eq 0 ]; }}'), where
             assert command.count(e.ref) == 1, where

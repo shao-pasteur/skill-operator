@@ -21,7 +21,6 @@ import argparse  # noqa: E402
 import contextlib  # noqa: E402
 import json  # noqa: E402
 import os  # noqa: E402
-import shlex  # noqa: E402
 import shutil  # noqa: E402
 import subprocess  # noqa: E402
 import tempfile  # noqa: E402
@@ -150,15 +149,15 @@ def _git(skill_dir: Path, *args: str, timeout: float | None = None, env: dict[st
 def _batch_ssh_env(skill_dir: Path) -> dict[str, str]:
     """GIT_SSH_COMMAND with BatchMode on, so an ssh passphrase or host-key prompt fails instead of waiting.
 
-    The user's own GIT_SSH_COMMAND or core.sshCommand is kept and the option is appended to it.
+    The user's own GIT_SSH_COMMAND or core.sshCommand is kept and the option is appended to it. A GIT_SSH
+    program alone is left as it is (empty result), because it may not be OpenSSH and may reject the option.
     """
     base = os.environ.get("GIT_SSH_COMMAND", "").strip()
     if not base:
         base = _git(skill_dir, "config", "--get", "core.sshCommand").stdout.strip()
-    if not base:
-        program = os.environ.get("GIT_SSH", "").strip()
-        base = shlex.quote(program) if program else "ssh"
-    return {"GIT_SSH_COMMAND": f"{base} -o BatchMode=yes"}
+    if not base and os.environ.get("GIT_SSH", "").strip():
+        return {}
+    return {"GIT_SSH_COMMAND": f"{base or 'ssh'} -o BatchMode=yes"}
 
 
 def _is_this_clone(skill_dir: Path) -> bool:

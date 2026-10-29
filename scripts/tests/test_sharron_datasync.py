@@ -237,3 +237,6 @@ def test_batch_mode_is_added_to_core_ssh_command_or_plain_ssh(tmp_path, monkeypa
     assert ds._batch_ssh_env(skill) == {"GIT_SSH_COMMAND": "ssh -o BatchMode=yes"}
     git(clone, "config", "core.sshCommand", "ssh -i keyfile")
     assert ds._batch_ssh_env(skill) == {"GIT_SSH_COMMAND": "ssh -i keyfile -o BatchMode=yes"}
+    git(clone, "config", "--unset", "core.sshCommand")
+    monkeypatch.setenv("GIT_SSH", "plink")
+    assert ds._batch_ssh_env(skill) == {}

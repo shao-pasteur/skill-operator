@@ -17,6 +17,10 @@ shift
 
 case $0 in */*) dir=${0%/*} ;; *) dir=. ;; esac
 
+# Keep __pycache__ out of the skill folder.
+PYTHONDONTWRITEBYTECODE=1
+export PYTHONDONTWRITEBYTECODE
+
 for py in python3.14 python3.13 python3.12 python3.11 python3 python; do
   if command -v "$py" >/dev/null 2>&1 &&
     "$py" -c 'import sys; sys.exit(sys.version_info < (3, 11))' >/dev/null 2>&1; then

@@ -52,7 +52,7 @@ sharron writes `ledger/costs.md`, `registry.toml`, `security-references.toml` an
 | Copilot CLI | "Path-sourced plugins in a local (directory-source) marketplace load live from their real directory": editing one takes effect on `/restart` or in a new session. Scope: plugins whose `source` is a path inside a marketplace added from a local path. A plugin installed from GitHub or another remote source is a copy under `~/.copilot/installed-plugins/<marketplace>/<plugin>`. | documented (not run) |
 | Cursor | Local plugins are copied into `~/.cursor/plugins/local/<plugin>`; a symlink works only when it points inside that folder. Treat it as a copy. | documented |
 
-For copies, `finance.py` already detects that the skill folder is not inside a git work tree and says so once; the copy only loses the ledger and the settings, not functionality (spec section 8, item 6).
+For copies, the data sync (`datasync.py`, which `finance.py` runs) detects that the skill folder is not this repository's clone at `plugins/workflow/skills/sharron/`, returns `not-a-clone` and says so once. A copy inside another project's repository counts as a copy too, and nothing is committed or pushed there. A copy only loses the ledger and the settings, not functionality (spec section 8, item 6).
 
 ## Background work
 

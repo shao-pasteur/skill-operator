@@ -154,7 +154,7 @@ The decision level is L2. Tell the user in one line in the reply (step 10), buil
 sh <skill>/scripts/run.sh datasync.py sync security-references.toml --message "chore(sharron): update security references [skip ci]"
 ```
 
-Before `apply`, run the same diff test (`git -C <skill> diff --quiet HEAD -- security-references.toml`). If the file already has an uncommitted diff that this task did not make, do not apply: the commit would carry it too. Leave the change pending and tell the user. Nothing is stored in `MEMORY.md` for any of this. A skill folder that is not a git clone (`not-a-clone`) is the exception: the update stays local, the script says so once, and the check is skipped.
+Before `apply`, run the same diff test (`git -C <skill> diff --quiet HEAD -- security-references.toml`). If the file already has an uncommitted diff that this task did not make, do not apply: the commit would carry it too. Leave the change pending and tell the user. Nothing is stored in `MEMORY.md` for any of this. A skill folder that is not this repository's clone at `plugins/workflow/skills/sharron/` (`not-a-clone`) is the exception: the update stays local, the script says so once, and the check is skipped.
 
 **6. Record the cost.** The subagents' usage is recorded as a `maintenance` row, with the ids of those subagents (see [`finance.md`](finance.md#measuring-usage)). No row is written when nothing changed and no subagent ran.
 

@@ -12,6 +12,8 @@ trace = load("trace")
 NOW = datetime(2026, 10, 28, 9, 0, tzinfo=timezone.utc)
 HOME = "/Users/alice"
 GH_TOKEN = "gh" + "p_" + "a" * 36  # concatenated so gitleaks does not flag this file
+AWS_SECRET = "wJalr" + "XUtnFEMI" + "K7MDENG"  # concatenated so gitleaks does not flag this file
+BASIC = "dXNlcj" + "pwYXNzd29yZA=="
 KEY_BLOCK = "-----BEGIN " + "PRIVATE KEY-----\nMIIEsecretbody\n-----END " + "PRIVATE KEY-----"
 
 
@@ -29,6 +31,12 @@ def test_append_writes_one_line_per_call(tmp_path):
     ({"context": f"push with {GH_TOKEN}"}, GH_TOKEN),
     ({"context": "password=hunter2hunter2"}, "hunter2hunter2"),
     ({"files": [KEY_BLOCK]}, "MIIEsecretbody"),
+    ({"context": "export AWS_SECRET_ACCESS_KEY=" + AWS_SECRET}, AWS_SECRET),
+    ({"context": "aws_secret_access_key = " + AWS_SECRET}, AWS_SECRET),
+    ({"aws_secret_access_key": AWS_SECRET}, AWS_SECRET),
+    ({"context": "curl -H 'Authorization: Basic " + BASIC + "' https://example.com"}, BASIC),
+    ({"context": 'password = "correct horse battery staple"'}, "battery staple"),
+    ({"context": "secret: 'two words'"}, "two words"),
 ])
 def test_secrets_are_redacted(tmp_path, payload, secret):
     text = trace.append(tmp_path, "t-20261027-01", "brief", payload, now=NOW, home=HOME).read_text()
@@ -84,6 +92,14 @@ def test_a_trailing_newline_is_not_a_valid_task_id(tmp_path):
 def test_unknown_kinds_are_rejected(tmp_path):
     with pytest.raises(ValueError):
         trace.append(tmp_path, "t-20261027-01", "chat", {}, now=NOW, home=HOME)
+
+
+def test_quoted_values_keep_their_quotes_and_the_rest_of_the_line():
+    assert trace.redact('password="a b c" next', "") == 'password="[REDACTED]" next'
+    assert trace.redact('token: "unterminated', "") == 'token: "[REDACTED]'
+    assert trace.redact("a basic understanding of the authorization flow", "") == (
+        "a basic understanding of the authorization flow"
+    )
 
 
 def test_ordinary_words_and_ids_survive_redaction():

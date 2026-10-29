@@ -47,7 +47,7 @@ copilot plugin install workflow@skill-operator
 copilot plugin install research@skill-operator
 ```
 
-Those installs are copies: they work in full, but they lose only two things, the ledger and your settings, because the copy is replaced when the plugin updates and is not a git clone. sharron notices this and tells you once (`not-a-clone`). See [Where writes land](references/platforms.md#where-writes-land).
+Those installs are copies: they work in full, but they lose only two things, the ledger and your settings, because the copy is replaced when the plugin updates and is not this repository's clone. sharron notices this and tells you once (`not-a-clone`). See [Where writes land](references/platforms.md#where-writes-land).
 
 sharron's scripts need Python 3.11 or newer and git. You do not have to pick the interpreter: `scripts/run.sh` tries `python3.14`, `python3.13`, `python3.12`, `python3.11`, `python3` and `python` in that order, takes the first that is 3.11 or newer, then falls back to `uv`, and says what to install when none fits.
 
@@ -196,7 +196,7 @@ All paths are inside `<skill>`.
 | `security-references.toml` | You add sources by hand; `refcheck.py` updates editions | You add or remove a `[[sources]]` entry (`id`, `name`, `kind`, `edition`, `status`, `url`, `official_domains`, `applies_to`, `items`, `check_every_days`, `probe`) in the layout described at the top of the file. The automatic update may change only `edition`, `status`, `url`, `items` and `probe` of an existing source, only after a verifier confirmed it against the official page, and it appends a `[[changelog]]` entry. |
 | `roles/<role>.md` | You | The role prompts. Committed, so edits affect everyone using your clone. |
 | `roles/<role>.local.md` | You | The same, for this machine only. Gitignored; sharron appends it after the role prompt. Do not put absolute home paths in it (see [Troubleshooting](#troubleshooting)). |
-| `ledger/costs.md` | `finance.py` only | Append-only cost ledger. Never edit it by hand. |
+| `ledger/costs.md` | `finance.py` only | Append-only cost ledger. Never edit it by hand. Rows are pushed to your repository, so they are public when the repository is public. `domain` is a coarse label such as `travel` or `finance`, never a name, place or other task detail. |
 | `state/` | Scripts | Reference-check times, redacted traces, update proposals. Local only. |
 | `evals/` | You | Eval cases and fixtures for checking the skill on each platform. Running them costs quota, so it is always manual. |
 
@@ -252,7 +252,7 @@ Notes on the less obvious ones:
 
 **Ledger rows are not committed.** The reply says why. Run `git status` in your clone and match the reason:
 
-- A **cache copy** (`not-a-clone`): the plugin was installed from GitHub or copied into a plugin cache, so the row only exists in that copy and is lost on update. Install from your local clone ([Install](#install)) if you want the ledger in the repo.
+- A **copy** (`not-a-clone`): the plugin was installed from GitHub, copied into a plugin cache, or copied into another project's repository (sharron never commits or pushes there), so the row only exists in that copy and is lost on update. Install from your local clone ([Install](#install)) if you want the ledger in the repo.
 - **`commit-failed`**: the commit did not go through. Either the repository's pre-commit check failed, or a rebase, merge, cherry-pick, revert or bisect is in progress, or HEAD is detached. The row is already written to `ledger/costs.md` and the next `finance.py record` commits it together with its own row. sharron never bypasses the check (`--no-verify`). The pre-commit hook rebuilds the generated manifests and the README catalog, and it exits 1 with a `git add <generated files>` line when the regenerated manifests or README differ from what is staged. That happens while other work in the clone is in progress. Fix it by committing or stashing that other work, or by running `make build` and committing the generated files together with it; then the next ledger commit goes through.
 - A path with a home directory in a role file: do not put absolute home paths (`/Users/<you>/…`) in `roles/*.local.md` or anywhere else in the skill folder. `make check` and the pre-commit hook scan the skill folder for them, and the failure blocks the ledger commit.
 
@@ -260,7 +260,7 @@ Notes on the less obvious ones:
 
 | `reason` | Meaning | What to do |
 |---|---|---|
-| `not-a-clone` | The skill folder is not inside a git work tree (a plugin cache copy). Said once. | Install from your local clone. |
+| `not-a-clone` | The skill folder is not this repository's clone at `plugins/workflow/skills/sharron/` (a plugin cache copy, or a copy inside another project's repository, where nothing is committed or pushed). Said once. | Install from your local clone. |
 | `commit-failed` | The commit failed or an operation is in progress; `detail` says which. | Finish the rebase or merge, or fix the failing check. For `registry.toml` and `security-references.toml` sharron does not retry the commit: run the `git commit -m "<message>" -- <file>` command her reply gives. |
 | `not-on-default-branch` | Committed, but you are not on `main`. | Nothing; it goes out with your next push from `main`. |
 | `no-upstream` | The branch has no upstream. | `git push -u origin <branch>`; later syncs push on their own. |

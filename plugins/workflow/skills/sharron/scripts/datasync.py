@@ -21,6 +21,7 @@ import argparse  # noqa: E402
 import contextlib  # noqa: E402
 import json  # noqa: E402
 import os  # noqa: E402
+import shlex  # noqa: E402
 import shutil  # noqa: E402
 import subprocess  # noqa: E402
 import tempfile  # noqa: E402
@@ -40,11 +41,12 @@ except ImportError:  # Windows
 
 DATA_FILES = ("ledger/costs.md", "security-references.toml", "registry.toml")
 LEDGER_FILE = DATA_FILES[0]
+CLONE_PREFIX = "plugins/workflow/skills/sharron/"  # where the skill sits inside this repo's clone
 MESSAGE_PREFIX = "chore(sharron): "
 SKIP_CI = "[skip ci]"
 NOT_A_CLONE_NOTICE = (
-    "This copy of sharron is not a git clone, so ledger rows and reference updates stay here and never reach "
-    "the repo. Install it from a local clone to keep them."
+    "This copy of sharron is not inside a clone of its own repo, so ledger rows and reference updates stay here "
+    "and never reach the repo. Install it from a local clone to keep them."
 )
 NETWORK_TIMEOUT = 120  # seconds for fetch and push, so an unreachable remote cannot hang a task
 MAX_REBASE_STEPS = 100
@@ -145,6 +147,31 @@ def _git(skill_dir: Path, *args: str, timeout: float | None = None, env: dict[st
         return subprocess.CompletedProcess(command, 127, "", str(error))
 
 
+def _batch_ssh_env(skill_dir: Path) -> dict[str, str]:
+    """GIT_SSH_COMMAND with BatchMode on, so an ssh passphrase or host-key prompt fails instead of waiting.
+
+    The user's own GIT_SSH_COMMAND or core.sshCommand is kept and the option is appended to it.
+    """
+    base = os.environ.get("GIT_SSH_COMMAND", "").strip()
+    if not base:
+        base = _git(skill_dir, "config", "--get", "core.sshCommand").stdout.strip()
+    if not base:
+        program = os.environ.get("GIT_SSH", "").strip()
+        base = shlex.quote(program) if program else "ssh"
+    return {"GIT_SSH_COMMAND": f"{base} -o BatchMode=yes"}
+
+
+def _is_this_clone(skill_dir: Path) -> bool:
+    """True only when skill_dir is this repo's skill folder inside a git work tree.
+
+    A copy that sits anywhere else, for example inside another project's repo, must never commit or push there.
+    """
+    if _git(skill_dir, "rev-parse", "--is-inside-work-tree").returncode:
+        return False
+    prefix = _git(skill_dir, "rev-parse", "--show-prefix")
+    return prefix.returncode == 0 and prefix.stdout.strip() == CLONE_PREFIX
+
+
 def _last_line(result: subprocess.CompletedProcess[str]) -> str | None:
     lines = [line.strip() for line in (result.stderr + "\n" + result.stdout).splitlines() if line.strip()]
     return lines[-1] if lines else None
@@ -242,7 +269,7 @@ def _operation_in_progress(skill_dir: Path) -> str | None:
 def sync(skill_dir: Path, rel_path: str, message: str) -> SyncResult:
     """Commit rel_path (only that file) and push it when every safeguard allows; see the module docstring."""
     _check_arguments(rel_path, message)
-    if _git(skill_dir, "rev-parse", "--is-inside-work-tree").returncode:
+    if not _is_this_clone(skill_dir):
         return SyncResult(False, False, "not-a-clone", None, notice_once(skill_dir, "not-a-clone", NOT_A_CLONE_NOTICE))
 
     busy = _operation_in_progress(skill_dir)
@@ -266,7 +293,8 @@ def sync(skill_dir: Path, rel_path: str, message: str) -> SyncResult:
     upstream = _git(skill_dir, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
     if upstream.returncode:
         return stop("no-upstream")
-    fetch = _git(skill_dir, "fetch", "--quiet", remote, timeout=NETWORK_TIMEOUT)
+    ssh_env = _batch_ssh_env(skill_dir)
+    fetch = _git(skill_dir, "fetch", "--quiet", remote, timeout=NETWORK_TIMEOUT, env=ssh_env)
     if fetch.returncode:
         return stop("fetch-failed", _last_line(fetch))
 
@@ -289,7 +317,7 @@ def sync(skill_dir: Path, rel_path: str, message: str) -> SyncResult:
         return stop("memory-guard", guard["status"])
 
     target = upstream.stdout.strip().removeprefix(f"{remote}/")
-    pushed = _git(skill_dir, "push", "--quiet", remote, f"HEAD:{target}", timeout=NETWORK_TIMEOUT)
+    pushed = _git(skill_dir, "push", "--quiet", remote, f"HEAD:{target}", timeout=NETWORK_TIMEOUT, env=ssh_env)
     if pushed.returncode:
         return stop("push-failed", _last_line(pushed))
     return SyncResult(committed, True)

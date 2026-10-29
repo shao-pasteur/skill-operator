@@ -273,10 +273,11 @@ def test_cli_reports_bad_input_on_stderr(tmp_path, capsys):
     assert json.loads(capsys.readouterr().out) == {"source": "owasp-mcp", "dismissed": False}
 
 
-def test_fetch_url_returns_http_errors_and_raises_on_network_errors():
+def test_fetch_url_returns_http_errors_and_raises_on_network_errors(monkeypatch):
     import http.server
-    import socket
     import threading
+    import urllib.error
+    import urllib.request
 
     class Handler(http.server.BaseHTTPRequestHandler):
         def do_GET(self):
@@ -294,8 +295,14 @@ def test_fetch_url_returns_http_errors_and_raises_on_network_errors():
     finally:
         server.shutdown()
         server.server_close()
-    with pytest.raises(refcheck.FetchError):
-        refcheck.fetch_url(url)  # the port is closed now
+    # Network failures are injected: a freed port could be reused by another process before the request.
+    for failure in (urllib.error.URLError(ConnectionRefusedError(61, "Connection refused")), ConnectionResetError(54, "reset")):
+        def fail(self, *args, error=failure, **kwargs):
+            raise error
+
+        monkeypatch.setattr(urllib.request.OpenerDirector, "open", fail)
+        with pytest.raises(refcheck.FetchError):
+            refcheck.fetch_url(url)
 
 
 # ---------------------------------------------------------------- fix round 1

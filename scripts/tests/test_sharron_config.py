@@ -91,6 +91,12 @@ def test_run_sh_reports_missing_python(tmp_path):
     assert result.returncode == 1 and "Python 3.11" in result.stderr
 
 
+def test_run_sh_keeps_bytecode_out_of_the_skill_folder(tmp_path):
+    (tmp_path / "python3").write_text('#!/bin/sh\n[ "$1" = "-c" ] && exit 0\necho "$PYTHONDONTWRITEBYTECODE"\n')
+    (tmp_path / "python3").chmod(0o755)
+    assert run_sh(tmp_path, "config.py").stdout.strip() == "1"
+
+
 def test_run_sh_rejects_unknown_scripts(tmp_path):
     assert run_sh(tmp_path, "../evil.py").returncode == 2
 

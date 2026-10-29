@@ -12,7 +12,8 @@ description: >-
   Sharron the report").
 compatibility: >-
   Requires Python 3.11+ and git. Works best on platforms with subagents and file access: Claude
-  Code, Codex, Copilot CLI, Cursor, or the custom platforms work and hybrid set in config.toml.
+  Code, Codex, Copilot CLI and Cursor. The custom platforms "work" and "hybrid" are set up in
+  config.toml.
 metadata:
   web: "false"
 ---

@@ -58,7 +58,7 @@ Any figure left out is stored as `unknown`. When the platform reports nothing, p
   - `outcome` is `done`, `partial`, `failed` or `cancelled`.
   - `verified` is claims confirmed over claims checked, such as `3/3`.
   - `measurement` is `measured` or `unknown`. `cache_tokens` is cache writes plus cache reads.
-  - `domain` is lowercase words joined by hyphens. Recording the same `task_id` twice is refused.
+  - `domain` is lowercase words joined by hyphens. Use a coarse label such as `travel` or `finance`, never a name, place, company or other task detail: ledger rows are pushed to the repository and are public when the repository is public. Recording the same `task_id` twice is refused.
 - **Corrections table**: `task_id`, `date`. When the user says a finished task's result was wrong, run `sh <skill>/scripts/run.sh finance.py correct --task-id <id>`. It appends a row (once per task) and syncs; the task then leaves the summary and the budget suggestions. The task must already be in the ledger.
 - Both tables are append-only. The file is written atomically under a lock, so two sessions cannot interleave.
 - `simple-answer` and `settings-help` tasks get no row. A `maintenance` row is written only for a background reference update.
@@ -68,7 +68,7 @@ Any figure left out is stored as `unknown`. When the platform reports nothing, p
 sharron writes to the copy of the skill the platform loaded; see [`platforms.md`](platforms.md#where-writes-land).
 
 - **Loaded in place from the local clone** (Claude Code and Copilot CLI with a marketplace added by local path): the ledger and `config.toml` are in the repository, and the row is committed there.
-- **Installed from GitHub, or copied into a plugin cache** (Codex and Cursor always): the row stays in the copy, is lost when the plugin updates and never reaches the repository. The script detects this (the skill folder is not inside a git work tree), returns reason `not-a-clone` with a `notice` once, and sharron passes it on.
+- **Installed from GitHub, or copied into a plugin cache** (Codex and Cursor always): the row stays in the copy, is lost when the plugin updates and never reaches the repository. The script detects this: a copy that is not this repository's clone at `plugins/workflow/skills/sharron/` gets reason `not-a-clone` with a `notice` once, and sharron passes it on. That includes a copy inside another project's repository, which the script never commits to or pushes from.
 
 ## Budget suggestions
 
@@ -118,13 +118,13 @@ sharron never commits a change to `registry.toml` or `security-references.toml` 
 
 - **The ledger** needs no extra step: the next `record` or `correct` commits an older uncommitted row together with its own, and its sync pushes any older outgoing ledger commit.
 - **`security-references.toml` and `registry.toml`, in the task that changed them.** The change is committed by the `sync` that follows sharron's own `refcheck.py apply`, or a registry edit the user explicitly asked for. If that `sync` does not commit (`commit-failed`, for example during the user's rebase), sharron does not try again. The change waits for the user, and the reply line says so and gives the command (see Reply lines).
-- **Across tasks (a stateless check at step 11),** after `finance.py record`, with nothing stored in `MEMORY.md`. It only retries pushing commits that already exist. It runs on the sharron skill clone and is skipped when `git -C <skill> rev-parse --is-inside-work-tree` fails (a cache copy, reason `not-a-clone`). For each of the two files:
-  1. Is there an uncommitted diff? `git -C <skill> diff --quiet HEAD -- <file>` exits 1. If so, **do not run `sync`**, because it would commit that diff. Leave the file alone and mention it once in the reply: 「registry.toml 有未 commit 的修改，sharron 不會替你 commit」 (「security-references.toml 有未 commit 的修改，…」 for the other file). It is the user's edit, or a change whose commit failed earlier.
+- **Across tasks (a stateless check at step 11),** after `finance.py record`, with nothing stored in `MEMORY.md`. It only retries pushing commits that already exist. It runs on the sharron skill clone and is skipped unless `git -C <skill> rev-parse --show-prefix` prints exactly `plugins/workflow/skills/sharron/` (any other copy, reason `not-a-clone`, even one inside another project's repository). For each of the two files:
+  1. Is there an uncommitted diff? `git -C <skill> diff --quiet HEAD -- <file>` exits 1. If so, **do not run `sync`**, because it would commit that diff. Leave the file alone and mention it once per task in the reply: 「registry.toml 有未 commit 的修改，sharron 不會替你 commit」 (「security-references.toml 有未 commit 的修改，…」 for the other file). It is the user's edit, or a change whose commit failed earlier.
   2. Otherwise, does an outgoing commit touch it? `git -C <skill> log --format=%h @{upstream}..HEAD -- <file>` prints a line. If there is no upstream the command fails; then there is nothing outgoing to find.
   3. If so, run `sh <skill>/scripts/run.sh datasync.py sync <file> --message "<that file's message from the table above>"`. The file matches HEAD, so `sync` skips the commit, then fetches and pushes the outgoing commits under the usual safeguards (default branch, upstream set, every outgoing commit a data commit). When nothing is outgoing it returns `committed` false, `pushed` false and no `reason`.
 - One `sync` pushes every outgoing data commit, so the second file's check then finds nothing to do.
 - Before sharron writes either file (`refcheck.py apply`, or a registry edit), run the diff test of step 1. If the file already has an uncommitted diff, do not write: the commit that follows would carry that diff too. Tell the user, and leave a pending reference change pending.
-- Say a reply line only when a call committed or pushed something. A call that stops with the same reason and changed nothing is silent.
+- In this step-11 check, say a reply line only when its `sync` committed or pushed something; a call that stops with the same reason and changed nothing is silent. This applies only to the repeat check: the `sync` after `refcheck.py apply` or a registry edit the user asked for always gets its reply line, `commit-failed` included.
 
 ## Reply lines
 
@@ -134,7 +134,7 @@ Say one line, in Traditional Chinese, in the reply (step 10). Pick it from the s
 |---|---|---|
 | `pushed` is true | 「帳本已自動 commit 並 push」 | Same, with the file name replaced. |
 | `reason` is null and `pushed` is false | Nothing to commit or push. Say nothing. | Same. |
-| `not-a-clone` | 「這份 sharron 不是 git 複本，帳本只留在這裡，不會進到 repo；想保留的話，請從本機的 clone 安裝。」 Say it only when `notice` is not null; the script gives it once. | Same, with the file name replaced. |
+| `not-a-clone` | 「這份 sharron 不在它自己 repo 的 clone 裡，帳本只留在這裡，不會進到 repo；想保留的話，請從本機的 clone 安裝。」 Say it only when `notice` is not null; the script gives it once. | Same, with the file name replaced. |
 | `commit-failed` | 「帳本已寫入檔案，但 commit 沒成功（<detail>）；下次執行時會連同新的一列一起 commit。」 When `detail` names a git operation in progress (a rebase, a merge, a detached HEAD), say so in Chinese and add that the row is committed once the operation ends. | 「<檔案>已寫入，但 commit 沒成功（<detail>）；sharron 不會自己再 commit。等你處理完（例如結束 rebase）後，請執行：git -C <sharron 資料夾> commit -m "<該檔案的 commit 訊息>" -- <檔案>」 Use the message from the table above. After that commit, a later step-11 check pushes it. |
 | `not-on-default-branch` | 「帳本已 commit，但目前不在預設分支，沒有自動 push；會隨你下一次 push 一起送出。」 | Same. |
 | `no-upstream` | 「帳本已 commit，但這個分支沒有設定上游，沒有自動 push；設好上游（例如 git push -u）後，下次就會自動送出。」 | 「…設好上游（例如 git push -u）後，之後有任務收尾時就會自動送出。」 |

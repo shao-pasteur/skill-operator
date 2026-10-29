@@ -191,3 +191,49 @@ def test_an_operation_in_progress_blocks_the_commit(tmp_path, marker, word):
     assert word in result.detail
     assert git(clone, "rev-parse", "HEAD") == before
     assert "costs.md" in git(clone, "status", "--porcelain")
+
+
+def test_a_copy_inside_another_repo_never_commits_or_pushes_there(tmp_path):
+    remote = tmp_path / "project.git"
+    git(tmp_path, "init", "-q", "--bare", "-b", "main", str(remote))
+    project = tmp_path / "proj"
+    git(tmp_path, "clone", "-q", str(remote), str(project))
+    (project / "app.py").write_text("print('hi')\n")
+    git(project, "add", "app.py")
+    git(project, "commit", "-qm", "initial")
+    git(project, "push", "-q", "-u", "origin", "main")
+    skill = shutil.copytree(make_skill(tmp_path / "src"), project / ".agents/skills/sharron")
+    git(project, "add", "-A")
+    git(project, "commit", "-qm", "add the skill")
+    git(project, "push", "-q")
+    remote_before, local_before = git(remote, "rev-parse", "main"), git(project, "rev-parse", "HEAD")
+    add_row(skill, "t-20261027-01")
+    result = ds.sync(skill, LEDGER, MSG)
+    assert (result.committed, result.pushed, result.reason) == (False, False, "not-a-clone")
+    assert result.notice
+    assert git(project, "rev-parse", "HEAD") == local_before
+    assert git(remote, "rev-parse", "main") == remote_before
+    assert git(project, "diff", "--cached", "--name-only") == ""
+
+
+def test_ssh_runs_in_batch_mode_and_keeps_the_users_command(tmp_path, monkeypatch):
+    clone, skill = make_clone(tmp_path)
+    log = tmp_path / "ssh.log"
+    fake_ssh = tmp_path / "fake-ssh"
+    fake_ssh.write_text(f'#!/bin/sh\necho "$@" >> "{log}"\nexit 1\n')
+    fake_ssh.chmod(0o755)
+    monkeypatch.setenv("GIT_SSH_COMMAND", f"{fake_ssh} -o ConnectTimeout=5")
+    git(clone, "remote", "set-url", "origin", "ssh://git.example.invalid/repo.git")
+    add_row(skill, "t-20261027-01")
+    result = ds.sync(skill, LEDGER, MSG)
+    assert (result.committed, result.pushed, result.reason) == (True, False, "fetch-failed")
+    assert "-o ConnectTimeout=5 -o BatchMode=yes" in log.read_text()
+
+
+def test_batch_mode_is_added_to_core_ssh_command_or_plain_ssh(tmp_path, monkeypatch):
+    clone, skill = make_clone(tmp_path)
+    monkeypatch.delenv("GIT_SSH_COMMAND", raising=False)
+    monkeypatch.delenv("GIT_SSH", raising=False)
+    assert ds._batch_ssh_env(skill) == {"GIT_SSH_COMMAND": "ssh -o BatchMode=yes"}
+    git(clone, "config", "core.sshCommand", "ssh -i keyfile")
+    assert ds._batch_ssh_env(skill) == {"GIT_SSH_COMMAND": "ssh -i keyfile -o BatchMode=yes"}

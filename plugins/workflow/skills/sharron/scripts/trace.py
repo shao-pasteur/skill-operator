@@ -31,7 +31,7 @@ TRACE_DIR = "state/traces"
 
 _SECRET_KEYS = frozenset((
     "password", "passwd", "secret", "token", "access_token", "refresh_token", "api_key", "apikey",
-    "authorization", "cookie", "private_key", "client_secret",
+    "authorization", "cookie", "private_key", "client_secret", "secret_access_key", "aws_secret_access_key",
 ))
 
 # Applied to every string in this order (see redact()).
@@ -46,9 +46,13 @@ _TOKEN_RES = [
     re.compile(r"eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"),
 ]
 _BEARER_RE = re.compile(r"(?i)\bBearer\s+[^\s\"']{8,}")
+# Any scheme after an Authorization header or key (Basic, Token, Digest, ...); Bearer is already gone by then.
+_AUTH_HEADER_RE = re.compile(r"(?i)(\bAuthorization[\"']?\s*[:=]\s*[\"']?[A-Za-z][A-Za-z0-9_-]*\s+)([^\s\"',;]+)")
+# The value is a whole quoted string (spaces allowed) when it is quoted, otherwise one word.
 _ASSIGNMENT_RE = re.compile(
-    r"(?i)(?<![A-Za-z0-9])((?:api[_-]?key|access[_-]?token|refresh[_-]?token|token|secret|client[_-]?secret"
-    r"|password|passwd|pwd)[\"']?\s*[:=]\s*[\"']?)([^\s\"',;]+)"
+    r"(?i)(?<![A-Za-z0-9])((?:secret[_-]?access[_-]?key|api[_-]?key|access[_-]?token|refresh[_-]?token|token"
+    r"|secret|client[_-]?secret|password|passwd|pwd)[\"']?\s*[:=]\s*)"
+    r"(\"[^\"\n]*\"|'[^'\n]*'|[\"']?[^\s\"',;]+)"
 )
 # The same shapes the repo validator looks for; the replacements contain "<", which these never match.
 # The patterns are assembled from parts so this file itself does not look like a personal path to that validator.
@@ -60,12 +64,21 @@ _OTHER_HOME_RES = [
 ]
 
 
+def _redact_value(match: re.Match[str]) -> str:
+    """Replace an assignment's value with [REDACTED], keeping the quotes around it."""
+    value = match.group(2)
+    quote = value[0] if value[0] in "\"'" else ""
+    closing = quote if quote and len(value) > 1 and value.endswith(quote) else ""
+    return f"{match.group(1)}{quote}[REDACTED]{closing}"
+
+
 def _redact_text(text: str, home: str) -> str:
     text = _PEM_RE.sub("[REDACTED PRIVATE KEY]", text)
     for pattern in _TOKEN_RES:
         text = pattern.sub("[REDACTED]", text)
     text = _BEARER_RE.sub("Bearer [REDACTED]", text)
-    text = _ASSIGNMENT_RE.sub(lambda m: m.group(1) + "[REDACTED]", text)
+    text = _AUTH_HEADER_RE.sub(lambda m: m.group(1) + "[REDACTED]", text)
+    text = _ASSIGNMENT_RE.sub(_redact_value, text)
     home = home.rstrip("/\\")
     if home:
         text = re.sub(re.escape(home) + r"(?=/|$)", "~", text)

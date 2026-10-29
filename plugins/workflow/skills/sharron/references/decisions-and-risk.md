@@ -16,7 +16,7 @@ Contents:
 | L0 | R0 actions: reading, searching, calculating | sharron applying the rules | Nothing |
 | L1 | Details inside a brief | The subagent | Its report |
 | L2 | R1–R2 actions; decomposing, delegating, tier changes, spending within the suggestion, installing registry skills, committing and pushing the ledger and the security reference list | sharron | A short summary at the end of the reply |
-| L3 | R3 actions; budget overrun; more than 5 subagents or parallel T3 subagents; the plan of a difficulty 4–5 task; loosening a safeguard; every external action when the Rule of Two cannot be kept | sharron after an independent review | A one-line confirmation request; act only after the user agrees |
+| L3 | R3 actions; budget overrun; more than 5 subagents or parallel T3 subagents; the plan of a difficulty 4–5 task; loosening a safeguard; an eval run (it costs quota); every external action when the Rule of Two cannot be kept | sharron after an independent review | A one-line confirmation request; act only after the user agrees |
 | L4 | R4 actions; life-direction choices; ambiguity with a large impact; sharron and the reviewer disagree on something important; untracking a tracked `MEMORY.md` | The user | A decision card; nothing happens until an explicit answer |
 | Forbidden | Matches a `never` standing order | Nobody | A refusal |
 
@@ -38,7 +38,7 @@ One line, then stop and wait:
 需要你確認：<要做的事，含對象與金額／數量>（原因：<一句話>）。要執行嗎？（回「好」或說明要改的地方）
 ```
 
-The reason names the actual trigger: an R3 action, more than 5 subagents or parallel T3, a difficulty 4–5 plan, loosening a safeguard, an eval run, or a Rule of Two exception. Write `風險 R3：` in front of the reason only when the trigger is an R3 action.
+The reason names the actual trigger: an R3 action, a budget overrun (use the overrun line below), more than 5 subagents or parallel T3, a difficulty 4–5 plan, loosening a safeguard, an eval run, or a Rule of Two exception. Write `風險 R3：` in front of the reason only when the trigger is an R3 action.
 
 For an overrun:
 

@@ -332,3 +332,82 @@ def test_usage_with_no_usage_since_the_start_time_is_unknown(tmp_path, monkeypat
                             "--since", "2026-10-27T10:00:00+08:00", "--budget", "1.0")
     assert code == 0 and "no usage" in out["note"]
     assert (out["measurement"], out["cost_usd"], out["limit_usd"], out["over_budget"]) == ("unknown", None, None, None)
+
+
+TODAY = date(2026, 10, 29)
+
+
+def test_next_id_starts_at_01_and_counts_up(tmp_path):
+    skill = make_skill(tmp_path)
+    assert [finance.next_task_id(skill, TODAY) for _ in range(3)] == ["t-20261029-01", "t-20261029-02", "t-20261029-03"]
+
+
+def test_next_id_skips_ledger_ids_and_reserved_ids(tmp_path):
+    skill = make_skill(tmp_path)
+    finance.record(skill, row(task_id="t-20261029-04"))
+    finance.record(skill, row(task_id="t-20261028-09"))  # another day does not count
+    assert finance.next_task_id(skill, TODAY) == "t-20261029-05"
+    # t-20261029-05 is reserved now (a task that waits and is not in the ledger yet), so it is never handed out again
+    assert finance.next_task_id(skill, TODAY) == "t-20261029-06"
+    finance.record(skill, row(task_id="t-20261029-08"))
+    assert finance.next_task_id(skill, TODAY) == "t-20261029-09"
+
+
+def test_next_id_numbers_maintenance_runs_separately(tmp_path):
+    skill = make_skill(tmp_path)
+    finance.record(skill, row(task_id="t-20261029-02"))
+    finance.record(skill, row(task_id="m-20261029-03", playbook="maintenance"))
+    assert finance.next_task_id(skill, TODAY, maintenance=True) == "m-20261029-04"
+    assert finance.next_task_id(skill, TODAY) == "t-20261029-03"
+    assert finance.next_task_id(skill, TODAY, maintenance=True) == "m-20261029-05"
+
+
+def test_next_id_starts_again_at_01_on_a_new_day(tmp_path):
+    skill = make_skill(tmp_path)
+    finance.next_task_id(skill, TODAY)
+    finance.next_task_id(skill, TODAY, maintenance=True)
+    assert finance.next_task_id(skill, date(2026, 10, 30)) == "t-20261030-01"
+    assert finance.next_task_id(skill, date(2026, 10, 30), maintenance=True) == "m-20261030-01"
+    assert json.loads((skill / "state/task-ids.json").read_text()) == {"date": "2026-10-30", "last": {"t": 1, "m": 1}}
+
+
+def test_next_id_rejects_a_damaged_reservation_file(tmp_path, capsys):
+    skill = make_skill(tmp_path)
+    (skill / "state").mkdir()
+    (skill / "state/task-ids.json").write_text("{not json")
+    code, out, err = run_main(capsys, "--skill-dir", str(skill), "next-id")
+    assert code == 1 and out is None and "task-ids.json" in err
+
+
+def test_next_id_waits_for_the_ledger_lock(tmp_path):
+    import threading
+
+    skill = make_skill(tmp_path)
+    found = []
+    with load("datasync").file_lock(skill, "ledger"):
+        worker = threading.Thread(target=lambda: found.append(finance.next_task_id(skill, TODAY)))
+        worker.start()
+        worker.join(0.3)
+        assert worker.is_alive() and found == []
+    worker.join(5)
+    assert found == ["t-20261029-01"]
+
+
+def test_next_id_hands_out_unique_ids_to_parallel_sessions(tmp_path):
+    import subprocess
+    import sys
+
+    from sharron_support import SKILL_SRC
+
+    skill = make_skill(tmp_path)
+    command = [sys.executable, str(SKILL_SRC / "scripts/finance.py"), "--skill-dir", str(skill), "next-id"]
+    runs = [subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) for _ in range(6)]
+    ids = [json.loads(run.communicate(timeout=60)[0])["task_id"] for run in runs]
+    stem = f"t-{date.today():%Y%m%d}-"
+    assert sorted(ids) == [f"{stem}{n:02d}" for n in range(1, 7)]
+
+
+def test_next_id_cli_prints_one_json_object(tmp_path, capsys):
+    skill = make_skill(tmp_path)
+    code, out, _ = run_main(capsys, "--skill-dir", str(skill), "next-id", "--maintenance")
+    assert code == 0 and out == {"task_id": f"m-{date.today():%Y%m%d}-01"}

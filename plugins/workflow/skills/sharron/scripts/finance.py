@@ -11,12 +11,15 @@ Usage (from the skill folder; every subcommand prints one JSON object):
                                         [--input-tokens N --output-tokens N --cache-tokens N --cost-usd USD]
                                         [--models LIST]
     sh scripts/run.sh finance.py correct --task-id ID
+    sh scripts/run.sh finance.py next-id [--maintenance]
 
 Only Claude Code is measured, from its session transcripts: this reads type, timestamp, requestId,
 message.id, message.model and message.usage of each line, never the message content. Other platforms
 record `unknown` unless the usage is passed on the command line. Prices come from `[prices]` in the
 settings (equivalent USD per million tokens); a model without a price makes the cost `unknown`.
 `record` and `correct` append to ledger/costs.md and then run the data sync (datasync.py).
+`next-id` hands out the next free task id of today (t-YYYYMMDD-NN, or m-… with --maintenance): higher than
+every id of today in the ledger and every id it handed out before, which state/task-ids.json remembers.
 Bad input prints one line on stderr and exits 1.
 """
 
@@ -42,6 +45,9 @@ import ledger as ledger_format  # noqa: E402
 from ledger import Ledger, LedgerError  # noqa: E402
 
 RECORD_MESSAGE = "chore(sharron): record task cost [skip ci]"
+LEDGER_LOCK = "ledger"
+RESERVATIONS_FILE = "task-ids.json"  # under state/; the last id handed out today, per prefix
+TASK_PREFIX, MAINTENANCE_PREFIX = "t", "m"
 CORRECTION_MESSAGE = "chore(sharron): record task correction [skip ci]"
 ENV_CLAUDE_DIR = "CLAUDE_CONFIG_DIR"
 ENV_SESSION = "CLAUDE_CODE_SESSION_ID"
@@ -229,7 +235,7 @@ def _write_ledger(skill_dir: Path, current: Ledger) -> None:
 def record(skill_dir: Path, row: dict[str, str]) -> dict:
     """Append one task row to the ledger and run the data sync."""
     ledger_format.validate_task_row(row)
-    with datasync.file_lock(skill_dir, "ledger"):
+    with datasync.file_lock(skill_dir, LEDGER_LOCK):
         current = _read_ledger(skill_dir)
         if any(t["task_id"] == row["task_id"] for t in current.tasks):
             raise LedgerError(f"task {row['task_id']} is already recorded")
@@ -240,7 +246,7 @@ def record(skill_dir: Path, row: dict[str, str]) -> dict:
 
 def correct(skill_dir: Path, task_id: str, today: date) -> dict:
     """Mark a recorded task as wrong, so the summary and the suggestions leave it out, and run the data sync."""
-    with datasync.file_lock(skill_dir, "ledger"):
+    with datasync.file_lock(skill_dir, LEDGER_LOCK):
         current = _read_ledger(skill_dir)
         if not any(t["task_id"] == task_id for t in current.tasks):
             raise LedgerError(f"task {task_id} is not in the ledger")
@@ -249,6 +255,44 @@ def correct(skill_dir: Path, task_id: str, today: date) -> dict:
             current.corrections.append(entry)
             _write_ledger(skill_dir, current)
     return {"row": entry, "sync": datasync.sync(skill_dir, datasync.LEDGER_FILE, CORRECTION_MESSAGE).to_json()}
+
+
+def _read_reservations(skill_dir: Path, today: date) -> dict[str, int]:
+    """The last number handed out today per prefix; {} when the file is missing or from another day."""
+    path = skill_dir / "state" / RESERVATIONS_FILE
+    try:
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return {}
+    try:
+        data = json.loads(text)
+        last = data["last"]
+        if not (isinstance(data["date"], str) and isinstance(last, dict)
+                and all(isinstance(k, str) and type(v) is int and v >= 0 for k, v in last.items())):
+            raise TypeError
+    except (ValueError, KeyError, TypeError):
+        raise ValueError(f"state/{RESERVATIONS_FILE} is damaged; delete it to start the numbering of today again") from None
+    return last if data["date"] == today.isoformat() else {}
+
+
+def next_task_id(skill_dir: Path, today: date, *, maintenance: bool = False) -> str:
+    """Hand out the next free id of today and remember it, so no session gets it again.
+
+    The number is one above the highest of today's ids with the same prefix in the ledger and the last one
+    handed out today, which also covers tasks that wait or pause and are not in the ledger yet. The ledger
+    lock keeps two sessions, and a concurrent `record`, from seeing the same state.
+    """
+    prefix = MAINTENANCE_PREFIX if maintenance else TASK_PREFIX
+    stem = f"{prefix}-{today:%Y%m%d}-"
+    with datasync.file_lock(skill_dir, LEDGER_LOCK):
+        last = _read_reservations(skill_dir, today)
+        used = [int(t["task_id"][len(stem):]) for t in _read_ledger(skill_dir).tasks if t["task_id"].startswith(stem)]
+        number = max([last.get(prefix, 0), *used]) + 1
+        last = {**last, prefix: number}
+        datasync.write_atomic(
+            skill_dir / "state" / RESERVATIONS_FILE, json.dumps({"date": today.isoformat(), "last": last}, indent=2) + "\n"
+        )
+    return f"{stem}{number:02d}"
 
 
 # ---------------------------------------------------------------- command line
@@ -364,6 +408,10 @@ def _cmd_correct(args: argparse.Namespace, settings: config.Settings) -> dict:
     return correct(args.skill_dir, args.task_id, date.today())
 
 
+def _cmd_next_id(args: argparse.Namespace, settings: config.Settings) -> dict:
+    return {"task_id": next_task_id(args.skill_dir, date.today(), maintenance=args.maintenance)}
+
+
 def _since(text: str) -> datetime:
     try:
         return datetime.fromisoformat(text)
@@ -430,10 +478,15 @@ def build_parser() -> argparse.ArgumentParser:
 
     fix = sub.add_parser("correct", help="mark a recorded task as wrong, so budgets leave it out")
     fix.add_argument("--task-id", required=True)
+
+    nxt = sub.add_parser("next-id", help="hand out the next free task id of today")
+    nxt.add_argument("--maintenance", action="store_true", help="an m- id for a maintenance run instead of a t- id")
     return parser
 
 
-_COMMANDS = {"suggest": _cmd_suggest, "usage": _cmd_usage, "record": _cmd_record, "correct": _cmd_correct}
+_COMMANDS = {
+    "suggest": _cmd_suggest, "usage": _cmd_usage, "record": _cmd_record, "correct": _cmd_correct, "next-id": _cmd_next_id,
+}
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -67,7 +67,7 @@ When a unit fails (a `failed` or `partial` report, a missed done-when, repeated 
 3. Send the unit to the diagnostician (T3) for root-cause analysis, with every earlier attempt in `previous_attempts`.
 4. Ask the user (L4): a decision card with what was tried, the diagnosis and the options.
 
-Reaching `max_tool_calls` ends a unit with a partial report, and that counts as a failure here. Never retry with the same subagent.
+Reaching `max_tool_calls` ends a unit with a partial report, and that counts as a failure here, except for a maintenance unit, whose change just stays pending (`security-review.md`). Never retry with the same subagent.
 
 A `blocked` report is not a failure and is not retried. The unit could not continue for a reason a retry will not remove (it needs an answer, an approval or access). Read `not_done` and `risks`, then either settle it through the decision gate (an approval is an L3 or L4 matter, see `decisions-and-risk.md`) or, when only the user can unblock it, ask the user and pause the task with a checkpoint (see below). Retry only after the blocker is gone, with a fresh subagent and the answer in `decisions`.
 

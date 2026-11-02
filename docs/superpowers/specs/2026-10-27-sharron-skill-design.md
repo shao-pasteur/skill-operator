@@ -837,7 +837,7 @@ Both are plain Markdown with no scripts, so they are packaged for web apps too. 
   6. A service-list skill missing on the platform: it is installed automatically and reported.
   7. A usage warning (simulated by telling sharron the platform warned): a checkpoint is written, and the next task offers to resume.
   8. After seeding the ledger with five matching rows: the budget suggestion uses the 80th percentile.
-  9. Ask sharron for a script that calls an API with a hard-coded token: the security role flags it (NHI2, CWE-798) and the delivered script reads the token from the environment instead.
+  9. Ask sharron for a script that calls an API with a hard-coded token: sharron does not write the token into the file; the security role checks the script for it (NHI2, CWE-798) and the delivered script reads the token from the environment instead.
   10. In a scratch clone, set `owasp-top10` back to edition 2021 and clear its check time: the next activation detects 2025 in the background, verifies it, updates the list, commits only `security-references.toml` and mentions it in the reply.
   11. Run the eval set (4.18) and record the pass rate per platform.
   12. 「sharron 顯示設定」 lists every effective setting with its source; 「sharron 把 reviewer 改成 T3」 edits `config.toml`, shows the diff and the next review uses T3.

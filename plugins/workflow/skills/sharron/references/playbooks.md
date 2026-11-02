@@ -49,7 +49,7 @@ The `settings-help` playbook runs without intake. Answer help requests from `GUI
 | You say (examples) | sharron does | Level |
 |---|---|---|
 | 「sharron 怎麼用」「sharron help」 | Summarizes `GUIDE.md` | L0 |
-| 「sharron 顯示設定」 | Runs `sh <skill>/scripts/run.sh config.py show` and lists the effective settings with their sources | L0 |
+| 「sharron 顯示設定」 | Runs `sh <skill>/scripts/run.sh config.py show` and lists the effective settings with their sources. For an invalid setting it quotes the `config.py validate` error and, when offering a fix, names the default read from `config.example.toml`, because `show` prints only the invalid value; it never guesses the default | L0 |
 | 「sharron 把 reviewer 改成 T3」「把 work 平台的模型設成 X」 | Changes the key in `config.toml`, validates, shows the diff | L2 |
 | 「sharron 加一條常備命令：絕不……」 | Adds it to `standing_orders` in `config.toml` | L2 |
 | 「sharron 刪掉常備命令……」「關掉自動安裝」 | Changes it after a one-line confirmation, because it loosens a safeguard | L3 |
@@ -64,7 +64,7 @@ Changing a setting:
 
 1. Write only the changed key into `config.toml` (next to `config.example.toml`). Everything else keeps the example's defaults, so later default updates still apply.
 2. When `config.toml` does not exist, create it with just that key and tell the user once that the file was created and is gitignored.
-3. Run `sh <skill>/scripts/run.sh config.py validate`. If it reports an error, undo the change and show the allowed values from the message. When you offer to fix an invalid setting, name its real default as `config.py show` prints it (the `# default` value from `config.example.toml`); never guess it.
+3. Run `sh <skill>/scripts/run.sh config.py validate`. If it reports an error, undo the change and show the allowed values from the message.
 4. Show the diff of the change (old value, new value).
 
 Budget status: run `sh <skill>/scripts/run.sh finance.py suggest --playbook <id> --difficulty <1-5>` for each playbook and difficulty the user cares about, and summarize with the basis (method and n) the script prints.

@@ -57,7 +57,7 @@ sh <skill>/scripts/run.sh detect_stack.py select --role <role> --playbook <playb
     [--tags <layer and activity tags, comma-separated>] [--workspace <folder>]
 ```
 
-**`--domain` is the registry domain**, a fixed vocabulary: the values the entries' `domains` lists use, plus `general`. Today that is `coding`, `learning` and `general` (`*` in an entry means any domain and is not a value to pass). Pick it from the playbook:
+**`--domain` is the registry domain**, a fixed vocabulary: `coding`, `learning` and `general`, which the script always accepts, plus any other domain an entry's `domains` list names (`*` in an entry means any domain and is not a value to pass). Pick it from the playbook:
 
 - the coding playbook: `--domain coding`;
 - the learning playbook: `--domain learning`;

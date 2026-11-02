@@ -12,7 +12,6 @@
 #   official_domains   the only domains refcheck reads and accepts evidence from (subdomains included)
 #   applies_to         subset of: code, api, ci-cd, credentials, action, publish, install, agent
 #   items              the names of the entries, plain one-line text, as the official page writes them
-#   check_every_days   how often refcheck probes the source (a positive whole number)
 #   probe              how a new edition is detected:
 #                        { type = "next-edition", url = "...{edition}..." }  does the next edition's page exist?
 #                        { type = "page-change" }                            did the text of `url` change?
@@ -20,6 +19,7 @@
 #
 # [[changelog]]          one entry per change, appended by refcheck: date, source, change, verified_by
 #
+# refcheck probes every source once a week, from Monday 00:00 local time, or now when asked.
 # An automatic update may change only edition, status, url, items and probe of an existing source.
 
 schema_version = 1
@@ -45,7 +45,6 @@ items = [
   "A09:2025 Security Logging and Alerting Failures",
   "A10:2025 Mishandling of Exceptional Conditions",
 ]
-check_every_days = 7
 probe = { type = "next-edition", url = "https://owasp.org/Top10/{edition}/" }
 
 [[sources]]
@@ -84,7 +83,6 @@ items = [
   "CWE-639 Authorization Bypass Through User-Controlled Key",
   "CWE-770 Allocation of Resources Without Limits or Throttling",
 ]
-check_every_days = 7
 probe = { type = "next-edition", url = "https://cwe.mitre.org/top25/archive/{edition}/{edition}_cwe_top25.html" }
 
 [[sources]]
@@ -108,7 +106,6 @@ items = [
   "API9:2023 Improper Inventory Management",
   "API10:2023 Unsafe Consumption of APIs",
 ]
-check_every_days = 7
 probe = { type = "next-edition", url = "https://owasp.org/API-Security/editions/{edition}/en/0x11-t10/" }
 
 [[sources]]
@@ -132,7 +129,6 @@ items = [
   "LLM09:2026 Vector and Embedding Weaknesses",
   "LLM10:2026 Improper Output Handling",
 ]
-check_every_days = 7
 probe = { type = "next-edition", url = "https://genai.owasp.org/resource/owasp-genai-llm-top-10-{edition}/" }
 
 [[sources]]
@@ -156,7 +152,6 @@ items = [
   "ASI09 Human-Agent Trust Exploitation",
   "ASI10 Rogue Agents",
 ]
-check_every_days = 7
 probe = { type = "next-edition", url = "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-{edition}/" }
 
 [[sources]]
@@ -180,7 +175,6 @@ items = [
   "MCP09:2025 Shadow MCP Servers",
   "MCP10:2025 Context Injection & Over-Sharing",
 ]
-check_every_days = 1
 probe = { type = "page-change" }
 
 [[sources]]
@@ -204,7 +198,6 @@ items = [
   "AST09 No Governance",
   "AST10 Cross-Platform Reuse",
 ]
-check_every_days = 1
 probe = { type = "page-change" }
 
 [[sources]]
@@ -228,7 +221,6 @@ items = [
   "NHI9:2025 NHI Reuse",
   "NHI10:2025 Human Use of NHI",
 ]
-check_every_days = 7
 probe = { type = "next-edition", url = "https://owasp.org/www-project-non-human-identities-top-10/{edition}/" }
 
 [[sources]]
@@ -252,7 +244,6 @@ items = [
   "CICD-SEC-9 Improper Artifact Integrity Validation",
   "CICD-SEC-10 Insufficient Logging and Visibility",
 ]
-check_every_days = 7
 probe = { type = "page-change" }
 
 [[sources]]
@@ -276,7 +267,6 @@ items = [
   "P9 Inability of Users to Access and Modify Data",
   "P10 Collection of Data Not Required for the User-Consented Purpose",
 ]
-check_every_days = 7
 probe = { type = "page-change" }
 
 [[sources]]
@@ -289,7 +279,6 @@ url = "https://www.first.org/cvss/"
 official_domains = ["first.org"]
 applies_to = ["code", "install"]
 items = []
-check_every_days = 7
 probe = { type = "page-change" }
 
 [[sources]]
@@ -302,7 +291,6 @@ url = "https://www.cve.org/"
 official_domains = ["cve.org"]
 applies_to = ["code", "install"]
 items = []
-check_every_days = 7
 probe = { type = "none" }
 
 [[sources]]
@@ -315,7 +303,6 @@ url = "https://nvd.nist.gov/"
 official_domains = ["nvd.nist.gov"]
 applies_to = ["code", "install"]
 items = []
-check_every_days = 7
 probe = { type = "none" }
 
 [[sources]]
@@ -328,7 +315,6 @@ url = "https://osv.dev/"
 official_domains = ["osv.dev"]
 applies_to = ["code", "install"]
 items = []
-check_every_days = 7
 probe = { type = "none" }
 
 [[sources]]
@@ -341,7 +327,6 @@ url = "https://github.com/advisories"
 official_domains = ["github.com"]
 applies_to = ["code", "install"]
 items = []
-check_every_days = 7
 probe = { type = "none" }
 
 [[sources]]
@@ -354,7 +339,6 @@ url = "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"
 official_domains = ["cisa.gov"]
 applies_to = ["code", "install"]
 items = []
-check_every_days = 7
 probe = { type = "none" }
 
 [[sources]]
@@ -367,7 +351,6 @@ url = "https://www.first.org/epss/"
 official_domains = ["first.org"]
 applies_to = ["code", "install"]
 items = []
-check_every_days = 7
 probe = { type = "none" }
 
 [[sources]]
@@ -380,7 +363,6 @@ url = "https://cwe.mitre.org/"
 official_domains = ["cwe.mitre.org"]
 applies_to = ["code", "publish"]
 items = []
-check_every_days = 7
 probe = { type = "none" }
 
 [[sources]]
@@ -393,7 +375,6 @@ url = "https://capec.mitre.org/"
 official_domains = ["capec.mitre.org"]
 applies_to = ["code", "action", "install", "agent"]
 items = []
-check_every_days = 7
 probe = { type = "none" }
 
 [[sources]]
@@ -406,7 +387,6 @@ url = "https://attack.mitre.org/"
 official_domains = ["attack.mitre.org"]
 applies_to = ["code", "action", "install", "agent"]
 items = []
-check_every_days = 7
 probe = { type = "none" }
 
 [[sources]]
@@ -419,7 +399,6 @@ url = "https://atlas.mitre.org/"
 official_domains = ["atlas.mitre.org"]
 applies_to = ["code", "action", "install", "agent"]
 items = []
-check_every_days = 7
 probe = { type = "none" }
 
 [[changelog]]

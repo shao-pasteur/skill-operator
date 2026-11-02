@@ -12,14 +12,14 @@ MCP_URL = "https://owasp.org/www-project-mcp-top-10/"
 REFS = {"schema_version": 1, "sources": [
     {"id": "owasp-top10", "name": "OWASP Top 10", "kind": "risk-list", "edition": "2025", "status": "final",
      "url": "https://owasp.org/Top10/2025/", "official_domains": ["owasp.org"], "applies_to": ["code"],
-     "items": ["A01 Broken Access Control"], "check_every_days": 7,
+     "items": ["A01 Broken Access Control"],
      "probe": {"type": "next-edition", "url": "https://owasp.org/Top10/{edition}/"}},
     {"id": "owasp-mcp", "name": "OWASP MCP Top 10", "kind": "risk-list", "edition": "2025", "status": "beta",
      "url": MCP_URL, "official_domains": ["owasp.org"], "applies_to": ["install"], "items": [],
-     "check_every_days": 1, "probe": {"type": "page-change"}},
+     "probe": {"type": "page-change"}},
     {"id": "cve", "name": "CVE", "kind": "vulnerability-data", "edition": "live", "status": "final",
      "url": "https://www.cve.org/", "official_domains": ["cve.org"], "applies_to": ["code", "install"], "items": [],
-     "check_every_days": 7, "probe": {"type": "none"}}],
+     "probe": {"type": "none"}}],
     "changelog": [{"date": "2026-10-27", "source": "owasp-top10", "change": "initial: 2025", "verified_by": "research during design"}]}
 UPDATE = {"source": "owasp-mcp", "changes": {"status": "final", "edition": "2026"},
           "evidence_url": MCP_URL, "verified_by": "verifier (verify-evidence)"}
@@ -55,9 +55,51 @@ def test_render_round_trips():
 
 
 def test_only_due_sources_are_probed(tmp_path):
-    skill = refs_skill(tmp_path, state={"owasp-top10": {"checked_at": (NOW - timedelta(days=3)).isoformat()},
-                                        "owasp-mcp": {"checked_at": (NOW - timedelta(days=2)).isoformat()}})
+    # NOW is Wednesday 2026-10-28; this week started on Monday 2026-10-26 00:00 in NOW's time zone
+    skill = refs_skill(tmp_path, state={"owasp-top10": {"checked_at": "2026-10-26T00:00:00+00:00"},
+                                        "owasp-mcp": {"checked_at": "2026-10-25T23:59:00+00:00"}})
     assert refcheck.check(skill, now=NOW, fetch=fake_fetch(page("x")))["checked"] == ["owasp-mcp"]
+
+
+TAIPEI = timezone(timedelta(hours=8))
+
+
+@pytest.mark.parametrize("checked_at,now,due", [
+    ("2026-11-01T23:59:00+08:00", datetime(2026, 11, 2, 0, 0, tzinfo=TAIPEI), True),   # Sunday 23:59, then Monday 00:00
+    ("2026-11-02T00:00:00+08:00", datetime(2026, 11, 2, 0, 0, tzinfo=TAIPEI), False),  # checked at Monday 00:00 itself
+    ("2026-10-26T00:00:00+08:00", datetime(2026, 11, 1, 23, 59, tzinfo=TAIPEI), False),  # Sunday 23:59 is still that week
+    # Monday 01:00 in Taipei is Sunday 17:00 UTC: the week starts in local time, so this is this week's check
+    ("2026-11-01T17:00:00+00:00", datetime(2026, 11, 2, 9, 0, tzinfo=TAIPEI), False),
+    (None, datetime(2026, 11, 4, 12, 0, tzinfo=TAIPEI), True),  # never checked
+])
+def test_a_source_is_due_once_per_week_from_monday_in_local_time(checked_at, now, due):
+    state = {"owasp-mcp": {"checked_at": checked_at}} if checked_at else {}
+    found = [s["id"] for s in refcheck.due_sources(REFS, state, now) if s["id"] == "owasp-mcp"]
+    assert found == (["owasp-mcp"] if due else [])
+
+
+def test_the_week_starts_on_monday_at_midnight_in_the_time_zone_of_now():
+    assert refcheck.week_start(datetime(2026, 11, 1, 23, 59, tzinfo=TAIPEI)) == datetime(2026, 10, 26, tzinfo=TAIPEI)
+    assert refcheck.week_start(datetime(2026, 11, 2, 0, 0, tzinfo=TAIPEI)) == datetime(2026, 11, 2, tzinfo=TAIPEI)
+    naive = refcheck.week_start(datetime(2026, 11, 4, 12, 0))  # a naive time is local time
+    assert naive.tzinfo is not None and naive.weekday() == 0 and (naive.hour, naive.minute) == (0, 0)
+
+
+def test_force_probes_a_source_checked_this_week(tmp_path):
+    skill = refs_skill(tmp_path, state={"owasp-mcp": {"checked_at": NOW.isoformat()}})
+    assert refcheck.check(skill, now=NOW, fetch=fake_fetch(page("x")))["checked"] == ["owasp-top10"]
+    assert "owasp-mcp" in refcheck.check(skill, now=NOW, fetch=fake_fetch(page("x")), force=True)["checked"]
+
+
+def test_an_older_list_with_check_every_days_still_loads_and_drops_the_key(tmp_path):
+    skill = refs_skill(tmp_path)
+    path = skill / "security-references.toml"
+    path.write_text(path.read_text().replace('probe = { type = "page-change" }', 'check_every_days = 1\nprobe = { type = "page-change" }'))
+    assert "check_every_days" in path.read_text()
+    data = refcheck.load_references(path)
+    assert all("check_every_days" not in s for s in data["sources"])
+    refcheck.apply_update(skill, UPDATE, now=NOW)
+    assert "check_every_days" not in path.read_text()
 
 
 def test_next_edition_found(tmp_path):
@@ -76,7 +118,7 @@ def test_next_edition_ignores_a_redirect_elsewhere(tmp_path):
 def test_page_change_ignores_markup_and_whitespace(tmp_path):
     skill = refs_skill(tmp_path)
     refcheck.check(skill, now=NOW, fetch=fake_fetch(page("<p>Beta  list</p>")), force=True)
-    again = refcheck.check(skill, now=NOW + timedelta(days=2), fetch=fake_fetch(page("<div>Beta list</div>\n")))
+    again = refcheck.check(skill, now=NOW + timedelta(days=7), fetch=fake_fetch(page("<div>Beta list</div>\n")))
     assert sources(again) == []
 
 
@@ -84,10 +126,10 @@ def test_detected_change_stays_pending_until_resolved(tmp_path):
     skill = refs_skill(tmp_path)
     refcheck.check(skill, now=NOW, fetch=fake_fetch(page("<p>v1</p>")), force=True)
     changed = fake_fetch(page("<p>v2</p>"))
-    assert sources(refcheck.check(skill, now=NOW + timedelta(days=2), fetch=changed)) == ["owasp-mcp"]
-    assert sources(refcheck.check(skill, now=NOW + timedelta(days=2, hours=1), fetch=changed)) == ["owasp-mcp"]
-    refcheck.dismiss(skill, "owasp-mcp", now=NOW + timedelta(days=3))
-    assert sources(refcheck.check(skill, now=NOW + timedelta(days=5), fetch=changed)) == []
+    assert sources(refcheck.check(skill, now=NOW + timedelta(days=7), fetch=changed)) == ["owasp-mcp"]
+    assert sources(refcheck.check(skill, now=NOW + timedelta(days=7, hours=1), fetch=changed)) == ["owasp-mcp"]
+    refcheck.dismiss(skill, "owasp-mcp", now=NOW + timedelta(days=8))
+    assert sources(refcheck.check(skill, now=NOW + timedelta(days=14), fetch=changed)) == []
 
 
 def test_network_errors_are_reported_and_retried(tmp_path):
@@ -168,11 +210,11 @@ def test_dismiss_rejects_an_unknown_source(tmp_path):
 def test_apply_clears_the_pending_change_and_keeps_the_new_fingerprint(tmp_path):
     skill = refs_skill(tmp_path)
     refcheck.check(skill, now=NOW, fetch=fake_fetch(page("<p>v1</p>")), force=True)
-    refcheck.check(skill, now=NOW + timedelta(days=2), fetch=fake_fetch(page("<p>v2</p>")))
-    refcheck.apply_update(skill, UPDATE, now=NOW + timedelta(days=3))
+    refcheck.check(skill, now=NOW + timedelta(days=7), fetch=fake_fetch(page("<p>v2</p>")))
+    refcheck.apply_update(skill, UPDATE, now=NOW + timedelta(days=8))
     state = refcheck.load_state(skill)["owasp-mcp"]
     assert state["pending"] is None and state["fingerprint"] == refcheck.fingerprint("<p>v2</p>")
-    assert sources(refcheck.check(skill, now=NOW + timedelta(days=5), fetch=fake_fetch(page("<p>v2</p>")))) == []
+    assert sources(refcheck.check(skill, now=NOW + timedelta(days=14), fetch=fake_fetch(page("<p>v2</p>")))) == []
 
 
 def test_apply_describes_only_the_fields_that_changed(tmp_path):
@@ -223,7 +265,6 @@ def test_apply_rejects_invalid_values(tmp_path, changes, message):
 @pytest.mark.parametrize("edit,message", [
     (lambda s: s.update(kind="guide"), "kind"),
     (lambda s: s.update(applies_to=["code", "moon"]), "applies_to"),
-    (lambda s: s.update(check_every_days=0), "check_every_days"),
     (lambda s: s.update(url="http://owasp.org/Top10/2025/"), "official_domains"),
     (lambda s: s.update(url="https://owasp.org.evil.example/"), "official_domains"),
     (lambda s: s["probe"].update(url="https://owasp.org/Top10/next/"), "{edition}"),
@@ -328,11 +369,11 @@ def test_a_run_never_overwrites_a_change_dismissed_while_it_probed(tmp_path):
 
     def slow_run_a(url):  # while run A is probing, run B detects v2 and the change is dismissed
         if url == MCP_URL:
-            refcheck.check(skill, now=NOW + timedelta(days=2), fetch=fake_fetch(page("<p>v2</p>")))
-            refcheck.dismiss(skill, "owasp-mcp", now=NOW + timedelta(days=2, minutes=1))
+            refcheck.check(skill, now=NOW + timedelta(days=7), fetch=fake_fetch(page("<p>v2</p>")))
+            refcheck.dismiss(skill, "owasp-mcp", now=NOW + timedelta(days=7, minutes=1))
         return refcheck.Page(200, url, "<p>v2</p>") if url == MCP_URL else refcheck.Page(404, url, "")
 
-    result = refcheck.check(skill, now=NOW + timedelta(days=2, seconds=5), fetch=slow_run_a)
+    result = refcheck.check(skill, now=NOW + timedelta(days=7, seconds=5), fetch=slow_run_a)
     assert result["changes"] == []
     state = refcheck.load_state(skill)["owasp-mcp"]
     assert state["pending"] is None and state["fingerprint"] == refcheck.fingerprint("<p>v2</p>")
@@ -344,10 +385,10 @@ def test_a_run_never_erases_a_change_another_run_detected(tmp_path):
 
     def stale_run_a(url):  # run A sees the old page while run B detects v2 and stores it as pending
         if url == MCP_URL:
-            refcheck.check(skill, now=NOW + timedelta(days=2), fetch=fake_fetch(page("<p>v2</p>")))
+            refcheck.check(skill, now=NOW + timedelta(days=7), fetch=fake_fetch(page("<p>v2</p>")))
         return refcheck.Page(200, url, "<p>v1</p>") if url == MCP_URL else refcheck.Page(404, url, "")
 
-    result = refcheck.check(skill, now=NOW + timedelta(days=2, seconds=5), fetch=stale_run_a)
+    result = refcheck.check(skill, now=NOW + timedelta(days=7, seconds=5), fetch=stale_run_a)
     assert [(c["source"], c["fingerprint"]) for c in result["changes"]] == [("owasp-mcp", refcheck.fingerprint("<p>v2</p>"))]
     assert refcheck.load_state(skill)["owasp-mcp"]["pending"]["fingerprint"] == refcheck.fingerprint("<p>v2</p>")
 

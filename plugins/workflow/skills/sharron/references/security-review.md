@@ -105,7 +105,7 @@ At step 8, sharron answers these for its own operation, without a subagent. A "y
 
 ## Background reference updates
 
-`security-references.toml` has one entry per source: its edition, status, URL, items, official domains, check interval and probe. It steers the security role, so it is a target for poisoning, and updates to it follow the guardrails below.
+`security-references.toml` has one entry per source: its edition, status, URL, items, official domains and probe. It steers the security role, so it is a target for poisoning, and updates to it follow the guardrails below.
 
 **1. Check.** At step 0, start the check. It uses no model and never changes the list.
 
@@ -114,7 +114,8 @@ sh <skill>/scripts/run.sh refcheck.py check
 ```
 
 - On Claude Code, run it as a background shell command (`run_in_background`) so it never delays the task. On a platform without background work, run it at step 11 instead (see [`platforms.md`](platforms.md#background-work)).
-- It probes only the sources that are due: `check_every_days` has passed since the last check (7 days, 1 day for beta sources). Check times live in `state/refcheck.json`, which is gitignored, so routine checks create no commits. `--force` ignores the interval; use it only when the user asks to check now.
+- **Weekly schedule.** It probes only the sources that are due: a source is due when it has never been checked, or when its last check is before this week's Monday 00:00 local time (ISO weeks start on Monday). Every source follows this schedule, beta sources included. Check times live in `state/refcheck.json`, which is gitignored, so routine checks create no commits.
+- **On demand.** When the user says 「sharron security check」, "security update", 「資安檢查」, 「資安更新」 or 「更新資安參考」 and names no artifact, run `sh <skill>/scripts/run.sh refcheck.py check --force` right away, in the foreground. `--force` probes every source now, even one checked this week. Then follow steps 2–4 below at L2 and report the result in Traditional Chinese, including 「資安參考清單已檢查，沒有變更」 when nothing changed. A phrase that names an artifact (「幫這段程式做 security check」, a skill, an action) is a security review of that artifact, not this check. Use `--force` only for such a request.
 - The probe types are `next-edition` (does the page for the next edition exist?), `page-change` (did the text fingerprint of the official page change?) and `none` (live data, queried at review time).
 - It prints `{"checked": [ids], "changes": [...], "errors": [{"source", "error"}]}`. A change stays pending in `state/refcheck.json`, and every later `check` reports it again, until `apply` resolves it.
 - **`errors`.** A source whose probe failed is left alone: its check time is not updated, so the next `check` retries it without any action. Mention a failure once in the step 10 reply, giving the source id and a short reason, for example 「資安參考清單檢查失敗（<來源>：<原因>），下次會再試」. "Once" means once per source per task.

@@ -57,7 +57,7 @@ The `settings-help` playbook runs without intake. Answer help requests from `GUI
 | 「sharron 改一下 engineer 的角色提示」 | Edits `roles/engineer.md` (or `roles/engineer.local.md` for this machine only) and shows the diff; leaves committing to the user | L2 |
 | 「sharron 預算狀況」 | Summarizes recent spend and the budget suggestion per playbook and difficulty | L0 |
 | 「sharron 有哪些暫停的任務」 | Lists paused and waiting tasks from `MEMORY.md` | L0 |
-| 「sharron 現在更新資安參考清單」 | Runs the reference check now, ignoring the interval | L2 |
+| 「sharron security check」「security update」「資安檢查」「資安更新」「更新資安參考」「sharron 現在更新資安參考清單」, with no artifact named | Runs `sh <skill>/scripts/run.sh refcheck.py check --force` right away, then proposes, verifies and applies any change ([`security-review.md`](security-review.md#background-reference-updates)) and reports the result, 「沒有變更」 included. Naming an artifact (「幫這段程式做 security check」, a skill, an action) makes it a security review of that artifact instead | L2 |
 | 「sharron 跑評測」 | Runs the eval set after a one-line confirmation, because it costs quota | L3 |
 
 Changing a setting:

@@ -6,8 +6,9 @@ Usage (from the skill folder; every subcommand prints one JSON object):
     sh scripts/run.sh refcheck.py apply <update.json>
     sh scripts/run.sh refcheck.py apply --no-change --source ID
 
-`check` probes the sources of security-references.toml that are due (each source's `check_every_days`;
---force ignores the interval) and records the check times in state/refcheck.json. It uses no model and
+`check` probes the sources of security-references.toml that are due (never checked, or last checked before
+this week's Monday 00:00 local time; --force probes them all now) and records the check times in
+state/refcheck.json. It uses no model and
 never changes the list. A detected change stays `pending` in that file, and is reported by every later
 `check`, until `apply` writes the verified update or `apply --no-change` dismisses it.
 
@@ -42,7 +43,7 @@ import urllib.error  # noqa: E402
 import urllib.request  # noqa: E402
 from collections.abc import Callable  # noqa: E402
 from dataclasses import dataclass  # noqa: E402
-from datetime import datetime, timedelta, timezone  # noqa: E402
+from datetime import datetime, time, timedelta, timezone  # noqa: E402
 from html.parser import HTMLParser  # noqa: E402
 from pathlib import Path  # noqa: E402
 from urllib.parse import urlparse  # noqa: E402
@@ -62,9 +63,11 @@ PROBE_TYPES = ("next-edition", "page-change", "none")
 UPDATE_KEYS = ("source", "changes", "evidence_url", "verified_by")
 UPDATABLE = ("edition", "status", "url", "items", "probe")  # the only fields `apply` may change
 SOURCE_KEYS = (
-    "id", "name", "kind", "edition", "status", "url", "official_domains", "applies_to",
-    "items", "check_every_days", "probe",
+    "id", "name", "kind", "edition", "status", "url", "official_domains", "applies_to", "items", "probe",
 )
+# Keys an older list may still hold: accepted, ignored and dropped on load, so the next rewrite removes them.
+# check_every_days set a per-source interval before the weekly Monday schedule replaced it.
+IGNORED_SOURCE_KEYS = ("check_every_days",)
 CHANGELOG_KEYS = ("date", "source", "change", "verified_by")
 MAX_ITEMS = 50
 MAX_ITEM_LENGTH = 200
@@ -95,7 +98,6 @@ HEADER = """\
 #   official_domains   the only domains refcheck reads and accepts evidence from (subdomains included)
 #   applies_to         subset of: code, api, ci-cd, credentials, action, publish, install, agent
 #   items              the names of the entries, plain one-line text, as the official page writes them
-#   check_every_days   how often refcheck probes the source (a positive whole number)
 #   probe              how a new edition is detected:
 #                        { type = "next-edition", url = "...{edition}..." }  does the next edition's page exist?
 #                        { type = "page-change" }                            did the text of `url` change?
@@ -103,6 +105,7 @@ HEADER = """\
 #
 # [[changelog]]          one entry per change, appended by refcheck: date, source, change, verified_by
 #
+# refcheck probes every source once a week, from Monday 00:00 local time, or now when asked.
 # An automatic update may change only edition, status, url, items and probe of an existing source.
 """
 
@@ -260,7 +263,7 @@ def _validate_source(source: object, index: int) -> None:
     if not isinstance(name, str) or not _ID_RE.fullmatch(name):
         raise RefError(f"sources[{index}].id must be lowercase letters, digits and single hyphens")
     where = f"source {name}: "
-    unknown = sorted(set(source) - set(SOURCE_KEYS))
+    unknown = sorted(set(source) - set(SOURCE_KEYS) - set(IGNORED_SOURCE_KEYS))
     missing = [key for key in SOURCE_KEYS if key not in source]
     if unknown or missing:
         raise RefError(f"{where}unknown keys {unknown}, missing keys {missing}" if unknown else f"{where}missing keys {missing}")
@@ -275,9 +278,6 @@ def _validate_source(source: object, index: int) -> None:
         raise RefError(f"{where}official_domains must be a non-empty list of lowercase domain names")
     _check_subset(source["applies_to"], APPLIES_TO, f"{where}applies_to")
     _check_items(source["items"], where)
-    days = source["check_every_days"]
-    if isinstance(days, bool) or not isinstance(days, int) or days < 1:
-        raise RefError(f"{where}check_every_days must be a positive whole number")
     _check_url(source["url"], domains, f"{where}url")
     _validate_probe(source, where, domains)
 
@@ -339,6 +339,9 @@ def load_references(path: Path) -> dict:
         raise RefError(f"{path.name}: {error}") from error
     data.setdefault("sources", [])
     data.setdefault("changelog", [])
+    for source in data["sources"]:
+        for key in IGNORED_SOURCE_KEYS:
+            source.pop(key, None)
     return data
 
 
@@ -370,7 +373,6 @@ def _render_source(source: dict) -> str:
         f"official_domains = {_string_list(source['official_domains'])}",
         f"applies_to = {_string_list(source['applies_to'])}",
         items,
-        f"check_every_days = {source['check_every_days']}",
         f"probe = {_render_probe(source['probe'])}",
     ]
     return "\n".join(lines) + "\n"
@@ -429,15 +431,26 @@ def _parse_time(value: object) -> datetime | None:
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 
+def week_start(now: datetime) -> datetime:
+    """Monday 00:00 of the ISO week of `now`, in now's own time zone; a naive `now` is local time."""
+    local = now if now.tzinfo else now.astimezone()
+    monday = local.date() - timedelta(days=local.weekday())
+    return datetime.combine(monday, time(), tzinfo=local.tzinfo)
+
+
 def due_sources(data: dict, state: dict, now: datetime, force: bool = False) -> list[dict]:
-    """The sources to probe now: probe not `none`, no pending change, and the interval over (or force)."""
+    """The sources to probe now: probe not `none`, no pending change, and not checked yet this week (or force).
+
+    The week starts on Monday 00:00 in now's time zone; the command line passes the local time.
+    """
+    start = week_start(now)
     due = []
     for source in data["sources"]:
         entry = state.get(source["id"], {})
         if source["probe"]["type"] == "none" or entry.get("pending"):
             continue
         checked = _parse_time(entry.get("checked_at"))
-        if force or checked is None or now - checked >= timedelta(days=source["check_every_days"]):
+        if force or checked is None or checked < start:
             due.append(source)
     return due
 
@@ -619,7 +632,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sub = parser.add_subparsers(dest="command", required=True)
     probe = sub.add_parser("check", help="probe the sources that are due")
-    probe.add_argument("--force", action="store_true", help="ignore check_every_days")
+    probe.add_argument("--force", action="store_true", help="probe every source now, even one checked this week")
     apply = sub.add_parser("apply", help="write a verified update, or dismiss a pending change")
     apply.add_argument("update", nargs="?", type=Path, help="the update JSON written by sharron")
     apply.add_argument("--no-change", action="store_true", help="dismiss the pending change of --source")
@@ -632,7 +645,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.command == "apply" and (args.no_change, args.update is None, bool(args.source)) not in ((True, True, True), (False, False, False)):
         parser.error("use either `apply <update.json>` or `apply --no-change --source ID`")
-    now = datetime.now(timezone.utc)
+    now = datetime.now().astimezone()  # local time: the weekly schedule starts on Monday 00:00 local time
     try:
         if args.command == "check":
             result = check(args.skill_dir, now=now, force=args.force)

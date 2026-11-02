@@ -155,7 +155,7 @@ The `settings-help` playbook has no intake, no memory entry and no ledger row.
 | 「sharron 改一下 engineer 的角色提示」 | Edits `roles/engineer.md` (or `.local.md` for this machine only) and shows the diff; leaves committing to you | L2 |
 | 「sharron 預算狀況」 | Summarizes recent spend and the budget suggestion per playbook and difficulty | L0 |
 | 「sharron 有哪些暫停的任務」 | Lists paused and waiting tasks from `MEMORY.md` | L0 |
-| 「sharron 現在更新資安參考清單」 | Runs the reference check now, ignoring the interval | L2 |
+| 「sharron security check」「security update」「資安檢查」「資安更新」「更新資安參考」, with nothing else named | Checks the security reference list now (`refcheck.py check --force`), verifies and applies any update, and tells you the result, also when nothing changed. Name code, a skill or an action and it reviews that instead | L2 |
 | 「sharron 跑評測」 | Runs the eval set after a one-line confirmation, because it costs quota | L3 |
 
 When sharron changes a setting she writes only that key, runs `config.py validate`, and undoes the change and shows the allowed values if validation fails. The steps are in [`references/playbooks.md`](references/playbooks.md#settings-and-help).
@@ -193,7 +193,7 @@ All paths are inside `<skill>`.
 | `config.toml` | You, or sharron when you ask | Local only, gitignored. Only changed keys. |
 | `config.example.toml` | You, by hand | The defaults. Committed. |
 | `registry.toml` | You, by hand, or sharron when you ask | The skills sharron may give to subagents and the scanner tools. An entry has `name`, `repo`, `plugin`, `status`, `roles`, `playbooks`, `domains`, `tags` (coding skills), `min_tier`, `ref` and one install command per platform in `[skills.install]`. `ref = "self"` marks a skill from this repo; every other entry pins a 40-character commit SHA, and each install command must contain it. A newer upstream version arrives only when you change `ref`. Format: [`references/registry.md`](references/registry.md#registry-format). |
-| `security-references.toml` | You add sources by hand; `refcheck.py` updates editions | You add or remove a `[[sources]]` entry (`id`, `name`, `kind`, `edition`, `status`, `url`, `official_domains`, `applies_to`, `items`, `check_every_days`, `probe`) in the layout described at the top of the file. The automatic update may change only `edition`, `status`, `url`, `items` and `probe` of an existing source, only after a verifier confirmed it against the official page, and it appends a `[[changelog]]` entry. |
+| `security-references.toml` | You add sources by hand; `refcheck.py` updates editions | You add or remove a `[[sources]]` entry (`id`, `name`, `kind`, `edition`, `status`, `url`, `official_domains`, `applies_to`, `items`, `probe`) in the layout described at the top of the file. The automatic update may change only `edition`, `status`, `url`, `items` and `probe` of an existing source, only after a verifier confirmed it against the official page, and it appends a `[[changelog]]` entry. |
 | `roles/<role>.md` | You | The role prompts. Committed, so edits affect everyone using your clone. |
 | `roles/<role>.local.md` | You | The same, for this machine only. Gitignored; sharron appends it after the role prompt. Do not put absolute home paths in it (see [Troubleshooting](#troubleshooting)). |
 | `ledger/costs.md` | `finance.py` only | Append-only cost ledger. Never edit it by hand. Rows are pushed to your repository, so they are public when the repository is public. `domain` is a coarse label such as `travel` or `finance`, never a name, place or other task detail. It is a free label, separate from the registry domain (`coding`, `learning` or `general`) that `detect_stack.py select` takes. |
@@ -225,7 +225,7 @@ sh plugins/workflow/skills/sharron/scripts/run.sh finance.py next-id --maintenan
 
 # Security references
 sh plugins/workflow/skills/sharron/scripts/run.sh refcheck.py check
-sh plugins/workflow/skills/sharron/scripts/run.sh refcheck.py check --force
+sh plugins/workflow/skills/sharron/scripts/run.sh refcheck.py check --force   # on demand: every source now
 sh plugins/workflow/skills/sharron/scripts/run.sh refcheck.py apply plugins/workflow/skills/sharron/state/update-<source id>.json
 sh plugins/workflow/skills/sharron/scripts/run.sh refcheck.py apply --no-change --source <source id>
 
@@ -243,7 +243,7 @@ sh plugins/workflow/skills/sharron/scripts/run.sh trace.py prune
 Notes on the less obvious ones:
 
 - `finance.py suggest` prints `{"budget_usd", "method", "n"}`. `--since` is the ISO start time of the task, with its offset. `record` and `correct` also commit and push the ledger row for you; `correct` is for when a finished task's result turned out wrong, and removes it from the budget suggestions. `finance.py record` also takes `--agents` / `--exclude-agents` to limit which subagent transcripts are measured. `finance.py next-id` prints `{"task_id": "t-YYYYMMDD-NN"}`, the next free id of today (`m-…` with `--maintenance`): above every id of today in the ledger and every id it handed out before, which `state/task-ids.json` remembers, so tasks in different workspaces never share an id. sharron takes every task id from it. See [`references/finance.md`](references/finance.md) and [`references/memory.md`](references/memory.md#task-ids).
-- `refcheck.py check` probes only the sources that are due (7 days, 1 day for beta sources); `--force` ignores that. It never changes the list. `apply` is for a verified update file written by sharron; a bad file exits 1 and writes nothing. The full procedure: [`references/security-review.md`](references/security-review.md#background-reference-updates).
+- `refcheck.py check` probes each source once a week: a source is due when it was never checked or its last check is before this week's Monday 00:00 local time. `--force` probes every source now; sharron runs it when you ask for a security check. It never changes the list. `apply` is for a verified update file written by sharron; a bad file exits 1 and writes nothing. The full procedure: [`references/security-review.md`](references/security-review.md#background-reference-updates).
 - `datasync.py sync` takes one of `ledger/costs.md`, `security-references.toml` or `registry.toml`, relative to the skill folder, and a message that starts with `chore(sharron): ` and contains `[skip ci]`. The messages for each file are in the table in [`references/finance.md`](references/finance.md#data-sync). It commits whatever diff the file has, so check `git diff` first.
 - `detect_stack.py select` also exits 1 with one line when `registry.toml` is invalid, which is how a registry edit is validated. `--domain` takes only the registry domains (`coding`, `learning` and `general`, plus any other domain a registry entry names); another value exits 1 with the allowed list.
 - `trace.py prune` deletes traces beyond the newest 50 or older than 30 days; starting a new trace already does this.

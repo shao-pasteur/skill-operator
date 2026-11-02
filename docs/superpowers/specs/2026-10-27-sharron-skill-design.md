@@ -674,7 +674,6 @@ url = "https://owasp.org/Top10/2025/"
 official_domains = ["owasp.org"]
 applies_to = ["code"]              # code | api | ci-cd | credentials | action | publish | install | agent
 items = ["A01 Broken Access Control", "A02 Security Misconfiguration"]   # all ten in the real file
-check_every_days = 7
 probe = { type = "next-edition", url = "https://owasp.org/Top10/{edition}/" }
 
 [[changelog]]
@@ -693,8 +692,8 @@ Initial entries, researched on 2026-10-27:
 | `owasp-api` | OWASP API Security Top 10 | 2023 | next-edition |
 | `owasp-llm` | OWASP Top 10 for LLM Applications | 2025 | next-edition |
 | `owasp-agentic` | OWASP Top 10 for Agentic Applications | 2026 | next-edition |
-| `owasp-mcp` | OWASP MCP Top 10 | 2025 (beta) | page-change, checked daily |
-| `owasp-ast10` | OWASP Agentic Skills Top 10 (AST10) | 2026, v1.0 (incubator) | page-change, checked daily |
+| `owasp-mcp` | OWASP MCP Top 10 | 2025 (beta) | page-change |
+| `owasp-ast10` | OWASP Agentic Skills Top 10 (AST10) | 2026, v1.0 (incubator) | page-change |
 | `owasp-nhi` | OWASP Non-Human Identities Top 10 | 2025 | next-edition |
 | `owasp-cicd` | OWASP Top 10 CI/CD Security Risks | first edition | page-change |
 | `owasp-privacy` | OWASP Top 10 Privacy Risks | 2021 | page-change |
@@ -705,7 +704,8 @@ Initial entries, researched on 2026-10-27:
 **Background check on every activation:**
 
 1. Step 0 starts `refcheck.py check` in the background (Claude Code: a background shell command; on platforms without background work it runs at step 11). It uses no model.
-2. A source is probed only when its last check is older than its `check_every_days` (default 7; 1 for beta sources). Check times live in `state/refcheck.json` (gitignored), so routine checks never create commits.
+2. Every source is probed once a week: it is due when it has never been checked or its last check is before this week's Monday 00:00 local time (ISO weeks), beta sources included. Check times live in `state/refcheck.json` (gitignored), so routine checks never create commits.
+   On demand: 「sharron security check」, "security update", 「資安檢查」, 「資安更新」 or 「更新資安參考」 with no artifact named runs `refcheck.py check --force` at once (every source, even one checked this week), then the same propose, verify and apply steps at L2, and the reply reports the result, "no changes" included. A phrase that names an artifact is a security review of that artifact.
 3. Probe types: `next-edition` (does the page for the next edition exist?), `page-change` (has the text fingerprint of the official page changed?), `none` (live data, queried at review time instead).
 4. When a probe reports a change, a background `security` subagent (T1) reads the official page and proposes the new edition, status, URL and items; a `verifier` confirms them against the page with `verify-evidence`; `refcheck.py apply` writes the verified update.
 5. The reply mentions it in one line, for example 「資安參考清單已更新：OWASP MCP Top 10 Beta → 正式版」. A failed check is mentioned once and retried next time.
@@ -757,7 +757,7 @@ Initial entries, researched on 2026-10-27:
 4. Answering the intake quickly ("use the defaults") and reading the task card.
 5. What L3 confirmations and L4 decision cards look like and how to answer them.
 6. Memory: where `MEMORY.md` lives, how to correct or remove entries, why it is never committed.
-7. The settings reference below, and the other files you can edit: `registry.toml` (adding a skill: repo, `ref`, roles, playbooks, domains, install commands), `security-references.toml` (adding a source, check intervals; which fields the automatic update may change), `roles/<role>.md` and `roles/<role>.local.md`, and `evals/`.
+7. The settings reference below, and the other files you can edit: `registry.toml` (adding a skill: repo, `ref`, roles, playbooks, domains, install commands), `security-references.toml` (adding a source; which fields the automatic update may change; it is checked weekly, or on demand), `roles/<role>.md` and `roles/<role>.local.md`, and `evals/`.
 8. Manual commands: `finance.py suggest` / `usage`, `refcheck.py check`, `memory_guard.py check`, `config.py show` / `validate`, `trace.py prune`.
 9. Troubleshooting: sharron does not trigger; ledger rows are not committed (cache copy, failing pre-commit check); a push was skipped (not on `main`, other outgoing commits); `MEMORY.md` is tracked; a reference update failed.
 
@@ -774,7 +774,7 @@ Initial entries, researched on 2026-10-27:
 | 「sharron 改一下 engineer 的角色提示」 | Edits `roles/engineer.md` (or `.local.md` for this machine only) and shows the diff; leaves committing to you | L2 |
 | 「sharron 預算狀況」 | Summarizes recent spend and the budget suggestion per playbook and difficulty | L0 |
 | 「sharron 有哪些暫停的任務」 | Lists paused and waiting tasks from `MEMORY.md` | L0 |
-| 「sharron 現在更新資安參考清單」 | Runs the reference check now, ignoring the interval | L2 |
+| 「sharron security check」「資安檢查」「資安更新」「更新資安參考」, no artifact named | Runs the reference check now (`refcheck.py check --force`), then propose, verify, apply; reports the result, "no changes" included | L2 |
 | 「sharron 跑評測」 | Runs the eval set after a one-line confirmation, because it costs quota | L3 |
 
 **Settings reference** (`config.toml`; defaults from `config.example.toml`):

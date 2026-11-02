@@ -130,3 +130,19 @@ def test_cli_rejects_unknown_tags_and_tags_command_lists_detected(tmp_path, caps
     assert "nonsense" in capsys.readouterr().err
     assert detect_stack.main(["tags", "--workspace", str(ws)]) == 0
     assert json.loads(capsys.readouterr().out) == {"tags": ["go"]}
+
+
+def test_select_rejects_a_domain_the_registry_does_not_use(tmp_path, capsys):
+    base = ["select", "--role", "engineer", "--playbook", "coding", "--tier", "T2", "--workspace", str(tmp_path)]
+    for domain in ("software", "*"):
+        assert detect_stack.main([*base, "--domain", domain]) == 1
+        err = capsys.readouterr().err
+        assert len(err.splitlines()) == 1 and f"unknown domain {domain!r}" in err and "coding, general, learning" in err
+    for domain in ("coding", "learning", "general"):
+        assert detect_stack.main([*base, "--domain", domain]) == 0, domain
+        capsys.readouterr()
+
+
+def test_the_allowed_domains_come_from_the_registry_plus_general(tmp_path):
+    reg = registry(tmp_path, entry("a", domains=("travel",)), entry("b", domains=("*",)), entry("c", status="disabled"))
+    assert detect_stack.registry_domains(reg) == ("coding", "general", "travel")

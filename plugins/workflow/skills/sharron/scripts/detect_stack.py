@@ -11,6 +11,7 @@ Usage (from the skill folder; every subcommand prints one JSON object):
 {"tags": [...], "skills": [{"name", "repo", "plugin", "matched", "min_tier"}], "dropped": [names]}.
 A skill with tags is selected only when every one of its tags is among the task's tags; at most
 `max_skills_per_brief` skills are kept, the most specific first, and the rest are listed as dropped.
+--domain is one of the domains the registry entries name, plus `general`; anything else is bad input.
 The vocabulary is documented in references/tags.md. Bad input prints one line on stderr and exits 1.
 """
 
@@ -44,6 +45,7 @@ VOCABULARY = frozenset(STACK_TAGS) | frozenset(LAYER_TAGS) | frozenset(ACTIVITY_
 SCHEMA_VERSION = 1
 REGISTRY_FILE = "registry.toml"
 ANY = "*"
+GENERAL_DOMAIN = "general"  # for units whose playbook has no registry domain of its own
 SELF_REF = "self"
 
 MAX_DEPTH = 3  # folders below the workspace that are scanned
@@ -320,6 +322,12 @@ def select_skills(
     return ordered[:limit], ordered[limit:]
 
 
+def registry_domains(registry: Registry) -> tuple[str, ...]:
+    """The values --domain accepts: every domain an entry names (not `*`), plus `general`, sorted."""
+    named = {domain for entry in registry.skills for domain in entry.domains if domain != ANY}
+    return tuple(sorted(named | {GENERAL_DOMAIN}))
+
+
 # ---------------------------------------------------------------- command line
 
 
@@ -346,6 +354,9 @@ def _cmd_select(args: argparse.Namespace) -> dict:
     tags = _workspace_tags(args.workspace) | extra
     limit = config.load_settings(args.skill_dir).values["max_skills_per_brief"]
     registry = load_registry(args.skill_dir / REGISTRY_FILE)
+    allowed = registry_domains(registry)
+    if args.domain not in allowed:
+        raise ValueError(f"unknown domain {args.domain!r}; use one of: {', '.join(allowed)} (see references/registry.md)")
     selected, dropped = select_skills(
         registry, role=args.role, playbook=args.playbook, domain=args.domain, tier=args.tier, tags=tags, limit=limit
     )

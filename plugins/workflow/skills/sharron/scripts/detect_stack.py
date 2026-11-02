@@ -11,7 +11,7 @@ Usage (from the skill folder; every subcommand prints one JSON object):
 {"tags": [...], "skills": [{"name", "repo", "plugin", "matched", "min_tier"}], "dropped": [names]}.
 A skill with tags is selected only when every one of its tags is among the task's tags; at most
 `max_skills_per_brief` skills are kept, the most specific first, and the rest are listed as dropped.
---domain is one of the domains the registry entries name, plus `general`; anything else is bad input.
+--domain is coding, learning, general or another domain a registry entry names; anything else is bad input.
 The vocabulary is documented in references/tags.md. Bad input prints one line on stderr and exits 1.
 """
 
@@ -45,7 +45,9 @@ VOCABULARY = frozenset(STACK_TAGS) | frozenset(LAYER_TAGS) | frozenset(ACTIVITY_
 SCHEMA_VERSION = 1
 REGISTRY_FILE = "registry.toml"
 ANY = "*"
-GENERAL_DOMAIN = "general"  # for units whose playbook has no registry domain of its own
+# The domains the docs map playbooks to (coding, learning, everything else general): always accepted, even when
+# no registry entry names one, so the documented mapping never fails.
+DOCUMENTED_DOMAINS = ("coding", "learning", "general")
 SELF_REF = "self"
 
 MAX_DEPTH = 3  # folders below the workspace that are scanned
@@ -323,9 +325,9 @@ def select_skills(
 
 
 def registry_domains(registry: Registry) -> tuple[str, ...]:
-    """The values --domain accepts: every domain an entry names (not `*`), plus `general`, sorted."""
+    """The values --domain accepts: the documented domains and every domain an entry names (not `*`), sorted."""
     named = {domain for entry in registry.skills for domain in entry.domains if domain != ANY}
-    return tuple(sorted(named | {GENERAL_DOMAIN}))
+    return tuple(sorted(named | set(DOCUMENTED_DOMAINS)))
 
 
 # ---------------------------------------------------------------- command line

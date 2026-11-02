@@ -143,6 +143,18 @@ def test_select_rejects_a_domain_the_registry_does_not_use(tmp_path, capsys):
         capsys.readouterr()
 
 
-def test_the_allowed_domains_come_from_the_registry_plus_general(tmp_path):
+def test_the_allowed_domains_are_the_registry_domains_plus_the_documented_ones(tmp_path):
     reg = registry(tmp_path, entry("a", domains=("travel",)), entry("b", domains=("*",)), entry("c", status="disabled"))
-    assert detect_stack.registry_domains(reg) == ("coding", "general", "travel")
+    assert detect_stack.registry_domains(reg) == ("coding", "general", "learning", "travel")
+
+
+def test_the_documented_domains_work_with_a_registry_that_has_no_coding_entry(tmp_path, capsys):
+    skill = make_skill(tmp_path / "s")
+    (skill / "registry.toml").write_text("schema_version = 1\n\n" + entry("teach", roles=("tutor",), domains=("learning",)))
+    base = ["--skill-dir", str(skill), "select", "--role", "engineer", "--playbook", "coding", "--tier", "T2",
+            "--workspace", str(tmp_path)]
+    for domain in ("coding", "learning", "general"):
+        assert detect_stack.main([*base, "--domain", domain]) == 0, domain
+        assert json.loads(capsys.readouterr().out)["skills"] == []
+    assert detect_stack.main([*base, "--domain", "software"]) == 1
+    assert "coding, general, learning" in capsys.readouterr().err

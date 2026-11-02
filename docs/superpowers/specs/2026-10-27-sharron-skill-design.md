@@ -774,7 +774,7 @@ Initial entries, researched on 2026-10-27:
 | 「sharron 改一下 engineer 的角色提示」 | Edits `roles/engineer.md` (or `.local.md` for this machine only) and shows the diff; leaves committing to you | L2 |
 | 「sharron 預算狀況」 | Summarizes recent spend and the budget suggestion per playbook and difficulty | L0 |
 | 「sharron 有哪些暫停的任務」 | Lists paused and waiting tasks from `MEMORY.md` | L0 |
-| 「sharron security check」「資安檢查」「資安更新」「更新資安參考」, no artifact named | Runs the reference check now (`refcheck.py check --force`), then propose, verify, apply; reports the result, "no changes" included | L2 |
+| 「sharron security check」"security update"「資安檢查」「資安更新」「更新資安參考」, no artifact named | Runs the reference check now (`refcheck.py check --force`), then propose, verify, apply; reports the result, "no changes" included | L2 |
 | 「sharron 跑評測」 | Runs the eval set after a one-line confirmation, because it costs quota | L3 |
 
 **Settings reference** (`config.toml`; defaults from `config.example.toml`):

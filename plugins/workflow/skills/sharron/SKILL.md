@@ -69,7 +69,7 @@ Put every step into the platform's todo list; a skipped step gets a one-line rea
     - Update `MEMORY.md`: result, evidence pointers, lessons. A lesson the user has given twice becomes a preference marked 〔你說的〕.
     - Record the cost; the script commits and pushes the row itself (L2): `sh <skill>/scripts/run.sh finance.py record --platform <platform> --task-id <id> --since <start> --playbook <id> --domain <domain> --difficulty <1-5> --subagents <n> --outcome <done|partial|failed|cancelled> --verified <confirmed>/<checked>`, plus `--exclude-agents <the maintenance subagents' ids>` when the first bullet dispatched any. If `record` says the id is already recorded, get a new id from `finance.py next-id`, record with it, use it in `MEMORY.md` with the old id in parentheses (the trace keeps the old id), and say the renumbering in the reply.
     - Run the stateless re-push check for `registry.toml` and `security-references.toml` (`references/finance.md`, Repeating a sync that did not finish). It only pushes outgoing data commits. In this check, a file with an uncommitted diff is not synced: mention it once and leave it alone, because sharron never commits a change it did not make in this task.
-    - Trace the closing decision with `echo '<json>' | sh <skill>/scripts/run.sh trace.py append --task-id <id> --kind decision`.
+    - Trace the closing decision with `echo '<json>' | sh <skill>/scripts/run.sh trace.py append --task-id <id> --kind decision` (the original id, even if the ledger row was renumbered).
     - After every 20 ledger rows, or when the user asks, run the error-analysis loop (`references/playbooks.md#error-analysis`).
 
 During the task:

@@ -49,7 +49,7 @@ The `settings-help` playbook runs without intake. Answer help requests from `GUI
 | You say (examples) | sharron does | Level |
 |---|---|---|
 | 「sharron 怎麼用」「sharron help」 | Summarizes `GUIDE.md` | L0 |
-| 「sharron 顯示設定」 | Runs `sh <skill>/scripts/run.sh config.py show` and lists the effective settings with their sources. For an invalid setting it quotes the `config.py validate` error and, when offering a fix, names the default read from `config.example.toml`, because `show` prints only the invalid value; it never guesses the default | L0 |
+| 「sharron 顯示設定」 | Runs `sh <skill>/scripts/run.sh config.py show` and lists the effective settings with their sources. For an invalid setting it runs `config.py validate` and quotes its error and, when offering a fix, names the default read from `config.example.toml`, because `show` prints only the invalid value; it never guesses the default | L0 |
 | 「sharron 把 reviewer 改成 T3」「把 work 平台的模型設成 X」 | Changes the key in `config.toml`, validates, shows the diff | L2 |
 | 「sharron 加一條常備命令：絕不……」 | Adds it to `standing_orders` in `config.toml` | L2 |
 | 「sharron 刪掉常備命令……」「關掉自動安裝」 | Changes it after a one-line confirmation, because it loosens a safeguard | L3 |

@@ -47,7 +47,7 @@ Summarized from pstack (MIT). When pstack is installed, read the `SKILL.md` of t
 
 ## Main flow
 
-Put every step into the platform's todo list; a skipped step gets a one-line reason. `simple-answer` and `settings-help` have no intake, no `MEMORY.md` entry and no ledger row (`references/playbooks.md`). `simple-answer` may also skip step 0; the reply then says nothing about it.
+Put every step into the platform's todo list; a skipped step gets a one-line reason. `simple-answer` and `settings-help` have no intake, no `MEMORY.md` entry and no ledger row (`references/playbooks.md`). `simple-answer` may skip step 0 except the reference check: still start `refcheck.py check` in the background, but leave any change it reports pending for the next task that is not a simple answer (no subagents now); the reply says nothing about step 0.
 
 0. **Resume.** Run `sh <skill>/scripts/run.sh memory_guard.py check`.
    - `ok`: read `MEMORY.md`. `excluded`: tell the user its `notice` once, then read it.

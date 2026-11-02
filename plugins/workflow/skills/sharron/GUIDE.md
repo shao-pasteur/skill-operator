@@ -82,6 +82,8 @@ One example per playbook:
 | `settings-help` | 「sharron 怎麼用」「sharron 顯示設定」 | Answers from this guide or changes a setting; see [Talking to sharron about settings](#talking-to-sharron-about-settings). |
 | `custom` | 「sharron，我要做一個每週整理待辦的流程」 | When nothing fits, she designs a playbook first, tells you what it is for and how each step is checked, then runs it. |
 
+When a task needs several independent subagents, sharron starts them together in one turn rather than one after another; only a unit that needs another's output waits (the verifier after the researchers). Independent T3 subagents in parallel, or more than 5 in a task, need your confirmation first.
+
 Background reference updates (`maintenance`) are started by sharron herself, never by a request.
 
 ## The intake and the task card

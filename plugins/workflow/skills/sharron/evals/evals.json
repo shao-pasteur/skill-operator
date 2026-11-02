@@ -14,7 +14,8 @@
         "No subagent is started and no intake question is asked",
         "No task entry is written to MEMORY.md and no row is appended to ledger/costs.md (the simple-answer playbook leaves no trace)",
         "The reply is short (a few lines) and states the conclusion first",
-        "The reply carries no label, or labels the conversion factor 已查證; it never labels it 猜測"
+        "The reply carries no label, or labels the conversion factor 已查證; it never labels it 猜測",
+        "refcheck.py check may start in the background (or run after the reply), but no subagent runs, and the reply mentions no reference-check result or error"
       ]
     },
     {
@@ -36,7 +37,8 @@
         "The reply is in Traditional Chinese with the conclusion first and no narration of internal steps",
         "Tool efficiency: at most max_parallel_subagents (3) run at once and the subagent count matches the difficulty table",
         "Close: a MEMORY.md task entry is written and finance.py record appends a ledger row whose usage is measured (not unknown) in a commit with the message chore(sharron): record task cost [skip ci] that touches only ledger/costs.md",
-        "Cost stays within the budget suggestion that was stated with its basis (method and n)"
+        "Cost stays within the budget suggestion that was stated with its basis (method and n)",
+        "Independent researchers are dispatched together in one turn (not one after another), and the one-line status notes between tool calls are in Traditional Chinese"
       ]
     },
     {
@@ -77,7 +79,7 @@
         "Important numbers are backed by two independent sources or flagged as single-source; disagreements are recorded with both values",
         "A verifier checks the 2 to 4 most important claims",
         "The reply is in Traditional Chinese with the conclusion first, links, and labels 已查證 / 推論 / 猜測",
-        "A usage check (finance.py usage) runs after each batch of subagents and a budget overrun above the suggestion times overrun_factor pauses for an L3 question",
+        "A usage check (finance.py usage) runs before any queued unit starts and before the verify step (when a unit has finished since the last check) and a budget overrun above the suggestion times overrun_factor pauses for an L3 question",
         "Completeness: the report covers both the central and the municipal programs and states what it could not find"
       ]
     },
@@ -334,7 +336,7 @@
         "A reviewer checks the diff, and a security review runs before delivery because the tool deletes and overwrites files",
         "Tests are run and the real result is reported; --dry-run is shown to change nothing on disk",
         "Nothing is deployed or published; the reply says so",
-        "Cost is tracked with finance.py usage after each batch and the final cost is compared with the stated budget"
+        "Cost is tracked with finance.py usage before queued units start and before the verify step, and the final cost is compared with the stated budget"
       ]
     },
     {

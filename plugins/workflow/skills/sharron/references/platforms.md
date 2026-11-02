@@ -32,11 +32,11 @@ The three unverified platforms are recognised by self-identification: the agent 
 | Copilot CLI | The `task` tool. Custom agents are markdown files with frontmatter (`.github/agents/` in a repository, or the user profile). `list_agents`, `read_agent` and `write_agent` manage running agents. | Yes: the agent's `model`, `models` and `reasoningEffort` frontmatter fields, or an explicit per-call value, or the `subagents` override in `~/.copilot/settings.json`. When the session model is `auto`, subagents inherit it. | documented |
 | Cursor | The Task tool. Subagents are markdown files in `.cursor/agents/` or `~/.cursor/agents/` (`.claude/agents/` and `.codex/agents/` are read too). A subagent started by a subagent cannot start further ones. | Yes: the `model` frontmatter field takes `inherit` (the default) or a model id. | documented |
 
-The exact tool names for Codex and Cursor are **unverified**. sharron asks for subagents in plain language on those two platforms and does not depend on a tool name.
+The exact tool names for Codex and Cursor are **unverified**. sharron asks for subagents in plain language on those two platforms and does not depend on a tool name. Independent units still start together: with no multi-call tool, sharron asks for all of them in one request (Claude Code: several Agent calls in one message, in the background where supported).
 
 **Model mapping.** `config.example.toml` ships `[platforms.claude-code.models]` (`haiku`, `sonnet`, `opus`) and `[platforms.copilot.models]` (the Copilot model ids `claude-haiku-5.5`, `claude-sonnet-5.5`, `claude-opus-5.5`, which differ from the API ids in spelling and depend on the user's plan). Codex and Cursor can choose a model per subagent too, but their current model ids were not verified, so no section ships. A user who wants tiers there adds `[platforms.codex.models]` or `[platforms.cursor.models]` to `config.toml`. Until then sharron lets those subagents inherit the parent's model and records the cost as unknown.
 
-**If a platform has no way to start a subagent** (none of the four is in that case today), sharron does the units itself, one after another.
+**If a platform has no way to start a subagent** (none of the four is in that case today), or runs subagents only one at a time, sharron does the units one after another.
 
 Claude Code allows up to 20 concurrent subagents by default (`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`); sharron's own `max_parallel_subagents` stays the lower limit.
 
@@ -56,7 +56,7 @@ For copies, the data sync (`datasync.py`, which `finance.py` runs) detects that 
 
 ## Background work
 
-sharron starts `refcheck.py check` in the background at activation (step 0). Where background work is not confirmed, it runs the check at step 11 instead.
+sharron starts `refcheck.py check` in the background at activation (step 0). Where background work is not confirmed, it runs the check at step 11 instead. A simple answer has no step 11, so there the check runs right after the reply; any change it reports stays pending for the next task that is not a simple answer, and no subagent runs.
 
 | Platform | Background shell command | Mark |
 |---|---|---|

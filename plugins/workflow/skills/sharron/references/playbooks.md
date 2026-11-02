@@ -16,7 +16,7 @@ Each playbook id is the value passed to `finance.py --playbook` and to `config.P
 
 | Id | For | Typical roles | Steps |
 |---|---|---|---|
-| `simple-answer` | One-step questions | None | Answer directly, with labels on important claims. No intake, no `MEMORY.md` entry, no ledger row. |
+| `simple-answer` | One-step questions | None | Answer directly, with labels on important claims. No intake, no `MEMORY.md` entry, no ledger row. Still start `refcheck.py check` (in the background; on a platform without background work, after the reply), leave any change it reports pending for the next task that is not a simple answer, run no subagents, and mention no check `errors`. |
 | `research` | Read-only questions answered with sources | researcher, verifier | Split into sub-questions; at difficulty 2 or more, researcher subagents collect sources (in parallel, breadth first, when there are several sub-questions) and an independent verifier re-reads the 2–4 most important claims against their sources; at difficulty 1 sharron may collect and check itself. sharron integrates and labels each claim. |
 | `planning` | Itineraries, study plans and similar | planner, researcher | Fix the constraints; researchers confirm facts such as opening hours; the planner builds options with milestones, buffers and checks; sharron reviews the plan against the constraints and presents it. Nothing is booked or sent. |
 | `action` | Changes to external services | operator; reviewer for R3 and above | Fix the action plan first (see [Plan-then-execute](#plan-then-execute)); run the decision gate; the operator executes exactly the plan and reads the result back; a reviewer checks R3 and above before execution; report what changed and how to undo it. |
@@ -25,7 +25,7 @@ Each playbook id is the value passed to `finance.py --playbook` and to `config.P
 | `coding` | Scripts, automation, project work | engineer, reviewer | One engineer works sequentially in the workspace and follows the project's own conventions (its `AGENTS.md`, test command, linters); documentation lookups go through a researcher; a reviewer checks the diff; the engineer deploys only on explicit request. |
 | `settings-help` | Showing or changing settings, usage help, budget status, paused tasks | sharron | See [Settings and help](#settings-and-help). No intake, no `MEMORY.md` entry, no ledger row. |
 | `custom` | Nothing above fits | By design | See [Custom playbooks](#custom-playbooks). |
-| `maintenance` | Background reference updates | By the update procedure | Started by the security reference check, never by a user request. No intake. A `maintenance` ledger row is written only for background reference updates, from the subagents' usage; its task ids start with `m-`. |
+| `maintenance` | Background reference updates | By the update procedure | Started by the security reference check, never by a user request. No intake. A `maintenance` ledger row is written only for background reference updates, from the subagents' usage; its task ids start with `m-`. It never waits on the task budget. |
 
 Notes:
 

@@ -30,7 +30,7 @@ sh <skill>/scripts/run.sh finance.py record --platform claude-code --task-id <t-
 - `--since` is the start time written in the task's `MEMORY.md` entry. Use the ISO form with the offset, for example `2026-10-28T09:30:00+08:00`.
 - `--task-id` is the id `finance.py next-id` handed out at step 2 (`next-id --maintenance` for a maintenance row); see [`memory.md`](memory.md#task-ids).
 
-**Maintenance rows.** The subagents of a background reference update (see [`security-review.md`](security-review.md#background-reference-updates)) are measured on their own, with `--agents <agent ids>` (comma-separated; the id the Agent tool returned when each subagent finished). `--agents` measures only those subagent transcripts and leaves the main transcript out. The row of the task that overlapped the update passes `--exclude-agents <the same ids>`, so the cost is counted once.
+**Maintenance rows.** The subagents of a background reference update (see [`security-review.md`](security-review.md#background-reference-updates)) are measured on their own, with `--agents <agent ids>` (comma-separated; the id the Agent tool returned when each subagent finished). `--agents` measures only those subagent transcripts and leaves the main transcript out. The row of the task that overlapped the update passes `--exclude-agents <the same ids>`, so the cost is counted once. A maintenance update has its own row and never waits on the task budget: the task's overrun check does not stop it either.
 
 ```
 sh <skill>/scripts/run.sh finance.py record --platform claude-code --task-id <m-YYYYMMDD-NN> --since <update start, ISO time> \
@@ -85,7 +85,7 @@ The script uses only successful rows: `measurement` is `measured`, the cost is k
 2. Otherwise at least 10 rows on the playbook: a least-squares fit of cost on difficulty, evaluated at this difficulty and never below the cheapest row (`regression`). It falls back to rule 3 when every row has the same difficulty.
 3. Otherwise the config default for this difficulty (`default`, `n` is 0). The defaults are in `[budget]`; read them with `sh <skill>/scripts/run.sh config.py show`.
 
-**Overrun.** After each batch of subagents, run `usage` with `--budget <suggestion>`. When `over_budget` is true (spend above the suggestion times `overrun_factor`, default 1.5), pause non-urgent work and ask whether to continue, as an L3 confirmation. The procedure and the wording are in [`budget-and-models.md`](budget-and-models.md#overrun-check) and [`decisions-and-risk.md`](decisions-and-risk.md#l3-confirmation).
+**Overrun.** Before starting any queued unit, and before step 7, whenever some unit has finished since the last check, run `usage` with `--budget <suggestion>` (and `--exclude-agents <ids>` when maintenance subagents ran). When `over_budget` is true (spend above the suggestion times `overrun_factor`, default 1.5), pause non-urgent work and ask whether to continue, as an L3 confirmation. This never holds back the background reference-update subagents. The procedure and the wording are in [`budget-and-models.md`](budget-and-models.md#overrun-check) and [`decisions-and-risk.md`](decisions-and-risk.md#l3-confirmation).
 
 ## Data sync
 

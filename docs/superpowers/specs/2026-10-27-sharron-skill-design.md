@@ -165,7 +165,7 @@ Based on [pstack](https://github.com/cursor/plugins/tree/main/pstack) (MIT), sum
 
 Each step goes into the platform's todo list; a skipped step gets a one-line reason.
 
-0. **Resume.** Run `memory_guard.py check`, read `MEMORY.md`, list tasks that are paused or waiting for the user and ask whether to continue them first. Start the security reference check in the background (4.16); it never delays the task.
+0. **Resume.** Run `memory_guard.py check`, read `MEMORY.md`, list tasks that are paused or waiting for the user and ask whether to continue them first. Start the security reference check in the background (4.16); it never delays the task. A simple answer still starts the check (after the reply on a platform without background work), leaves any change pending for the next task that is not a simple answer, runs no subagents and mentions no check `errors`.
 1. **Understand.** Intent, playbook (4.5), domain (for example finance, travel, learning, coding; used by the service list) and difficulty 1–5 (4.9), through the intake below.
 2. **Open the task in `MEMORY.md`.** Goal, done-when, constraints, start time (needed by the finance script).
 3. **Challenge the premise.** Is this needed? Is there a simpler way?
@@ -270,7 +270,7 @@ More than 5 subagents still needs a confirmation (L3).
 - A reviewer never reviews its own output.
 - The operator is the only role that writes to external services (calendar, Notion, email and so on), and every write goes through the decision gate.
 - The engineer handles deployment and infrastructure only when the user asks for it explicitly.
-- At most `max_parallel_subagents` (default 3) run at once.
+- At most `max_parallel_subagents` (default 3) run at once. Independent units start together, all in one turn (in the background where the platform supports it); only a unit that needs another's output waits. Independent T3 units in parallel, or more than 5 subagents in the task, need the L3 confirmation first; without a subagent tool, or where subagents run one at a time, the units run one after another.
 
 | Role | Does | Default tier (overridable in config `[roles]`) | Role ability prompt |
 |---|---|---|---|
@@ -415,7 +415,7 @@ Step 0 of every later task surfaces paused and waiting tasks first, so nothing g
 
 The script prints the suggestion with its basis (method and n), so the suggestions sharpen as data accumulates.
 
-**Overrun:** when measured spend during a task exceeds the suggestion × `overrun_factor` (default 1.5), pause non-urgent work and ask whether to continue (L3).
+**Overrun:** when measured spend during a task exceeds the suggestion × `overrun_factor` (default 1.5), pause non-urgent work and ask whether to continue (L3). The check runs before any queued unit starts and before step 7, whenever a unit has finished since the last check; background reference-update subagents are not held back by it.
 
 ### 4.12 Registry, service list and automatic installation
 
@@ -705,7 +705,7 @@ Initial entries, researched on 2026-10-27:
 
 1. Step 0 starts `refcheck.py check` in the background (Claude Code: a background shell command; on platforms without background work it runs at step 11). It uses no model.
 2. Every source is probed once a week: it is due when it has never been checked or its last check is before this week's Monday 00:00 local time (ISO weeks), beta sources included. Check times live in `state/refcheck.json` (gitignored), so routine checks never create commits.
-   On demand: 「sharron security check」, "security update", 「資安檢查」, 「資安更新」 or 「更新資安參考」 with no artifact named runs `refcheck.py check --force` at once (every source, even one checked this week), then the same propose, verify and apply steps at L2, and the reply reports the result, "no changes" included. A phrase that names an artifact is a security review of that artifact.
+   On demand: 「sharron security check」, 「security update」, 「資安檢查」, 「資安更新」 or 「更新資安參考」 with no artifact named runs `refcheck.py check --force` at once (every source, even one checked this week), then the same propose, verify and apply steps at L2, and the reply reports the result, "no changes" included. A phrase that names an artifact is a security review of that artifact.
 3. Probe types: `next-edition` (does the page for the next edition exist?), `page-change` (has the text fingerprint of the official page changed?), `none` (live data, queried at review time instead).
 4. When a probe reports a change, a background `security` subagent (T1) reads the official page and proposes the new edition, status, URL and items; a `verifier` confirms them against the page with `verify-evidence`; `refcheck.py apply` writes the verified update.
 5. The reply mentions it in one line, for example 「資安參考清單已更新：OWASP MCP Top 10 Beta → 正式版」. A failed check is mentioned once and retried next time.
@@ -774,7 +774,7 @@ Initial entries, researched on 2026-10-27:
 | 「sharron 改一下 engineer 的角色提示」 | Edits `roles/engineer.md` (or `.local.md` for this machine only) and shows the diff; leaves committing to you | L2 |
 | 「sharron 預算狀況」 | Summarizes recent spend and the budget suggestion per playbook and difficulty | L0 |
 | 「sharron 有哪些暫停的任務」 | Lists paused and waiting tasks from `MEMORY.md` | L0 |
-| 「sharron security check」"security update"「資安檢查」「資安更新」「更新資安參考」, no artifact named | Runs the reference check now (`refcheck.py check --force`), then propose, verify, apply; reports the result, "no changes" included | L2 |
+| 「sharron security check」「security update」「資安檢查」「資安更新」「更新資安參考」, no artifact named | Runs the reference check now (`refcheck.py check --force`), then propose, verify, apply; reports the result, "no changes" included | L2 |
 | 「sharron 跑評測」 | Runs the eval set after a one-line confirmation, because it costs quota | L3 |
 
 **Settings reference** (`config.toml`; defaults from `config.example.toml`):

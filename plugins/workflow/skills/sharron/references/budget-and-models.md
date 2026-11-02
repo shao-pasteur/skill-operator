@@ -54,7 +54,7 @@ Effort follows from difficulty:
 | 4 | 2–4 | ≤ 15 |
 | 5 | Up to 10, with clearly divided responsibilities | ≤ 20 |
 
-More than 5 subagents needs a confirmation first (L3). At most `max_parallel_subagents` (default 3) run at once. Research at difficulty 2 or more always has a researcher and a verifier, and the `security` review of code adds one subagent at any difficulty; neither is dropped to fit this table (see [`delegation.md`](delegation.md#when-to-delegate)).
+More than 5 subagents, or independent T3 units in parallel, needs a confirmation first (L3). At most `max_parallel_subagents` (default 3) run at once; independent units start together in one turn (see [`delegation.md`](delegation.md#rules)). Research at difficulty 2 or more always has a researcher and a verifier, and the `security` review of code adds one subagent at any difficulty; neither is dropped to fit this table (see [`delegation.md`](delegation.md#when-to-delegate)).
 
 The budget for the task comes from `sh <skill>/scripts/run.sh finance.py suggest --playbook <id> --difficulty <1-5>`. It prints the amount in equivalent USD with its basis. The script uses only measured ledger rows of successful tasks (outcome `done`, every checked claim confirmed, no correction) on the same platform: the 80th percentile of similar past tasks when there are at least 5, a fit across difficulties when there are at least 10 on the playbook, otherwise the config default for the difficulty.
 
@@ -73,17 +73,19 @@ A `blocked` report is not a failure and is not retried. The unit could not conti
 
 ## Overrun check
 
-Check spend after each batch of subagents finishes and before starting the next batch. On Claude Code:
+Before starting any queued unit, and before step 7 (Verify), whenever some unit has finished since the last check, check the spend. On Claude Code:
 
 ```
 sh <skill>/scripts/run.sh finance.py usage --since <task start, ISO time> --budget <suggestion in USD>
 ```
 
-The script prints the measured cost, the limit (budget times `overrun_factor`, default 1.5) and `over_budget`. When `over_budget` is true:
+When maintenance subagents ran in this task, add `--exclude-agents <their ids>`, so their cost is not counted against the task. The script prints the measured cost, the limit (budget times `overrun_factor`, default 1.5) and `over_budget`. When `over_budget` is true:
 
-1. Pause non-urgent work and let running units finish or cancel them cleanly.
+1. Start no more units, pause non-urgent work and let running units finish or cancel them cleanly.
 2. Ask whether to continue, as an L3 confirmation (see `decisions-and-risk.md`).
-3. If the user says yes, carry on and note the decision. If not, write a checkpoint and stop.
+3. If the user says yes, carry on and note the decision. If not, write a checkpoint and stop the task.
+
+The pause and the stop do not apply to the background reference-update subagents: they have their own `maintenance` row and never wait on the task budget. After a no, a pending reference update still runs at step 11 (it costs cents), and the reply says so in one line.
 
 On other platforms, use whatever usage the platform reports. When usage cannot be measured, the overrun check is skipped: the ledger row for the task is recorded with cost `unknown`, and no overrun is claimed.
 

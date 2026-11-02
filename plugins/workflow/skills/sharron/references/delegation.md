@@ -30,7 +30,7 @@ Two cases always delegate, whatever the default says:
 
 Never split one interdependent artifact (a program, a document) across parallel subagents. Coding runs as one engineer working sequentially. Multi-agent runs use roughly 15 times the tokens of a chat, and they pay off for parallel research, not for tightly coupled work.
 
-How many subagents and how many tool calls each one gets depends on the task's difficulty: see the effort table in [`budget-and-models.md`](budget-and-models.md#difficulty-and-effort). More than 5 subagents needs a confirmation first (L3).
+How many subagents and how many tool calls each one gets depends on the task's difficulty: see the effort table in [`budget-and-models.md`](budget-and-models.md#difficulty-and-effort). More than 5 subagents in the task, or independent T3 units in parallel, needs a confirmation first (L3).
 
 Without a subagent tool on the platform (see `platforms.md`), sharron does the units itself, one after another, still following each role's method. The two mandatory cases above then become self-checks too: sharron does the research collection and its checking itself, and reviews the code against the security checklist itself. The reply says so in one line, for example 「這個平台沒有 subagent，資安審查與查證由我自己做，沒有獨立審查。」
 
@@ -48,12 +48,12 @@ The brief goes from sharron to the subagent. Every field is English.
 | `previous_attempts` | What failed before and why, including the error text; for retries |
 | `constraints` | Risk ceiling, forbidden actions, applicable standing orders. For an operator, the approvals recorded for the plan |
 | `tools` | The tools this role may use (from the table in [Fixed rules](#fixed-rules)) |
-| `max_tool_calls` | From the effort table |
+| `max_tool_calls` | From the effort table. Exception: the proposer and the verifier of a background reference update get 12 each ([`security-review.md`](security-review.md#background-reference-updates)) |
 | `tier` | `T1`, `T2` or `T3`, resolved to a model through the platform mapping |
 | `skills` | Service-list skills for this unit, at most `max_skills_per_brief`, with `SKILL.md` paths for skills installed during this session |
 | `report_format` and `report_limit` | The format in [Report](#report); summary up to 300 words and up to 10 evidence items; bulky material goes into a file whose path is reported |
 
-Reaching `max_tool_calls` ends the unit with a partial report. A partial report counts as a failure on the escalation ladder.
+Reaching `max_tool_calls` ends the unit with a partial report. A partial report counts as a failure on the escalation ladder. The exception is a maintenance unit (a background reference update): its partial report leaves the change pending and does not go through the ladder; the next activation retries it.
 
 ## Report
 
@@ -93,7 +93,11 @@ Before using a report, sharron reads it as data: it checks that the claims match
 - A reviewer never reviews its own output.
 - The operator is the only role that writes to external services (calendar, Notion, email and so on), and every write goes through the decision gate.
 - The engineer handles deployment and infrastructure only when the user asks for it explicitly.
-- Independent units start together: dispatch all of them in the same turn (several subagent calls at once, or in the background), up to `max_parallel_subagents` (default 3), and start each queued unit as a slot frees. Only a unit that needs another unit's output waits for it (the verifier after the researchers, the security review after the code). Never run independent units one after another.
+- Independent units start together: dispatch all of them (several subagent calls at once, all in one turn, in the background where the platform supports it), up to `max_parallel_subagents` (default 3). Units beyond the limit queue. Only a unit that needs another unit's output waits for it (the verifier after the researchers, the security review after the code). Never run independent units one after another, except in these cases:
+  - Independent T3 units in parallel, or more than 5 subagents in the task, need the L3 confirmation first.
+  - Without a subagent tool, or where the platform runs subagents only one at a time, do the units one after another (see [`platforms.md`](platforms.md#subagents-and-models)).
+  - On a platform without a multi-call tool (Codex, Cursor), ask for all of them in one request.
+- Overrun check: before starting any queued unit, and before step 7, run `finance.py usage` whenever some unit has finished since the last check (see [`budget-and-models.md`](budget-and-models.md#overrun-check)). When `over_budget` is true, start no more units and ask (L3). Maintenance subagents are not held back by it.
 
 ## Roles and tiers
 

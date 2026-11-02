@@ -177,17 +177,31 @@ def test_apply_clears_the_pending_change_and_keeps_the_new_fingerprint(tmp_path)
 
 def test_apply_describes_only_the_fields_that_changed(tmp_path):
     skill = refs_skill(tmp_path)
-    update = {**UPDATE, "changes": {"edition": "2025", "items": ["A01 One", "A02 Two"],
+    update = {**UPDATE, "changes": {"items": ["A01 One", "A02 Two"],
                                     "probe": {"type": "none"}, "url": "https://owasp.org/mcp-2025/"}}
     result = refcheck.apply_update(skill, update, now=NOW)
     assert result["change"] == ('url https://owasp.org/www-project-mcp-top-10/ → https://owasp.org/mcp-2025/; '
                                 'items updated (2 items); probe {"type": "page-change"} → {"type": "none"}')
 
 
-def test_apply_that_changes_nothing_is_rejected(tmp_path):
+@pytest.mark.parametrize("changes", [
+    {"status": "beta"},
+    {"status": "beta", "edition": "2026"},  # a restated field is named, even next to a real change
+    {"edition": "2026", "items": [], "probe": {"type": "page-change"}},
+])
+def test_apply_rejects_a_field_restated_with_its_current_value(tmp_path, changes):
     skill = refs_skill(tmp_path)
-    with pytest.raises(refcheck.RefError, match="changes nothing"):
-        refcheck.apply_update(skill, {**UPDATE, "changes": {"status": "beta"}}, now=NOW)
+    before = (skill / "security-references.toml").read_text()
+    restated = sorted(field for field in changes if field != "edition")
+    with pytest.raises(refcheck.RefError, match="the current value; leave out the fields that do not change") as error:
+        refcheck.apply_update(skill, {**UPDATE, "changes": changes}, now=NOW)
+    assert str(error.value).startswith(" and ".join(f"changes.{field}" for field in restated) + " ")
+    assert (skill / "security-references.toml").read_text() == before
+
+
+def test_apply_with_an_empty_changes_object_is_rejected(tmp_path):
+    with pytest.raises(refcheck.RefError, match="may only change"):
+        refcheck.apply_update(refs_skill(tmp_path), {**UPDATE, "changes": {}}, now=NOW)
 
 
 @pytest.mark.parametrize("changes,message", [

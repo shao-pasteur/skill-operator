@@ -14,6 +14,7 @@ never changes the list. A detected change stays `pending` in that file, and is r
 `apply` takes the update that sharron writes after the verifier confirmed it:
     {"source": ID, "changes": {subset of edition, status, url, items, probe},
      "evidence_url": "https://...", "verified_by": "..."}
+`changes` holds only the fields whose value changes; a field equal to its current value is rejected.
 It validates the update, writes the list, appends a changelog entry, clears the pending change and then
 runs the data sync (datasync.py), which commits and pushes only security-references.toml.
 
@@ -566,6 +567,11 @@ def _validated_changes(update: object, data: dict) -> tuple[dict, dict, str]:
     changes = update["changes"]
     if not changes or not set(changes) <= set(UPDATABLE):
         raise RefError(f"an update may only change {', '.join(UPDATABLE)} (got {', '.join(sorted(changes)) or 'nothing'})")
+    restated = [field for field in UPDATABLE if field in changes and changes[field] == source[field]]
+    if restated:  # the proposal names only what changes, so the verifier checks only that
+        names = " and ".join(f"changes.{field}" for field in restated)
+        raise RefError(f"{names} {'restates' if len(restated) == 1 else 'restate'} the current value; leave out the fields "
+                       "that do not change (apply --no-change dismisses a change that changed nothing)")
     domains = source["official_domains"]
     _check_url(update.get("evidence_url"), domains, "evidence_url")
     verified_by = _plain_text(update.get("verified_by"), "verified_by", MAX_VERIFIED_BY_LENGTH)
@@ -585,9 +591,7 @@ def apply_update(skill_dir: Path, update: dict, *, now: datetime) -> dict:
     with datasync.file_lock(skill_dir, LOCK_NAME):
         data = load_references(path)
         source, changes, verified_by = _validated_changes(update, data)
-        parts = [_describe(field, source[field], changes[field]) for field in UPDATABLE if field in changes and changes[field] != source[field]]
-        if not parts:
-            raise RefError("the update changes nothing; use apply --no-change to dismiss the pending change")
+        parts = [_describe(field, source[field], changes[field]) for field in UPDATABLE if field in changes]
         for field in UPDATABLE:
             if field in changes:
                 source[field] = changes[field]

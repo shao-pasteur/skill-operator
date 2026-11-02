@@ -27,7 +27,7 @@ plugin = "research"               # plugin that contains it, when the repo is a 
 status = "active"                 # active | disabled
 roles = ["researcher"]            # roles that use it, or ["*"]
 playbooks = ["*"]                 # playbooks that use it, or ["*"]
-domains = ["*"]                   # domains that use it, or ["*"]
+domains = ["*"]                   # registry domains that use it (coding, learning; see Service list), or ["*"]
 tags = []                         # coding skills only: every tag must match the task
 min_tier = "T1"                   # T1 | T2 | T3
 ref = "self"                      # a 40-character commit SHA, or "self"
@@ -56,6 +56,14 @@ For each unit, sharron asks the script which skills fit. The script reads `regis
 sh <skill>/scripts/run.sh detect_stack.py select --role <role> --playbook <playbook> --domain <domain> --tier <T1|T2|T3> \
     [--tags <layer and activity tags, comma-separated>] [--workspace <folder>]
 ```
+
+**`--domain` is the registry domain**, a fixed vocabulary: the values the entries' `domains` lists use, plus `general`. Today that is `coding`, `learning` and `general` (`*` in an entry means any domain and is not a value to pass). Pick it from the playbook:
+
+- the coding playbook: `--domain coding`;
+- the learning playbook: `--domain learning`;
+- every other playbook: `--domain general`.
+
+Any other value exits 1 with one line that lists the allowed values. The registry domain is not the ledger's `domain` column: that one is a free, coarse label (`travel`, `finance`, `python`…) passed to `finance.py record`, and it never goes to `select`.
 
 It prints `{"tags": [...], "skills": [{"name", "repo", "plugin", "matched", "min_tier"}], "dropped": [names]}`. An entry is selected when all of these hold:
 

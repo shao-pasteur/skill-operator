@@ -28,6 +28,7 @@ sh <skill>/scripts/run.sh finance.py record --platform claude-code --task-id <t-
 - A model with no price in the config makes the cost `unknown` and is named in `unpriced_models`. Tell the user which model needs a price in `[prices]`.
 - **Empty usage is recorded as `unknown`, never as a measured 0.** When the transcripts hold nothing since `--since` (a wrong start time or session), `measurement` is `unknown` and `note` says why. Check `--since` and the session before recording.
 - `--since` is the start time written in the task's `MEMORY.md` entry. Use the ISO form with the offset, for example `2026-10-28T09:30:00+08:00`.
+- `--task-id` is the id `finance.py next-id` handed out at step 2 (`next-id --maintenance` for a maintenance row); see [`memory.md`](memory.md#task-ids).
 
 **Maintenance rows.** The subagents of a background reference update (see [`security-review.md`](security-review.md#background-reference-updates)) are measured on their own, with `--agents <agent ids>` (comma-separated; the id the Agent tool returned when each subagent finished). `--agents` measures only those subagent transcripts and leaves the main transcript out. The row of the task that overlapped the update passes `--exclude-agents <the same ids>`, so the cost is counted once.
 
@@ -148,5 +149,5 @@ Say one line, in Traditional Chinese, in the reply (step 10). Pick it from the s
 Other lines:
 
 - `measurement` is `unknown`, or `unpriced_models` is not empty: 「這次的花費無法量測（<原因>），帳本記為 unknown，不會影響預算建議。」 Name a model that needs a price in `[prices]`.
-- A script error on stderr (for example a task id that is already recorded): show the line as it is and say the row was not written.
+- A script error on stderr: show the line as it is and say the row was not written. The exception is `task <id> is already recorded`: get a new id from `finance.py next-id`, record again with it and mention the renumbering (see [`memory.md`](memory.md#task-ids)).
 - A sync that stops with any reason except `not-a-clone` is repeated later: by the next `record` for the ledger. For the other two files only the push is repeated, by the step-11 check; an uncommitted change waits for the user (see above).

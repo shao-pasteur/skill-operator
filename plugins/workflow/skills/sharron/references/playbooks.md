@@ -17,7 +17,7 @@ Each playbook id is the value passed to `finance.py --playbook` and to `config.P
 | Id | For | Typical roles | Steps |
 |---|---|---|---|
 | `simple-answer` | One-step questions | None | Answer directly, with labels on important claims. No intake, no `MEMORY.md` entry, no ledger row. |
-| `research` | Read-only questions answered with sources | researcher, verifier | Split into sub-questions; researchers collect sources in parallel (breadth first); a verifier re-reads the 2–4 most important claims against their sources; sharron integrates and labels each claim. |
+| `research` | Read-only questions answered with sources | researcher, verifier | Split into sub-questions; at difficulty 2 or more, researcher subagents collect sources (in parallel, breadth first, when there are several sub-questions) and an independent verifier re-reads the 2–4 most important claims against their sources; at difficulty 1 sharron may collect and check itself. sharron integrates and labels each claim. |
 | `planning` | Itineraries, study plans and similar | planner, researcher | Fix the constraints; researchers confirm facts such as opening hours; the planner builds options with milestones, buffers and checks; sharron reviews the plan against the constraints and presents it. Nothing is booked or sent. |
 | `action` | Changes to external services | operator; reviewer for R3 and above | Fix the action plan first (see [Plan-then-execute](#plan-then-execute)); run the decision gate; the operator executes exactly the plan and reads the result back; a reviewer checks R3 and above before execution; report what changed and how to undo it. |
 | `decision-support` | Analyzing options; the user decides | analyst, researcher, reviewer | Fix the criteria and weights; researchers collect facts per option; the analyst compares with scripts and a sensitivity check; a reviewer challenges the comparison; sharron recommends and leaves the decision to the user. |
@@ -30,7 +30,7 @@ Each playbook id is the value passed to `finance.py --playbook` and to `config.P
 Notes:
 
 - `simple-answer` and `settings-help` leave no trace in `MEMORY.md` and no ledger row, so cheap lookups do not pull budget suggestions down.
-- Domain (for example finance, travel, learning, coding) is separate from the playbook. It selects service-list skills and is recorded in the ledger.
+- Two different things are called domain. The **registry domain** passed to `detect_stack.py select --domain` is a fixed vocabulary taken from the playbook: `coding` for `coding`, `learning` for `learning`, `general` for every other playbook ([`registry.md`](registry.md#service-list)). The **ledger domain** passed to `finance.py record --domain` is a separate, free, coarse label such as `travel`, `finance` or `python`, recorded in the ledger only.
 
 ## Plan-then-execute
 
@@ -64,7 +64,7 @@ Changing a setting:
 
 1. Write only the changed key into `config.toml` (next to `config.example.toml`). Everything else keeps the example's defaults, so later default updates still apply.
 2. When `config.toml` does not exist, create it with just that key and tell the user once that the file was created and is gitignored.
-3. Run `sh <skill>/scripts/run.sh config.py validate`. If it reports an error, undo the change and show the allowed values from the message.
+3. Run `sh <skill>/scripts/run.sh config.py validate`. If it reports an error, undo the change and show the allowed values from the message. When you offer to fix an invalid setting, name its real default as `config.py show` prints it (the `# default` value from `config.example.toml`); never guess it.
 4. Show the diff of the change (old value, new value).
 
 Budget status: run `sh <skill>/scripts/run.sh finance.py suggest --playbook <id> --difficulty <1-5>` for each playbook and difficulty the user cares about, and summarize with the basis (method and n) the script prints.

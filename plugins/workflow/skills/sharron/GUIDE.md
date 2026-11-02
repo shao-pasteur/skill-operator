@@ -60,7 +60,7 @@ Nothing needs setting up. On the first task sharron creates and changes only thi
 - `MEMORY.md` at the root of your workspace (the top of the git work tree, or the current folder when there is no repository), with the skeleton from [`references/memory.md`](references/memory.md#format). If the file already exists without sharron's marker, sharron keeps your text and appends its sections below.
 - In a git repository, sharron first makes git ignore `MEMORY.md` by adding `/MEMORY.md` to `.git/info/exclude`. That file is local to your clone and is never committed. sharron tells you so once (`excluded`).
 - `config.toml` next to `config.example.toml`, only when you first change a setting. It holds only the keys you changed. It is gitignored.
-- `state/` in the skill folder (reference-check times, traces, update proposals). It is gitignored.
+- `state/` in the skill folder (reference-check times, task ids handed out today, traces, update proposals). It is gitignored.
 
 Questions like "what is 3 × 17" or a settings change leave no `MEMORY.md` entry and no ledger row.
 
@@ -73,12 +73,12 @@ One example per playbook:
 | Playbook | Example | What happens |
 |---|---|---|
 | `simple-answer` | 「sharron，台北到高雄高鐵大概多久？」 | A direct answer with a label on the important claim. No subagents, no memory entry. |
-| `research` | 「sharron，幫我查三家主要的日本 eSIM 方案，比較價格和涵蓋範圍」 | Researchers collect sources in parallel, a verifier re-reads the most important claims, and you get a labeled summary with links. |
+| `research` | 「sharron，幫我查三家主要的日本 eSIM 方案，比較價格和涵蓋範圍」 | From difficulty 2 up, researcher subagents collect sources in parallel and an independent verifier re-reads the most important claims; you get a labeled summary with links. |
 | `planning` | 「sharron，幫我排 5 天的京都行程，預算 6 萬」 | A plan with options, buffers and checks. Nothing is booked or sent. |
 | `action` | 「sharron，寄一封信給房東說下個月不續約」 | A plan first, a decision card before anything leaves your machine, and an exact read-back of what was done. |
 | `decision-support` | 「sharron，我該買 A 還是 B 筆電？比較一下」 | Criteria and weights, facts per option, a comparison with a sensitivity check. You decide. |
 | `learning` | 「sharron，教我 Git rebase，一次一個觀念」 | One concept at a time with a check of your understanding; progress goes into `MEMORY.md`. |
-| `coding` | 「sharron，寫一個把 CSV 轉成 JSON 的 Python 腳本，要有測試」 | One engineer works in your folder following the project's own conventions; a reviewer checks the diff; nothing is deployed unless you ask. |
+| `coding` | 「sharron，寫一個把 CSV 轉成 JSON 的 Python 腳本，要有測試」 | One engineer works in your folder following the project's own conventions; a reviewer checks the diff and a security reviewer checks the code before you get it; nothing is deployed unless you ask. A token, key or password is never written into a file, even if you ask: the code reads it from an environment variable. |
 | `settings-help` | 「sharron 怎麼用」「sharron 顯示設定」 | Answers from this guide or changes a setting; see [Talking to sharron about settings](#talking-to-sharron-about-settings). |
 | `custom` | 「sharron，我要做一個每週整理待辦的流程」 | When nothing fits, she designs a playbook first, tells you what it is for and how each step is checked, then runs it. |
 
@@ -196,8 +196,8 @@ All paths are inside `<skill>`.
 | `security-references.toml` | You add sources by hand; `refcheck.py` updates editions | You add or remove a `[[sources]]` entry (`id`, `name`, `kind`, `edition`, `status`, `url`, `official_domains`, `applies_to`, `items`, `check_every_days`, `probe`) in the layout described at the top of the file. The automatic update may change only `edition`, `status`, `url`, `items` and `probe` of an existing source, only after a verifier confirmed it against the official page, and it appends a `[[changelog]]` entry. |
 | `roles/<role>.md` | You | The role prompts. Committed, so edits affect everyone using your clone. |
 | `roles/<role>.local.md` | You | The same, for this machine only. Gitignored; sharron appends it after the role prompt. Do not put absolute home paths in it (see [Troubleshooting](#troubleshooting)). |
-| `ledger/costs.md` | `finance.py` only | Append-only cost ledger. Never edit it by hand. Rows are pushed to your repository, so they are public when the repository is public. `domain` is a coarse label such as `travel` or `finance`, never a name, place or other task detail. |
-| `state/` | Scripts | Reference-check times, redacted traces, update proposals. Local only. |
+| `ledger/costs.md` | `finance.py` only | Append-only cost ledger. Never edit it by hand. Rows are pushed to your repository, so they are public when the repository is public. `domain` is a coarse label such as `travel` or `finance`, never a name, place or other task detail. It is a free label, separate from the registry domain (`coding`, `learning` or `general`) that `detect_stack.py select` takes. |
+| `state/` | Scripts | Reference-check times, task ids handed out today, redacted traces, update proposals. Local only. |
 | `evals/` | You | Eval cases and fixtures for checking the skill on each platform. Running them costs quota, so it is always manual. |
 
 When you ask sharron to add a registry entry, she checks that `registry.toml` has no uncommitted change of yours first, makes the edit, validates the file with `detect_stack.py select`, shows you the diff, then commits and pushes just that file with `datasync.py sync registry.toml`. The steps: [`references/registry.md`](references/registry.md#editing-the-registry).
@@ -220,6 +220,8 @@ sh plugins/workflow/skills/sharron/scripts/run.sh finance.py suggest --platform 
 sh plugins/workflow/skills/sharron/scripts/run.sh finance.py usage --platform claude-code --since 2026-10-28T09:00:00+08:00 --budget 1.5
 sh plugins/workflow/skills/sharron/scripts/run.sh finance.py record --platform claude-code --task-id t-20261028-01 --since 2026-10-28T09:00:00+08:00 --playbook research --domain travel --difficulty 3 --subagents 2 --outcome done --verified 3/3
 sh plugins/workflow/skills/sharron/scripts/run.sh finance.py correct --task-id t-20261028-01
+sh plugins/workflow/skills/sharron/scripts/run.sh finance.py next-id
+sh plugins/workflow/skills/sharron/scripts/run.sh finance.py next-id --maintenance
 
 # Security references
 sh plugins/workflow/skills/sharron/scripts/run.sh refcheck.py check
@@ -240,10 +242,10 @@ sh plugins/workflow/skills/sharron/scripts/run.sh trace.py prune
 
 Notes on the less obvious ones:
 
-- `finance.py suggest` prints `{"budget_usd", "method", "n"}`. `--since` is the ISO start time of the task, with its offset. `record` and `correct` also commit and push the ledger row for you; `correct` is for when a finished task's result turned out wrong, and removes it from the budget suggestions. `finance.py record` also takes `--agents` / `--exclude-agents` to limit which subagent transcripts are measured. See [`references/finance.md`](references/finance.md).
+- `finance.py suggest` prints `{"budget_usd", "method", "n"}`. `--since` is the ISO start time of the task, with its offset. `record` and `correct` also commit and push the ledger row for you; `correct` is for when a finished task's result turned out wrong, and removes it from the budget suggestions. `finance.py record` also takes `--agents` / `--exclude-agents` to limit which subagent transcripts are measured. `finance.py next-id` prints `{"task_id": "t-YYYYMMDD-NN"}`, the next free id of today (`m-…` with `--maintenance`): above every id of today in the ledger and every id it handed out before, which `state/task-ids.json` remembers, so tasks in different workspaces never share an id. sharron takes every task id from it. See [`references/finance.md`](references/finance.md) and [`references/memory.md`](references/memory.md#task-ids).
 - `refcheck.py check` probes only the sources that are due (7 days, 1 day for beta sources); `--force` ignores that. It never changes the list. `apply` is for a verified update file written by sharron; a bad file exits 1 and writes nothing. The full procedure: [`references/security-review.md`](references/security-review.md#background-reference-updates).
 - `datasync.py sync` takes one of `ledger/costs.md`, `security-references.toml` or `registry.toml`, relative to the skill folder, and a message that starts with `chore(sharron): ` and contains `[skip ci]`. The messages for each file are in the table in [`references/finance.md`](references/finance.md#data-sync). It commits whatever diff the file has, so check `git diff` first.
-- `detect_stack.py select` also exits 1 with one line when `registry.toml` is invalid, which is how a registry edit is validated.
+- `detect_stack.py select` also exits 1 with one line when `registry.toml` is invalid, which is how a registry edit is validated. `--domain` takes only the registry domains (`coding`, `learning`, plus `general`); another value exits 1 with the allowed list.
 - `trace.py prune` deletes traces beyond the newest 50 or older than 30 days; starting a new trace already does this.
 
 ## Troubleshooting
@@ -290,5 +292,7 @@ See [`references/memory.md`](references/memory.md#git-safety).
 **sharron says `registry.toml` or `security-references.toml` has an uncommitted change.** Either it is your own edit, or an earlier commit of sharron's failed. sharron will not commit a change she did not make in the current task, and she will not write that file (no registry edit, no reference update) while the diff exists, because the commit that follows would carry your diff too. A pending reference change stays pending. Review it with `git diff -- plugins/workflow/skills/sharron/registry.toml`, then commit it yourself, or discard it, and ask again.
 
 **Registry edits do not take.** `detect_stack.py select` exits 1 with one line when `registry.toml` is invalid (a pinned entry whose install command lacks its SHA, an unknown tag, a bad platform key). sharron restores the previous text and shows you the line. Fix the entry and ask again.
+
+**`finance.py record` says `task <id> is already recorded`.** Another task, perhaps from another machine, already has that id in the ledger. sharron gets a new id with `finance.py next-id`, records the row with it, updates the task's `MEMORY.md` entry and tells you the new id in the reply, so the cost is not lost.
 
 **The numbers look off.** Budgets are in equivalent USD from the prices in `config.toml` and `config.example.toml`; a model with no price is recorded as `unknown`, which does not affect suggestions. If a finished task turned out wrong, tell sharron so it can be marked with `finance.py correct` and leave the suggestions.

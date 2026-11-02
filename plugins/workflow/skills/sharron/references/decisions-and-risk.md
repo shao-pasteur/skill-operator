@@ -56,7 +56,7 @@ Do not look for a way around a `never` item, and do not split the action into sm
 
 ## Decision card
 
-Used for every L4 decision. Write it in Traditional Chinese. It has six parts: background, 2–4 options, a recommendation, risks and costs with reversibility, a deadline with what happens after it, and evidence.
+Used for every L4 decision. Write it in Traditional Chinese. It always has all six parts, in this order and under these headings: 背景 (background), 選項 (2–4 options), 建議 (a recommendation), 風險與成本 (risks and costs with reversibility), 期限 (a deadline with what happens after it) and 依據 (the basis, with confidence labels). A card without one of them is incomplete; add the missing part before showing it.
 
 ```
 決策卡
@@ -74,6 +74,11 @@ Used for every L4 decision. Write it in Traditional Chinese. It has six parts: b
 ```
 
 Nothing happens until the user answers explicitly. A silence is not a yes.
+
+**Options use only what exists.** Each option may use only tools and channels that exist in this session and fit the approved plan (see Plan-then-execute in `playbooks.md`). Never invent a channel: "open your webmail in a browser and send it" is not an option when no plan step uses a browser. When no send tool exists, the options are:
+
+- the user sends it themselves (sharron gives the final text), or
+- the task waits (status 等待, with a checkpoint).
 
 ## Risk levels
 

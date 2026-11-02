@@ -124,6 +124,15 @@ Limitation: the scripts cannot stop the user or another tool from running `git a
 
 ## Task ids
 
-- Tasks: `t-YYYYMMDD-NN`, for example `t-20261027-01`. `YYYYMMDD` is the local date the task starts and `NN` counts the tasks of that day, starting at `01`. To find the next number, read the ids in `MEMORY.md` and in `ledger/costs.md` for today's date and take the highest plus one. The ledger can hold ids from other workspaces, so reading both keeps ids from colliding.
-- Maintenance runs (background reference updates): `m-YYYYMMDD-NN`, numbered the same way per day. They appear as a `maintenance` row in the ledger (see [`finance.md`](finance.md#measuring-usage)).
+- Tasks: `t-YYYYMMDD-NN`, for example `t-20261027-01`. `YYYYMMDD` is the local date the task starts and `NN` counts the tasks of that day, starting at `01`.
+- Maintenance runs (background reference updates): `m-YYYYMMDD-NN`, numbered the same way per day, separately from tasks. They appear as a `maintenance` row in the ledger (see [`finance.md`](finance.md#measuring-usage)).
+- **Get every id from the script**, at step 2 (or when a maintenance run starts). Never count the entries of `MEMORY.md`: the ledger is shared by every workspace, and a waiting task in another workspace's `MEMORY.md` is invisible from here.
+
+  ```
+  sh <skill>/scripts/run.sh finance.py next-id                # {"task_id": "t-20261029-03"}
+  sh <skill>/scripts/run.sh finance.py next-id --maintenance  # {"task_id": "m-20261029-01"}
+  ```
+
+  It takes the ledger lock, reads today's ids in `ledger/costs.md` and the ids it already handed out today (`state/task-ids.json`, gitignored), and prints the next number. An id handed out once is never handed out again, even while its task waits or pauses and is not in the ledger yet, and two sessions never get the same id. A new day starts at `01` again.
+- **A refused record.** If `finance.py record` still says `task <id> is already recorded` (for example a row that came in from another machine with the same id), get a new id from `finance.py next-id`, run `record` again with it, change the id in the task's `MEMORY.md` entry (keep the old one in parentheses) and mention the renumbering in the reply, for example 「這個任務在帳本裡改記為 t-20261029-04（原編號已被使用）。」 The cost is never left unrecorded because of an id clash.
 - The same id names the task's entry here, its ledger row (`finance.py record --task-id`) and its trace (`trace.py append --task-id`).

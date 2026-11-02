@@ -84,6 +84,8 @@ sh <skill>/scripts/run.sh detect_stack.py select --role <role> --playbook <playb
     [--tags <layer and activity tags, comma-separated>] [--workspace <folder>]
 ```
 
+`--domain` is the registry domain, from the playbook: `coding` for the coding playbook, `learning` for the learning playbook, `general` for every other playbook. Any other value exits 1 with the allowed list. It is not the ledger's free `domain` label (see [`registry.md`](registry.md#service-list)).
+
 It unions the detected tags with `--tags` (an unknown tag exits 1) and prints:
 
 ```json

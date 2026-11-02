@@ -23,6 +23,11 @@ Contents:
 - reading that would flood sharron's context;
 - work a cheaper tier clearly handles.
 
+Two cases always delegate, whatever the default says:
+
+- **Research at difficulty 2 or more.** Collection goes to researcher subagent(s) and checking to an independent verifier. At difficulty 1 sharron may collect and check itself.
+- **The security review of code.** Code, scripts and configuration get an independent `security` subagent before they are delivered or run, except a trivial change with no credentials, network calls, file writes outside the workspace or user data (see [`security-review.md`](security-review.md#when-the-security-role-runs)).
+
 Never split one interdependent artifact (a program, a document) across parallel subagents. Coding runs as one engineer working sequentially. Multi-agent runs use roughly 15 times the tokens of a chat, and they pay off for parallel research, not for tightly coupled work.
 
 How many subagents and how many tool calls each one gets depends on the task's difficulty: see the effort table in [`budget-and-models.md`](budget-and-models.md#difficulty-and-effort). More than 5 subagents needs a confirmation first (L3).

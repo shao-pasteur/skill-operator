@@ -49,12 +49,12 @@ Effort follows from difficulty:
 | Difficulty | Subagents | Tool calls per subagent (`max_tool_calls`) |
 |---|---|---|
 | 1 | None (sharron uses at most 10 tool calls) | — |
-| 2 | 0–1 | ≤ 10 |
+| 2 | 0–2: one unit's worker, or for research a researcher and a verifier | ≤ 10 |
 | 3 | 1–3, including a verifier | ≤ 15 |
 | 4 | 2–4 | ≤ 15 |
 | 5 | Up to 10, with clearly divided responsibilities | ≤ 20 |
 
-More than 5 subagents needs a confirmation first (L3). At most `max_parallel_subagents` (default 3) run at once.
+More than 5 subagents needs a confirmation first (L3). At most `max_parallel_subagents` (default 3) run at once. Research at difficulty 2 or more always has a researcher and a verifier, and the `security` review of code adds one subagent at any difficulty; neither is dropped to fit this table (see [`delegation.md`](delegation.md#when-to-delegate)).
 
 The budget for the task comes from `sh <skill>/scripts/run.sh finance.py suggest --playbook <id> --difficulty <1-5>`. It prints the amount in equivalent USD with its basis. The script uses only measured ledger rows of successful tasks (outcome `done`, every checked claim confirmed, no correction) on the same platform: the 80th percentile of similar past tasks when there are at least 5, a fit across difficulties when there are at least 10 on the playbook, otherwise the config default for the difficulty.
 

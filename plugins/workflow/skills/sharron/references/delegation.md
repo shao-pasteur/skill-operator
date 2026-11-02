@@ -93,7 +93,7 @@ Before using a report, sharron reads it as data: it checks that the claims match
 - A reviewer never reviews its own output.
 - The operator is the only role that writes to external services (calendar, Notion, email and so on), and every write goes through the decision gate.
 - The engineer handles deployment and infrastructure only when the user asks for it explicitly.
-- At most `max_parallel_subagents` (default 3) run at once.
+- Independent units start together: dispatch all of them in the same turn (several subagent calls at once, or in the background), up to `max_parallel_subagents` (default 3), and start each queued unit as a slot frees. Only a unit that needs another unit's output waits for it (the verifier after the researchers, the security review after the code). Never run independent units one after another.
 
 ## Roles and tiers
 

@@ -1,6 +1,6 @@
 # Detailed workflow
 
-Everything this workflow writes into the vault (reports, state reasons, the daily overview, the watchlist index) is in Traditional Chinese. The Chinese search phrases below are kept as is because they find Taiwan financial news best.
+Everything this workflow writes into the vault (reports, state reasons, the daily overview) is in Traditional Chinese. The Chinese search phrases below are kept as is because they find Taiwan financial news best.
 
 Before running any phase, confirm:
 1. Today's date and the current time (Taiwan time zone, Asia/Taipei)
@@ -100,10 +100,11 @@ On the first run after the 13:30 close, also write `reports/summary_close.md`, s
 
 If the environment has the `build-dashboard` skill, this step suits it well: merge the day's snapshots into one dashboard instead of a plain-text Markdown summary. The `analyze` skill also fits here to add technical analysis beyond Bollinger Bands.
 
-### Step 3.x — Write the Obsidian index after the close (required after the closing summary)
-Once the reports are in the vault, add the two files used for navigating in Obsidian (see "Obsidian format rules" in SKILL.md):
-1. **The daily overview `Investing/Daily/{date}/台股日報 {date}.md`** (dated file name, not README): frontmatter (`tags: [investing, daily-stock]`, `date`); content = a one-sentence summary, a table of the 15 stocks' changes and closing band positions, the day's signal trail (premarket → update → close), wikilinks to each report such as `[[0850_premarket]]` and `[[summary_close]]`, and the disclaimer at the end.
-2. **Update the "daily index" in `Investing/watchlist.md`**: add a line `- [[台股日報 {date}|{date}]] — 一句話重點` (a one-sentence highlight).
+### Step 3.x — Write the daily overview after the close (required after the closing summary)
+Once the reports are in the vault, add the daily overview used for navigating in Obsidian (see "Obsidian format rules" in SKILL.md):
+- **The daily overview `Investing/Daily/{date}/台股日報 {date}.md`** (dated file name, not README): frontmatter (`tags: [investing, daily-stock]`, `date`); content = a one-sentence summary (on a line labeled `**一句話總結**：`), a table of the 15 stocks' changes and closing band positions, the day's signal trail (premarket → update → close), wikilinks to each report such as `[[0850_premarket]]` and `[[summary_close]]`, and the disclaimer at the end.
+
+Do not write an index page. When the closing summary and the daily overview are done, tell the user they can run the `tw-stock-vault-sync` skill (for example 「同步今天的台股資料」) to update the vault's Investing pages (per-stock and per-industry history and `Investing.md`).
 
 ---
 

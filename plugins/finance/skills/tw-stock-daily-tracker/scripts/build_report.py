@@ -211,7 +211,7 @@ def build(payload, base_dir: Path):
     lines.append("")
     lines.append(f"# 台股追蹤報告 — {date} {time_label[:2]}:{time_label[2:]}（{PHASE_LABEL.get(phase, phase)}）")
     lines.append("")
-    lines.append(f"> 追蹤清單見 [[watchlist]]。完整當日總覽見 [[台股日報 {date}]]。")
+    lines.append(f"> 投資總覽見 [[Investing]]。完整當日總覽見 [[台股日報 {date}]]。")
     lines.append("")
 
     if payload.get("market_notes"):

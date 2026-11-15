@@ -19,7 +19,7 @@ A three-phase technical tracking workflow for Taiwan stocks: **pre-market briefi
 3. **Pick the day's stocks only once, before the open**: 9 dynamic stocks (3 hot industries × 3) plus 9 fixed stocks (memory / electronic components / shipping × 3), at most 18 after removing duplicates. Every later intraday or pre-close update reuses the same list (unless the user asks to change it) so the analysis stays consistent.
 4. **This is not real-time monitoring.** Each run is a single scheduled snapshot; comparing it with the previous run's signals simulates "live updates" and "notify on signal change". Tell the user about this limitation honestly and never imply second-by-second monitoring.
 5. Before running, confirm today is a **Taiwan stock trading day** (Monday to Friday, not a national holiday or typhoon day). If unsure, check with a web search. On a non-trading day, skip and write one log line.
-6. **Write every output in Traditional Chinese.** These instructions are in English, but everything the skill writes into the vault or shows the user (reports, the daily overview, the watchlist index, macOS notifications) stays in Traditional Chinese, and the disclaimer below is copied in Chinese exactly as written.
+6. **Write every output in Traditional Chinese.** These instructions are in English, but everything the skill writes into the vault or shows the user (reports, the daily overview, macOS notifications) stays in Traditional Chinese, and the disclaimer below is copied in Chinese exactly as written.
 
 ## The three phases
 
@@ -64,7 +64,7 @@ Every report is written **in Obsidian format** under the vault's `Investing/Dail
 ```
 $TW_STOCK_INVESTING_DIR/
 ├── config.json                       ← settings shared across days (capital, fixed industries)
-├── watchlist.md                      ← watchlist plus daily index (index updated after the close)
+├── Investing.md                      ← vault overview, kept up to date by the tw-stock-vault-sync skill (this skill does not write it)
 └── Daily/{YYYY-MM-DD}/
     ├── 台股日報 {YYYY-MM-DD}.md        ← daily overview written by Claude after the closing summary (see below; the date in the file name makes it easy to spot in Obsidian)
     ├── reports/
@@ -81,9 +81,9 @@ Missing folders are created automatically (`mkdir -p`). `build_report.py` derive
 
 ### Obsidian format rules (follow for every file you write)
 - **Every report starts with YAML frontmatter**: `tags: [investing, daily-stock, {phase}]`, `date`, `phase`, `time`, `source: tw-stock-daily-tracker`. (`build_report.py` adds it automatically; add it yourself to any extra note you write by hand.)
-- Start reports with an **Obsidian wikilink** to related notes, such as `> 追蹤清單見 [[watchlist]]。`
+- Start reports with an **Obsidian wikilink** to related notes, such as `> 投資總覽見 [[Investing]]。`
 - Embed charts with the relative path `![](../charts/{symbol}_bollinger.png)` (`build_report.py` does this).
-- **After the closing summary, write or update the daily overview `台股日報 {YYYY-MM-DD}.md`** in that day's folder. **Use the dated file name, not a generic name like README that is unreadable in Obsidian's file list or graph.** Include frontmatter, a one-sentence summary, a table of the 15 stocks' changes and closing band positions, the day's signal trail (premarket → update → close), wikilinks to each report such as `[[0850_premarket]]` and `[[summary_close]]`, and the disclaimer at the end. Also add the day to the "daily index" of `watchlist.md` (`[[台股日報 {date}|{date}]]`).
+- **After the closing summary, write or update the daily overview `台股日報 {YYYY-MM-DD}.md`** in that day's folder. **Use the dated file name, not a generic name like README that is unreadable in Obsidian's file list or graph.** Include frontmatter, a one-sentence summary, a table of the 15 stocks' changes and closing band positions, the day's signal trail (premarket → update → close), wikilinks to each report such as `[[0850_premarket]]` and `[[summary_close]]`, and the disclaimer at the end. Put the one-sentence summary on a line labeled `**一句話總結**：` so other tools can find it. This skill does not update any index page: when the day is done, tell the user they can run the `tw-stock-vault-sync` skill (for example 「同步今天的台股資料」) to update the vault's Investing pages.
 
 ## Bollinger Band calculation and report generation
 

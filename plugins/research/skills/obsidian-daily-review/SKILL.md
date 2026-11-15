@@ -36,7 +36,10 @@ found and gathered later. You add tags. You never rewrite, move or delete what t
 
 ## Steps
 
-1. **Collect the vocabulary.** Gather the tags already used in the vault: `tags:` in frontmatter
+1. **Collect the vocabulary.** If the vault has a `Knowledge Base/` folder, the names of the folders
+   directly inside it (such as `kubernetes`, `rust`, `aws`) are the preferred technology tags: use
+   them, spelled exactly the same, for any bullet about that technology. Then gather the tags
+   already used in the vault: `tags:` in frontmatter
    and inline `#tags` in note bodies, skipping `.obsidian/` and fenced code blocks. If the
    `obsidian` CLI is available and Obsidian is running, `obsidian tags counts` gives the same
    list. Keep the counts: a widely used tag is a better choice than a rare near-duplicate.

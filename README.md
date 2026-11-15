@@ -59,6 +59,7 @@ After each update, the "Re-upload needed" section of the release notes lists the
 | Skill | Description | Web apps |
 |---|---|---|
 | `tw-stock-daily-tracker` | Tracks Taiwan stocks on trading days before the open, during the session (every… | — |
+| `tw-stock-vault-sync` | Copies one trading day of tw-stock-daily-tracker results into the Obsidian Inve… | — |
 
 ### Workflow (`workflow`)
 

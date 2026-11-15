@@ -226,7 +226,7 @@ def build(payload, base_dir: Path):
             lines.append(f"- **{ind.get('name')}**：{ind.get('reason', '')}")
         lines.append("")
 
-    lines.append("## 9 檔股票技術面追蹤")
+    lines.append("## 個股技術面追蹤")
     lines.append("")
 
     for stock in payload.get("stocks", []):

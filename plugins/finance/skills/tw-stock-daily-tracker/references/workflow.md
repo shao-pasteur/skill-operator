@@ -21,15 +21,15 @@ Capture only the highlights (percentage moves, main drivers, potential impact on
 ### Step 1.2 — Decide the 3 hot industries
 Search for phrases such as 「台股 今日 熱門族群」, 「台股 早盤 焦點股」, 「台股 概念股 今日」 (today's hot groups, morning focus stocks, today's theme stocks). Read 2–3 financial news articles (common sources such as MoneyDJ, cnyes, Economic Daily News and Commercial Times all work), judge the 3 industries getting the most attention today from coverage and volume (for example AI servers, semiconductor equipment, shipping, finance, biotech), and note the reasons briefly.
 
-### Step 1.3 — 9 dynamic + 9 fixed stocks, deduplicated into the state file
+### Step 1.3 — 9 dynamic stocks + the fixed stocks, deduplicated into the state file
 
-**Read the settings first**: `$TW_STOCK_INVESTING_DIR/config.json` (inside the vault; format under "config.json settings" in SKILL.md). If it does not exist, create it from the defaults and write it back. Take `capital_twd` (capital, default 500000) and `fixed_industries` (three fixed industries with three stocks each).
+**Read the settings first**: `$TW_STOCK_INVESTING_DIR/config.json` (inside the vault; format under "config.json settings" in SKILL.md). If it does not exist, create it from the defaults and write it back. Take `capital_twd` (capital, default 500000) and `fixed_industries` (the fixed categories and their stocks). Ignore `disabled_fixed_industries`.
 
 **9 dynamic stocks**: for the 3 hot industries from step 1.2, search the web (for example 「Yahoo奇摩股市 {industry} 類股」 or 「{industry} 概念股 成交值排行」) for the top 3 stocks by trading value or market cap today. Record each symbol and name and mark it `source: dynamic`.
 
-**9 fixed stocks**: take `fixed_industries` from `config.json` as is (memory / electronic components / shipping, three each) and mark them `source: fixed`.
+**Fixed stocks**: take every category and stock in `fixed_industries` from `config.json` exactly as listed (however many there are) and mark them `source: fixed`. Never add categories that are not in that list.
 
-**Deduplicate**: merge the dynamic and fixed stocks and keep one entry per `symbol` (on a duplicate, keep the `dynamic` entry and note `also_fixed: true`), at most 18 stocks. Write them to:
+**Deduplicate**: merge the dynamic and fixed stocks and keep one entry per `symbol` (on a duplicate, keep the `dynamic` entry and note `also_fixed: true`). Write them to:
 
 ```
 state/selected_stocks.json
@@ -45,11 +45,11 @@ Format (names and reasons are in Chinese because they appear in the reports):
     {"name": "AI伺服器", "reason": "..."},
     {"name": "航運", "reason": "..."}
   ],
-  "fixed_industries": ["記憶體", "電子元件", "航海"],
+  "fixed_industries": ["ETF"],
   "stocks": [
     {"symbol": "2330", "name": "台積電", "industry": "半導體", "source": "dynamic"},
-    {"symbol": "2408", "name": "南亞科", "industry": "記憶體", "source": "fixed"},
-    ...at most 18 stocks after deduplication
+    {"symbol": "0050", "name": "元大台灣50", "industry": "ETF", "source": "fixed"},
+    ...every selected stock after deduplication
   ]
 }
 ```
@@ -57,10 +57,10 @@ Format (names and reasons are in Chinese because they appear in the reports):
 **Phases 2 and 3 read this file first on every run; never pick stocks again.**
 
 ### Step 1.4 — Fetch historical closes and compute the Bollinger baseline
-For these 9 stocks, use the TWSE STOCK_DAY endpoint in `references/data_sources.md` to fetch at least the last 20 trading days of closing prices. If the environment has the `data-context-extractor`, `explore-data` and `validate-data` skills, use them after fetching to understand the fields, explore the data and check for missing or abnormal values. Once the data is clean, feed it to `scripts/bollinger.py` to compute the current Bollinger Bands (20-day moving average ± 2 standard deviations) and where the current price sits (see "Working with other data-analysis skills" in SKILL.md).
+For these stocks, use the TWSE STOCK_DAY endpoint in `references/data_sources.md` to fetch at least the last 20 trading days of closing prices. If the environment has the `data-context-extractor`, `explore-data` and `validate-data` skills, use them after fetching to understand the fields, explore the data and check for missing or abnormal values. Once the data is clean, feed it to `scripts/bollinger.py` to compute the current Bollinger Bands (20-day moving average ± 2 standard deviations) and where the current price sits (see "Working with other data-analysis skills" in SKILL.md).
 
 ### Step 1.5 — Produce the pre-market report
-Call `scripts/build_report.py` (usage in the script's docstring) with the 9 stocks' data, the Bollinger results, the US market and news summary and the reasons for the industry picks. If the environment has the `create-viz` skill, you can use it to make better charts than the built-in matplotlib ones and embed those; otherwise the built-in charts are fine. The script:
+Call `scripts/build_report.py` (usage in the script's docstring) with the selected stocks' data, the Bollinger results, the US market and news summary and the reasons for the industry picks. If the environment has the `create-viz` skill, you can use it to make better charts than the built-in matplotlib ones and embed those; otherwise the built-in charts are fine. The script:
 - Writes `reports/0850_premarket.md`
 - Draws a price + Bollinger Band chart for each stock into `charts/`
 - Saves this run's signal states to `state/signals_state.json` (the first run has nothing to compare with, so no notification)
@@ -70,10 +70,10 @@ Call `scripts/build_report.py` (usage in the script's docstring) with the 9 stoc
 ## Phase 2: intraday updates (09:00–12:00, every 30 minutes)
 
 ### Step 2.1 — Read the selected stocks
-Read `state/selected_stocks.json` to get the 9 stocks. **Do not re-judge the hot industries or pick stocks again.**
+Read `state/selected_stocks.json` to get the selected stocks. **Do not re-judge the hot industries or pick stocks again.**
 
 ### Step 2.2 — Fetch real-time prices
-Use the TWSE real-time quote endpoint (`mis.twse.com.tw`) in `references/data_sources.md` to fetch each of the 9 stocks' current price, open, high and low once.
+Use the TWSE real-time quote endpoint (`mis.twse.com.tw`) in `references/data_sources.md` to fetch each selected stock's current price, open, high and low once.
 
 ### Step 2.3 — Recompute Bollinger positions
 Pass the latest prices to `scripts/bollinger.py` to get each stock's current band position (for example `below_lower` / `near_lower` / `within` / `near_upper` / `above_upper`).
@@ -102,7 +102,7 @@ If the environment has the `build-dashboard` skill, this step suits it well: mer
 
 ### Step 3.x — Write the daily overview after the close (required after the closing summary)
 Once the reports are in the vault, add the daily overview used for navigating in Obsidian (see "Obsidian format rules" in SKILL.md):
-- **The daily overview `Investing/Daily/{date}/台股日報 {date}.md`** (dated file name, not README): frontmatter (`tags: [investing, daily-stock]`, `date`); content = a one-sentence summary (on a line labeled `**一句話總結**：`), a table of the 15 stocks' changes and closing band positions, the day's signal trail (premarket → update → close), wikilinks to each report such as `[[0850_premarket]]` and `[[summary_close]]`, and the disclaimer at the end.
+- **The daily overview `Investing/Daily/{date}/台股日報 {date}.md`** (dated file name, not README): frontmatter (`tags: [investing, daily-stock]`, `date`); content = a one-sentence summary (on a line labeled `**一句話總結**：`), a table of every tracked stock's change and closing band positions, the day's signal trail (premarket → update → close), wikilinks to each report such as `[[0850_premarket]]` and `[[summary_close]]`, and the disclaimer at the end.
 
 Do not write an index page. When the closing summary and the daily overview are done, tell the user they can run the `tw-stock-vault-sync` skill (for example 「同步今天的台股資料」) to update the vault's Investing pages (per-stock and per-industry history and `Investing.md`).
 
@@ -121,7 +121,7 @@ The report itself is in Traditional Chinese:
 ## 今日熱門產業與選股邏輯
 （3 個產業＋判斷依據 — 只有開盤前報告需要完整寫）
 
-## 9 檔股票技術面追蹤
+## 個股技術面追蹤
 
 ### {代號} {名稱}（{產業}）
 - 目前價格：xxx（漲跌 x.xx%）
@@ -130,7 +130,7 @@ The report itself is in Traditional Chinese:
 - ⚠️ 訊號變化（如果有）：從 {舊狀態} 變成 {新狀態}
 - 圖表：![](../charts/{代號}_bollinger.png)
 
-（9 檔重複上面格式）
+（每檔重複上面格式）
 
 ## 免責聲明
 （照抄 SKILL.md 裡的免責聲明文字）

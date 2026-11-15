@@ -1,6 +1,6 @@
 ---
 name: tw-stock-daily-tracker
-description: Tracks Taiwan stocks on trading days before the open, during the session (every 30 minutes from 9:00 to 12:00) and before the close. Collects the previous night's US market moves and world news, picks the three industries with the most news attention and their top three stocks by trading value or market cap (9 dynamic picks), adds the top three stocks of three fixed industries (memory, electronic components, shipping), runs Bollinger Band analysis on up to 18 stocks, and writes text and chart reports in Obsidian format into the vault's Investing/Daily/ folder, with a beginner-friendly closing summary. Reports are in Traditional Chinese. Use when the user asks for a Taiwan stock morning briefing, intraday tracking, Bollinger Band screening, today's hot industries or a pre-close analysis (for example 「台股晨間簡報」「台股盤中追蹤」「布林通道選股」「今日熱門產業分析」「台股收盤前分析」), or wants scheduled runs on trading days. Output is educational and not investment advice.
+description: Tracks Taiwan stocks on trading days before the open, during the session (every 30 minutes from 9:00 to 12:00) and before the close. Collects the previous night's US market moves and world news, picks the three industries with the most news attention and their top three stocks by trading value or market cap (9 dynamic picks), adds the fixed categories listed in config.json, runs Bollinger Band analysis on all of them, and writes text and chart reports in Obsidian format into the vault's Investing/Daily/ folder, with a beginner-friendly closing summary. Reports are in Traditional Chinese. Use when the user asks for a Taiwan stock morning briefing, intraday tracking, Bollinger Band screening, today's hot industries or a pre-close analysis (for example 「台股晨間簡報」「台股盤中追蹤」「布林通道選股」「今日熱門產業分析」「台股收盤前分析」), or wants scheduled runs on trading days. Output is educational and not investment advice.
 compatibility: Requires Python 3, network access (TWSE and news sources) and the TW_STOCK_INVESTING_DIR environment variable pointing at the Investing folder of an Obsidian vault. Scheduling supports macOS launchd only.
 metadata:
   web: "false"
@@ -16,7 +16,7 @@ A three-phase technical tracking workflow for Taiwan stocks: **pre-market briefi
    - **Explaining for beginners is not advice.** The closing summary helps beginners understand what a signal means and how technical analysis usually reads it, but it **must not** conclude for the user whether to buy, sell or whether a stock is suitable.
    - **The capital field is only for neutral affordability math, never for allocation advice.** You may show plain arithmetic such as "one lot is 1,000 shares, one lot of this stock costs about X at the current price, the configured capital buys about N lots". **Never** write position or allocation recommendations such as "split the 500,000 like this" or "buy X lots of this and Y lots of that". If the user asks for buy/sell calls or allocation, explain that neither this skill nor Claude gives personalized investment advice, and suggest they decide themselves or consult a licensed advisor.
 2. **Attach the disclaimer at the end of every report** (see "Disclaimer" below), word for word.
-3. **Pick the day's stocks only once, before the open**: 9 dynamic stocks (3 hot industries × 3) plus 9 fixed stocks (memory / electronic components / shipping × 3), at most 18 after removing duplicates. Every later intraday or pre-close update reuses the same list (unless the user asks to change it) so the analysis stays consistent.
+3. **Pick the day's stocks only once, before the open**: 9 dynamic stocks (3 hot industries × 3) plus every stock in `fixed_industries` of `config.json`, after removing duplicates. Every later intraday or pre-close update reuses the same list (unless the user asks to change it) so the analysis stays consistent.
 4. **This is not real-time monitoring.** Each run is a single scheduled snapshot; comparing it with the previous run's signals simulates "live updates" and "notify on signal change". Tell the user about this limitation honestly and never imply second-by-second monitoring.
 5. Before running, confirm today is a **Taiwan stock trading day** (Monday to Friday, not a national holiday or typhoon day). If unsure, check with a web search. On a non-trading day, skip and write one log line.
 6. **Write every output in Traditional Chinese.** These instructions are in English, but everything the skill writes into the vault or shows the user (reports, the daily overview, macOS notifications) stays in Traditional Chinese, and the disclaimer below is copied in Chinese exactly as written.
@@ -30,20 +30,20 @@ The detailed steps are in `references/workflow.md`. **Read that file before ever
 - Use web search to collect world news that affects Taiwan stocks (Fed moves, geopolitics, supply-chain news and so on)
 - Decide the **3 industries** with the most news attention today (judge by news volume and discussion; the user does not need to name them)
 - For each hot industry, pick the **top 3** stocks by trading value or market cap, giving **9 dynamic stocks**
-- **Also add the top 3 stocks of 3 fixed industries (9 fixed stocks)**: memory, electronic components and shipping. These lists live in `fixed_industries` in `config.json` (the user can edit them); the defaults are under "config.json settings" below
-- **Remove duplicates** between the dynamic 9 and the fixed 9 (a stock picked dynamically that is also on a fixed list counts once), save the result to the day's state file `state/selected_stocks.json` (reused by later phases), and mark each stock `source: dynamic | fixed`
+- **Also add the fixed stocks**: every category and stock in `fixed_industries` of `config.json`, exactly as listed there — no more and no less. The user decides which categories are fixed; never add a category that is not in that list (see "config.json settings" below)
+- **Remove duplicates** between the dynamic and the fixed stocks (a stock picked dynamically that is also on a fixed list counts once), save the result to the day's state file `state/selected_stocks.json` (reused by later phases), and mark each stock `source: dynamic | fixed`
 - Fetch recent closing prices for these stocks (at least 20 trading days) to compute the Bollinger Band baseline
 - Produce the pre-market briefing report
 
 ### Phase 2: intraday updates (suggested schedule: every 30 minutes from 09:00 to 12:00)
-- Read the 9 stocks chosen in phase 1 (do not pick again)
-- Fetch the latest or real-time price for these 9 stocks
+- Read the stocks chosen in phase 1 (do not pick again)
+- Fetch the latest or real-time price for these stocks
 - Recompute Bollinger Band positions with `scripts/bollinger.py`
 - Compare with the previous signals: when a stock's position changes (for example from "inside the band" to "touching the lower band"), highlight it and trigger a local notification (a macOS `osascript` notification)
 - Update the day's report file
 
 ### Phase 3: pre-close sell-zone tracking (suggested schedule: every 30 minutes from 12:30 to 13:25; the Taiwan market closes at 13:30)
-- Read the same 9 stocks, fetch the latest prices and recompute the Bollinger Bands
+- Read the same stocks, fetch the latest prices and recompute the Bollinger Bands
 - For each stock, describe from its Bollinger position which zone it leans toward technically and how similar positions are usually read, **not** a precise prediction of when to sell
 - Compare with the previous run; highlight signal changes and trigger a notification
 - After the close (the first run after 13:30), write the day's summary report for **stock-market beginners** (see "Closing summary for beginners" below)
@@ -63,7 +63,7 @@ Every report is written **in Obsidian format** under the vault's `Investing/Dail
 
 ```
 $TW_STOCK_INVESTING_DIR/
-├── config.json                       ← settings shared across days (capital, fixed industries)
+├── config.json                       ← settings shared across days (capital, fixed categories)
 ├── Investing.md                      ← vault overview, kept up to date by the tw-stock-vault-sync skill (this skill does not write it)
 └── Daily/{YYYY-MM-DD}/
     ├── 台股日報 {YYYY-MM-DD}.md        ← daily overview written by Claude after the closing summary (see below; the date in the file name makes it easy to spot in Obsidian)
@@ -83,7 +83,7 @@ Missing folders are created automatically (`mkdir -p`). `build_report.py` derive
 - **Every report starts with YAML frontmatter**: `tags: [investing, daily-stock, {phase}]`, `date`, `phase`, `time`, `source: tw-stock-daily-tracker`. (`build_report.py` adds it automatically; add it yourself to any extra note you write by hand.)
 - Start reports with an **Obsidian wikilink** to related notes, such as `> 投資總覽見 [[Investing]]。`
 - Embed charts with the relative path `![](../charts/{symbol}_bollinger.png)` (`build_report.py` does this).
-- **After the closing summary, write or update the daily overview `台股日報 {YYYY-MM-DD}.md`** in that day's folder. **Use the dated file name, not a generic name like README that is unreadable in Obsidian's file list or graph.** Include frontmatter, a one-sentence summary, a table of the 15 stocks' changes and closing band positions, the day's signal trail (premarket → update → close), wikilinks to each report such as `[[0850_premarket]]` and `[[summary_close]]`, and the disclaimer at the end. Put the one-sentence summary on a line labeled `**一句話總結**：` so other tools can find it. This skill does not update any index page: when the day is done, tell the user they can run the `tw-stock-vault-sync` skill (for example 「同步今天的台股資料」) to update the vault's Investing pages.
+- **After the closing summary, write or update the daily overview `台股日報 {YYYY-MM-DD}.md`** in that day's folder. **Use the dated file name, not a generic name like README that is unreadable in Obsidian's file list or graph.** Include frontmatter, a one-sentence summary, a table of every tracked stock's change and closing band positions, the day's signal trail (premarket → update → close), wikilinks to each report such as `[[0850_premarket]]` and `[[summary_close]]`, and the disclaimer at the end. Put the one-sentence summary on a line labeled `**一句話總結**：` so other tools can find it. This skill does not update any index page: when the day is done, tell the user they can run the `tw-stock-vault-sync` skill (for example 「同步今天的台股資料」) to update the vault's Investing pages.
 
 ## Bollinger Band calculation and report generation
 
@@ -119,7 +119,7 @@ After setting this skill up for the user, `references/cron_setup.md` has launchd
 
 Path: `$TW_STOCK_INVESTING_DIR/config.json` (inside the vault, shared across days, not one per day).
 
-**Read this file at the start of every run.** If it is missing or lacks fields, use the defaults below and write the completed defaults back so the user can edit them later.
+**Read this file at the start of every run.** Only when the file does not exist, or has no `fixed_industries` key at all, use the defaults below and write them back so the user can edit them later. A `fixed_industries` list that differs from the defaults (fewer categories, other categories, even an empty list) is the user's choice: use it as is and never restore the defaults.
 
 ```json
 {
@@ -135,7 +135,9 @@ Path: `$TW_STOCK_INVESTING_DIR/config.json` (inside the vault, shared across day
 The industry and company names above are written into the user's vault and appear in the Chinese reports, so they stay in Chinese (memory: Nanya Technology, Winbond, Phison; electronic components: Yageo, Delta Electronics, Walsin Technology; shipping: Evergreen Marine, Yang Ming, Wan Hai).
 
 - `capital_twd`: **capital for buying (editable)**, in New Taiwan dollars. Use the default **500000** if the user has not changed it. It is used only for the **neutral affordability math** in the reports' capital section (see below) and **must not** produce any buy, sell or allocation advice.
-- `fixed_industries`: the three fixed industries and their stock lists; the user can add, remove or swap stocks.
+- `fixed_industries`: the fixed categories (industries, ETFs and so on) and their stocks, tracked every trading day; the user can add, remove or swap categories and stocks.
+- `disabled_fixed_industries` (optional): categories the user has paused. **Ignore it completely**: do not track, report or chart these stocks unless one is picked as a dynamic stock that day. The user moves a category back into `fixed_industries` to resume it.
+- `industry_aliases` (optional): name mapping used by the `tw-stock-vault-sync` skill; this skill does not need it.
 
 ## Closing summary for beginners (`close_summary`)
 
